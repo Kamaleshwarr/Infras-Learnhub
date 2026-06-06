@@ -57,6 +57,20 @@ class LeaderboardMethodSecurityTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void adminCanViewGlobalAndInitiativeLeaderboards() {
+        PageRequest pageable = PageRequest.of(0, 20);
+        UUID initiativeId = UUID.randomUUID();
+        when(leaderboardQueryRepository.findGlobalLeaderboard(pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+        when(leaderboardQueryRepository.findInitiativeLeaderboard(initiativeId, pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        assertThat(leaderboardService.getGlobalLeaderboard(pageable).getTotalElements()).isZero();
+        assertThat(leaderboardService.getInitiativeLeaderboard(initiativeId, pageable).getTotalElements()).isZero();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void adminCanViewPersonalRanking() {
         User admin = user(RoleName.ADMIN);
         when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
@@ -67,6 +81,20 @@ class LeaderboardMethodSecurityTest {
         assertThat(leaderboardService.getPersonalRanking(AuthenticatedUser.from(admin)).totalApprovedCertifications())
                 .isZero();
     }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void employeeCanViewPersonalRanking() {
+        User employee = user(RoleName.EMPLOYEE);
+        when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        when(leaderboardQueryRepository.findGlobalRankingForEmployee(employee.getId())).thenReturn(null);
+        when(leaderboardQueryRepository.findRecentApprovalsForEmployee(eq(employee.getId()), any()))
+                .thenReturn(List.of());
+
+        assertThat(leaderboardService.getPersonalRanking(AuthenticatedUser.from(employee)).totalApprovedCertifications())
+                .isZero();
+    }
+
 
     @Test
     void unauthenticatedCallIsDenied() {
