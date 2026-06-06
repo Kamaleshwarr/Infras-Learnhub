@@ -130,9 +130,52 @@ class StudyMaterialServiceTest {
     }
 
     @Test
+    void updateFolderRejectsMovingFolderUnderDescendant() {
+        StudyMaterialFolder child = folder("Anthropic", rootFolder, admin);
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(folderRepository.findById(child.getId())).thenReturn(Optional.of(child));
+
+        assertThatThrownBy(() -> studyMaterialService.updateFolder(
+                rootFolder.getId(),
+                new UpdateFolderRequest("AI Certifications", null, child.getId())
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Folder cannot be moved under its descendant");
+    }
+
+    @Test
+    void listFoldersSupportsNestedFolderBrowsingAndSortTranslation() {
+        StudyMaterialFolder child = folder("Anthropic", rootFolder, admin);
+        PageRequest pageable = PageRequest.of(1, 10, Sort.by(Sort.Order.desc("createdAtUtc")));
+        when(folderRepository.findByParentId(eq(rootFolder.getId()), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(child), invocation.getArgument(1), 1));
+
+        studyMaterialService.listFolders(rootFolder.getId(), pageable);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(folderRepository).findByParentId(eq(rootFolder.getId()), pageableCaptor.capture());
+        assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(1);
+        assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(10);
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("createdAt")).isNotNull();
+    }
+
+    @Test
     void deleteFolderRequiresEmptyFolder() {
         when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
         when(folderRepository.existsByParentId(rootFolder.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> studyMaterialService.deleteFolder(rootFolder.getId()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Folder must be empty before deletion");
+
+        verify(folderRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteFolderRejectsFolderContainingMaterials() {
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(folderRepository.existsByParentId(rootFolder.getId())).thenReturn(false);
+        when(materialRepository.existsByFolderId(rootFolder.getId())).thenReturn(true);
 
         assertThatThrownBy(() -> studyMaterialService.deleteFolder(rootFolder.getId()))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -200,6 +243,43 @@ class StudyMaterialServiceTest {
     }
 
     @Test
+    void uploadFileMaterialRejectsEmptyFile() {
+        MockMultipartFile empty = new MockMultipartFile("file", "guide.pdf", "application/pdf", new byte[0]);
+
+        assertThatThrownBy(() -> studyMaterialService.uploadFileMaterial(
+                null,
+                "Guide",
+                null,
+                MaterialType.PDF,
+                empty,
+                adminPrincipal
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Study material file is required");
+
+        verify(storageService, never()).store(any());
+    }
+
+    @Test
+    void uploadFileMaterialRejectsInvalidFolderBeforeStoringFile() {
+        UUID missingFolderId = UUID.randomUUID();
+        when(folderRepository.findById(missingFolderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> studyMaterialService.uploadFileMaterial(
+                missingFolderId,
+                "Guide",
+                null,
+                MaterialType.PDF,
+                pdfFile(),
+                adminPrincipal
+        ))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Study material folder was not found");
+
+        verify(storageService, never()).store(any());
+    }
+
+    @Test
     void uploadFileMaterialDeletesStoredFileIfPersistenceFails() {
         MockMultipartFile file = pdfFile();
         StoredFile storedFile = new StoredFile("LOCAL", "study-materials/orphan.pdf", "guide.pdf", "application/pdf", file.getSize());
@@ -236,6 +316,21 @@ class StudyMaterialServiceTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("External URL must start with http:// or https://");
+    }
+
+    @Test
+    void createLinkMaterialRejectsInvalidFolder() {
+        UUID missingFolderId = UUID.randomUUID();
+        when(folderRepository.findById(missingFolderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> studyMaterialService.createLinkMaterial(
+                new CreateLinkMaterialRequest(missingFolderId, "Docs", null, MaterialType.EXTERNAL_LINK, "https://example.com"),
+                adminPrincipal
+        ))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Study material folder was not found");
+
+        verify(materialRepository, never()).save(any());
     }
 
     @Test
@@ -294,10 +389,11 @@ class StudyMaterialServiceTest {
         when(storageService.loadAsResource(material.getStorageKey())).thenReturn(new ByteArrayResource("content".getBytes()));
 
         studyMaterialService.downloadFileMaterial(material.getId(), adminPrincipal);
+        studyMaterialService.downloadFileMaterial(material.getId(), adminPrincipal);
 
-        assertThat(material.getDownloadCount()).isEqualTo(1);
-        verify(downloadEventRepository).save(any(StudyMaterialDownloadEvent.class));
-        verify(storageService).loadAsResource(material.getStorageKey());
+        assertThat(material.getDownloadCount()).isEqualTo(2);
+        verify(downloadEventRepository, org.mockito.Mockito.times(2)).save(any(StudyMaterialDownloadEvent.class));
+        verify(storageService, org.mockito.Mockito.times(2)).loadAsResource(material.getStorageKey());
     }
 
     @Test
@@ -307,10 +403,12 @@ class StudyMaterialServiceTest {
         when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
 
         LinkDownloadResponse response = studyMaterialService.accessLinkMaterial(material.getId(), adminPrincipal);
+        LinkDownloadResponse secondResponse = studyMaterialService.accessLinkMaterial(material.getId(), adminPrincipal);
 
         assertThat(response.externalUrl()).isEqualTo(material.getExternalUrl());
         assertThat(response.downloadCount()).isEqualTo(1);
-        verify(downloadEventRepository).save(any(StudyMaterialDownloadEvent.class));
+        assertThat(secondResponse.downloadCount()).isEqualTo(2);
+        verify(downloadEventRepository, org.mockito.Mockito.times(2)).save(any(StudyMaterialDownloadEvent.class));
     }
 
     @Test

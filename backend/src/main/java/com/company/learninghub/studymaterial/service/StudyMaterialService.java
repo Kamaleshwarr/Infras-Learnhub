@@ -100,6 +100,7 @@ public class StudyMaterialService {
         }
         StudyMaterialFolder folder = findFolder(folderId);
         StudyMaterialFolder parent = resolveFolder(request.parentId());
+        ensureNotDescendant(folderId, parent);
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(name, request.parentId(), folderId);
         folder.updateDetails(name, normalizeOptional(request.description()), parent);
@@ -278,6 +279,16 @@ public class StudyMaterialService {
     private void ensureUniqueFolderName(String name, UUID parentId, UUID excludeId) {
         if (folderRepository.existsSiblingWithName(name, parentId, excludeId)) {
             throw new IllegalArgumentException("A folder with this name already exists at this level");
+        }
+    }
+
+    private void ensureNotDescendant(UUID folderId, StudyMaterialFolder proposedParent) {
+        StudyMaterialFolder current = proposedParent;
+        while (current != null) {
+            if (folderId.equals(current.getId())) {
+                throw new IllegalArgumentException("Folder cannot be moved under its descendant");
+            }
+            current = current.getParent();
         }
     }
 
