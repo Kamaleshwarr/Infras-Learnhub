@@ -3,7 +3,7 @@
 Enterprise-grade internal web application for managing learning initiatives, certification programs,
 study materials, project knowledge, KT documents, and leaderboards.
 
-This repository currently contains the Phase 1 backend foundation.
+This repository currently contains backend features through Phase 4.
 
 ## Backend
 
@@ -77,7 +77,7 @@ secret in shared or production environments.
 
 ## Project Status
 
-### Version 0.3.0
+### Version 0.4.0
 
 Completed Features
 
@@ -111,15 +111,18 @@ Completed Features
 * Validation
 * Security Controls
 
-### Upcoming Roadmap
-
-#### Phase 4 - Leaderboard 🚀
+#### Phase 4 - Leaderboard ✅
 
 * Initiative Leaderboard
 * Global Leaderboard
 * Personal Ranking
+* Approved Submission Ranking
+* Deterministic Tie Breakers
+* Personal Ranking Summary
 
-#### Phase 5 - Study Material Repository
+### Upcoming Roadmap
+
+#### Phase 5 - Study Material Repository 🚀
 
 #### Phase 6 - Project Knowledge Repository
 
