@@ -275,6 +275,17 @@ class ProjectKnowledgeServiceTest {
     }
 
     @Test
+    void nonAdminSearchCannotIncludeArchivedProjects() {
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(projectRepository.search(eq(null), eq(null), eq(false), eq(owner.getId()), eq(false), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(5), 0));
+
+        service.searchProjects(null, null, true, pageable, ownerPrincipal);
+
+        verify(projectRepository).search(eq(null), eq(null), eq(false), eq(owner.getId()), eq(false), any(Pageable.class));
+    }
+
+    @Test
     void downloadFileTracksAccessAndLoadsResource() {
         ProjectKnowledgeItem item = fileItem(project, rootFolder, owner);
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));

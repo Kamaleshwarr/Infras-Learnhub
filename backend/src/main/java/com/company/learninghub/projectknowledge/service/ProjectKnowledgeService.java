@@ -127,12 +127,13 @@ public class ProjectKnowledgeService {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
     public Page<ProjectResponse> searchProjects(String search, ProjectAccessType accessType, boolean includeArchived, Pageable pageable, AuthenticatedUser principal) {
+        boolean admin = isAdmin(principal);
         return projectRepository.search(
                         normalizeSearch(search),
                         accessType,
-                        includeArchived,
+                        admin && includeArchived,
                         principal.getId(),
-                        isAdmin(principal),
+                        admin,
                         normalizeProjectPageable(pageable)
                 )
                 .map(mapper::toProjectResponse);
