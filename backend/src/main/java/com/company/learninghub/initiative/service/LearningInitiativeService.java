@@ -12,6 +12,7 @@ import com.company.learninghub.initiative.repository.LearningInitiativeRepositor
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +32,7 @@ public class LearningInitiativeService {
     private final LearningInitiativeMapper initiativeMapper;
     private final Clock clock;
 
+    @Autowired
     public LearningInitiativeService(
             LearningInitiativeRepository initiativeRepository,
             UserRepository userRepository,
