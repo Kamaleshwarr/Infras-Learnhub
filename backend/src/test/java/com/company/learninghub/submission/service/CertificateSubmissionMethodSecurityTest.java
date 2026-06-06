@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -55,12 +56,24 @@ class CertificateSubmissionMethodSecurityTest {
 
         assertThatThrownBy(() -> submissionService.approve(UUID.randomUUID(), principal(RoleName.EMPLOYEE)))
                 .isInstanceOf(AccessDeniedException.class);
+
+        assertThatThrownBy(() -> submissionService.reject(UUID.randomUUID(), "reason", principal(RoleName.EMPLOYEE)))
+                .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void adminCannotUseEmployeeOwnListEndpoint() {
+    void adminCannotUseEmployeeOnlyEndpoints() {
         assertThatThrownBy(() -> submissionService.listOwn(null, null, PageRequest.of(0, 20), principal(RoleName.ADMIN)))
+                .isInstanceOf(AccessDeniedException.class);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "certificateFile",
+                "certificate.pdf",
+                "application/pdf",
+                "certificate".getBytes()
+        );
+        assertThatThrownBy(() -> submissionService.submit(UUID.randomUUID(), file, null, principal(RoleName.ADMIN)))
                 .isInstanceOf(AccessDeniedException.class);
     }
 

@@ -155,6 +155,19 @@ class CertificateSubmissionServiceTest {
     }
 
     @Test
+    void submitRejectsDraftInitiativeWithoutStoringFile() {
+        LearningInitiative draft = initiative("Draft", InitiativeStatus.DRAFT, NOW.minusSeconds(3600), NOW.plusSeconds(3600));
+        when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        when(initiativeRepository.findById(draft.getId())).thenReturn(Optional.of(draft));
+
+        assertThatThrownBy(() -> submissionService.submit(draft.getId(), certificateFile(), null, employeePrincipal))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Learning initiative was not found");
+
+        verify(fileStorageService, never()).store(any());
+    }
+
+    @Test
     void submitRejectsDuplicateSubmission() {
         when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(initiativeRepository.findById(initiative.getId())).thenReturn(Optional.of(initiative));
@@ -165,6 +178,42 @@ class CertificateSubmissionServiceTest {
                 .hasMessage("A certificate submission already exists for this initiative");
 
         verify(fileStorageService, never()).store(any());
+    }
+
+    @Test
+    void submitDeletesStoredFileWhenDocumentPersistenceFails() {
+        MockMultipartFile file = certificateFile();
+        StoredFile storedFile = new StoredFile("LOCAL", "certificates/orphan.pdf", "certificate.pdf", "application/pdf", file.getSize());
+        when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        when(initiativeRepository.findById(initiative.getId())).thenReturn(Optional.of(initiative));
+        when(submissionRepository.existsByEmployeeIdAndInitiativeId(employee.getId(), initiative.getId())).thenReturn(false);
+        when(fileStorageService.store(file)).thenReturn(storedFile);
+        when(documentRepository.save(any(CertificateDocument.class))).thenThrow(new IllegalStateException("database unavailable"));
+
+        assertThatThrownBy(() -> submissionService.submit(initiative.getId(), file, null, employeePrincipal))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("database unavailable");
+
+        verify(fileStorageService).deleteQuietly("certificates/orphan.pdf");
+    }
+
+    @Test
+    void submitDeletesStoredFileWhenSubmissionPersistenceFails() {
+        MockMultipartFile file = certificateFile();
+        StoredFile storedFile = new StoredFile("LOCAL", "certificates/orphan.pdf", "certificate.pdf", "application/pdf", file.getSize());
+        CertificateDocument document = document(storedFile, employee);
+        when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        when(initiativeRepository.findById(initiative.getId())).thenReturn(Optional.of(initiative));
+        when(submissionRepository.existsByEmployeeIdAndInitiativeId(employee.getId(), initiative.getId())).thenReturn(false);
+        when(fileStorageService.store(file)).thenReturn(storedFile);
+        when(documentRepository.save(any(CertificateDocument.class))).thenReturn(document);
+        when(submissionRepository.save(any(CertificateSubmission.class))).thenThrow(new IllegalStateException("database unavailable"));
+
+        assertThatThrownBy(() -> submissionService.submit(initiative.getId(), file, null, employeePrincipal))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("database unavailable");
+
+        verify(fileStorageService).deleteQuietly("certificates/orphan.pdf");
     }
 
     @Test
@@ -234,6 +283,34 @@ class CertificateSubmissionServiceTest {
     }
 
     @Test
+    void listAllTranslatesAdminSortProperties() {
+        PageRequest pageable = PageRequest.of(
+                2,
+                10,
+                Sort.by(
+                        Sort.Order.asc("employeeId"),
+                        Sort.Order.desc("initiativeId"),
+                        Sort.Order.asc("certificateDocumentId"),
+                        Sort.Order.desc("updatedAtUtc")
+                )
+        );
+        CertificateSubmission submission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
+        when(submissionRepository.findForAdmin(eq(null), eq(null), eq(null), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(submission), invocation.getArgument(3), 1));
+
+        submissionService.listAll(null, null, null, pageable);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(submissionRepository).findForAdmin(eq(null), eq(null), eq(null), pageableCaptor.capture());
+        assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(2);
+        assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(10);
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("employee.employeeId")).isNotNull();
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("initiative.id")).isNotNull();
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("certificateDocument.id")).isNotNull();
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("updatedAt")).isNotNull();
+    }
+
+    @Test
     void approveSubmittedSubmissionSetsReviewerAndReviewTimestamp() {
         CertificateSubmission submission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
         when(submissionRepository.findById(submission.getId())).thenReturn(Optional.of(submission));
@@ -250,6 +327,7 @@ class CertificateSubmissionServiceTest {
     @Test
     void rejectSubmittedSubmissionRequiresReasonAndSetsReviewMetadata() {
         CertificateSubmission submission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
+        UUID certificateDocumentId = submission.getCertificateDocument().getId();
         when(submissionRepository.findById(submission.getId())).thenReturn(Optional.of(submission));
         when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
 
@@ -259,6 +337,8 @@ class CertificateSubmissionServiceTest {
         assertThat(response.reviewedAtUtc()).isEqualTo(NOW);
         assertThat(response.reviewedBy().id()).isEqualTo(admin.getId());
         assertThat(response.rejectionReason()).isEqualTo("Name mismatch");
+        assertThat(response.certificateDocumentId()).isEqualTo(certificateDocumentId);
+        assertThat(response.certificateDocument().id()).isEqualTo(certificateDocumentId);
 
         CertificateSubmission anotherSubmission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
         assertThatThrownBy(() -> submissionService.reject(anotherSubmission.getId(), " ", adminPrincipal))
