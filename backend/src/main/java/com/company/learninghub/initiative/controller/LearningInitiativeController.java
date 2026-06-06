@@ -99,10 +99,10 @@ public class LearningInitiativeController {
             @RequestParam(required = false) InitiativeStatus status,
             @RequestParam(required = false) String search,
             @Parameter(
-                    description = "Pagination and sorting. Supported sort fields include title, status, startDateUtc, expiryDateUtc, createdAt, and updatedAt."
+                    description = "Pagination and sorting. Supported sort fields include title, status, startDateUtc, expiryDateUtc, createdAtUtc, and updatedAtUtc."
             )
             @ParameterObject
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(size = 20, sort = "createdAtUtc", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
         return ResponseEntity.ok(PageResponse.from(

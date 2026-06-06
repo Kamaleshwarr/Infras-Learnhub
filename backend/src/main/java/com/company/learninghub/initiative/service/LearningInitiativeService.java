@@ -14,7 +14,9 @@ import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,9 +115,10 @@ public class LearningInitiativeService {
             AuthenticatedUser authenticatedUser
     ) {
         String normalizedSearch = normalizeSearch(search);
+        Pageable repositoryPageable = normalizePageable(pageable);
         Page<LearningInitiative> initiatives = isAdmin(authenticatedUser)
-                ? initiativeRepository.findForAdmin(status, normalizedSearch, pageable)
-                : initiativeRepository.findActiveForEmployee(normalizedSearch, Instant.now(clock), pageable);
+                ? initiativeRepository.findForAdmin(status, normalizedSearch, repositoryPageable)
+                : initiativeRepository.findActiveForEmployee(normalizedSearch, Instant.now(clock), repositoryPageable);
 
         return initiatives.map(initiativeMapper::toResponse);
     }
@@ -134,6 +137,30 @@ public class LearningInitiativeService {
             return null;
         }
         return search.trim();
+    }
+
+    private Pageable normalizePageable(Pageable pageable) {
+        if (pageable.isUnpaged()) {
+            return pageable;
+        }
+
+        Sort sort = Sort.by(pageable.getSort().stream()
+                .map(this::toRepositorySortOrder)
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+
+    private Sort.Order toRepositorySortOrder(Sort.Order order) {
+        String property = switch (order.getProperty()) {
+            case "id", "title", "status", "startDateUtc", "expiryDateUtc", "createdAt", "updatedAt" ->
+                    order.getProperty();
+            case "createdAtUtc" -> "createdAt";
+            case "updatedAtUtc" -> "updatedAt";
+            default -> throw new IllegalArgumentException("Unsupported sort property: " + order.getProperty());
+        };
+
+        Sort.Order translated = new Sort.Order(order.getDirection(), property, order.getNullHandling());
+        return order.isIgnoreCase() ? translated.ignoreCase() : translated;
     }
 }
 
