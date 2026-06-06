@@ -95,10 +95,10 @@ public class StudyMaterialService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public StudyMaterialFolderResponse updateFolder(UUID folderId, UpdateFolderRequest request) {
-        StudyMaterialFolder folder = findFolder(folderId);
         if (folderId.equals(request.parentId())) {
             throw new IllegalArgumentException("Folder cannot be its own parent");
         }
+        StudyMaterialFolder folder = findFolder(folderId);
         StudyMaterialFolder parent = resolveFolder(request.parentId());
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(name, request.parentId(), folderId);
@@ -165,6 +165,7 @@ public class StudyMaterialService {
     @Transactional
     public StudyMaterialResponse createLinkMaterial(CreateLinkMaterialRequest request, AuthenticatedUser authenticatedUser) {
         validateLinkMaterialType(request.materialType());
+        String externalUrl = normalizeUrl(request.externalUrl());
         StudyMaterialFolder folder = resolveFolder(request.folderId());
         User uploadedBy = findUser(authenticatedUser.getId());
         StudyMaterial material = StudyMaterial.linkMaterial(
@@ -172,7 +173,7 @@ public class StudyMaterialService {
                 normalizeRequired(request.title(), "Material title is required"),
                 normalizeOptional(request.description()),
                 request.materialType(),
-                normalizeUrl(request.externalUrl()),
+                externalUrl,
                 uploadedBy
         );
         return mapper.toMaterialResponse(materialRepository.save(material));
