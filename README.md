@@ -35,6 +35,35 @@ Swagger UI:
 http://localhost:8080/swagger-ui.html
 ```
 
+### Default bootstrap login credentials
+
+These accounts are seeded by Flyway for local validation and bootstrap access. Change or remove
+them before using a shared or production environment.
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@learninghub.local` | `Admin@12345` |
+| Employee | `employee@learninghub.local` | `Employee@12345` |
+
+### Test authentication APIs
+
+Login:
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@learninghub.local","password":"Admin@12345"}'
+```
+
+Use the returned `accessToken` to call the authenticated user endpoint:
+
+```bash
+TOKEN="<accessToken-from-login-response>"
+
+curl -s http://localhost:8080/api/v1/auth/me \
+  -H "Authorization: Bearer ${TOKEN}"
+```
+
 ### Run backend tests
 
 ```bash
