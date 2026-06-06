@@ -74,3 +74,57 @@ mvn -f backend/pom.xml test
 
 The default JWT secret is only for local development. Set `JWT_SECRET` to a strong Base64-encoded
 secret in shared or production environments.
+
+## Project Status
+
+### Version 0.3.0
+
+Completed Features
+
+#### Phase 1 - Backend Foundation ✅
+
+* Spring Boot 3
+* Java 21
+* PostgreSQL
+* Flyway
+* JWT Authentication
+* Spring Security
+* Swagger/OpenAPI
+* Docker & Docker Compose
+* Health Endpoint
+
+#### Phase 2 - Learning Initiatives ✅
+
+* Create Initiative
+* Update Initiative
+* Delete Initiative
+* Search Initiatives
+* Pagination & Sorting
+* Role-based Access Control
+
+#### Phase 3 - Certificate Submission ✅
+
+* Certificate Upload
+* Submission Workflow
+* Approval/Rejection Workflow
+* File Storage
+* Validation
+* Security Controls
+
+### Upcoming Roadmap
+
+#### Phase 4 - Leaderboard 🚀
+
+* Initiative Leaderboard
+* Global Leaderboard
+* Personal Ranking
+
+#### Phase 5 - Study Material Repository
+
+#### Phase 6 - Project Knowledge Repository
+
+#### Phase 7 - Notifications
+
+#### Phase 8 - Global Search
+
+#### Phase 9 - AI Features
