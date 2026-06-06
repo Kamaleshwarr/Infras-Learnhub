@@ -18,8 +18,8 @@ export interface NavigationItem {
 export const navigationItems: NavigationItem[] = [
   { label: 'Dashboard', path: '/', icon: DashboardOutlinedIcon },
   { label: 'Initiatives', path: '/initiatives', icon: SchoolOutlinedIcon },
-  { label: 'Submit Certificate', path: '/submissions/new', icon: UploadFileOutlinedIcon },
-  { label: 'My Submissions', path: '/submissions', icon: LibraryBooksOutlinedIcon },
+  { label: 'Submit Certificate', path: '/submissions/new', icon: UploadFileOutlinedIcon, roles: ['EMPLOYEE'] },
+  { label: 'My Submissions', path: '/submissions', icon: LibraryBooksOutlinedIcon, roles: ['EMPLOYEE'] },
   { label: 'Leaderboards', path: '/leaderboards/global', icon: EmojiEventsOutlinedIcon },
   { label: 'Study Materials', path: '/study-materials', icon: FolderOpenOutlinedIcon },
   { label: 'Projects', path: '/projects', icon: WorkspacesOutlinedIcon },

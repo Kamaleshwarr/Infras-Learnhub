@@ -13,6 +13,7 @@ import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
 import { MySubmissionsPage } from '../pages/submissions/MySubmissionsPage'
 import { SubmitCertificatePage } from '../pages/submissions/SubmitCertificatePage'
 import { ProtectedRoute } from './ProtectedRoute'
+import { RoleRoute } from './RoleRoute'
 
 export function AppRoutes() {
   return (
@@ -23,8 +24,10 @@ export function AppRoutes() {
           <Route element={<DashboardPage />} index />
           <Route element={<InitiativeListPage />} path="initiatives" />
           <Route element={<InitiativeDetailPage />} path="initiatives/:initiativeId" />
-          <Route element={<SubmitCertificatePage />} path="submissions/new" />
-          <Route element={<MySubmissionsPage />} path="submissions" />
+          <Route element={<RoleRoute roles={['EMPLOYEE']} />}>
+            <Route element={<SubmitCertificatePage />} path="submissions/new" />
+            <Route element={<MySubmissionsPage />} path="submissions" />
+          </Route>
           <Route element={<GlobalLeaderboardPage />} path="leaderboards/global" />
           <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives" />
           <Route element={<StudyMaterialsPage />} path="study-materials" />

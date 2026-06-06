@@ -7,21 +7,29 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Container,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
+import axios from 'axios'
 import { useAuth } from '../../auth/useAuth'
+import type { ApiErrorResponse } from '../../types/api'
 
 export function LoginPage() {
-  const { isAuthenticated, login } = useAuth()
+  const { isAuthenticated, isLoading, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('employee@learninghub.local')
-  const [password, setPassword] = useState('Employee@12345')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const trimmedEmail = email.trim()
+  const emailError = trimmedEmail.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+  const passwordError = password.length > 0 && password.length < 8
+  const canSubmit = trimmedEmail.length > 0 && password.length >= 8 && !emailError && !submitting && !isLoading
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />
@@ -29,14 +37,18 @@ export function LoginPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!canSubmit) {
+      setError('Enter a valid email and a password with at least 8 characters.')
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
-      await login(email, password)
+      await login(trimmedEmail, password)
       const state = location.state as { from?: { pathname?: string } } | null
       navigate(state?.from?.pathname ?? '/', { replace: true })
-    } catch {
-      setError('Unable to sign in. Check your credentials and try again.')
+    } catch (loginError) {
+      setError(resolveLoginError(loginError))
     } finally {
       setSubmitting(false)
     }
@@ -57,6 +69,9 @@ export function LoginPage() {
               {error && <Alert severity="error">{error}</Alert>}
               <TextField
                 autoComplete="email"
+                disabled={submitting || isLoading}
+                error={emailError}
+                helperText={emailError ? 'Enter a valid email address.' : 'Use your company email address.'}
                 label="Email"
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -65,14 +80,17 @@ export function LoginPage() {
               />
               <TextField
                 autoComplete="current-password"
+                disabled={submitting || isLoading}
+                error={passwordError}
+                helperText={passwordError ? 'Password must be at least 8 characters.' : ' '}
                 label="Password"
                 onChange={(event) => setPassword(event.target.value)}
                 required
                 type="password"
                 value={password}
               />
-              <Button disabled={submitting} size="large" type="submit" variant="contained">
-                {submitting ? 'Signing in...' : 'Sign in'}
+              <Button disabled={!canSubmit} size="large" type="submit" variant="contained">
+                {submitting ? <CircularProgress color="inherit" size={24} /> : 'Sign in'}
               </Button>
             </Stack>
           </CardContent>
@@ -80,4 +98,16 @@ export function LoginPage() {
       </Container>
     </Box>
   )
+}
+
+function resolveLoginError(error: unknown) {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    if (error.response?.data?.message) {
+      return error.response.data.message
+    }
+    if (error.response?.status === 401) {
+      return 'Invalid email or password.'
+    }
+  }
+  return 'Unable to sign in. Check your connection and try again.'
 }
