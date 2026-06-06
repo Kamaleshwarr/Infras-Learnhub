@@ -23,8 +23,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/learning_hub
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/learning_hub
       SPRING_DATASOURCE_USERNAME: learning_hub
       SPRING_DATASOURCE_PASSWORD: learning_hub
       JWT_SECRET: ${JWT_SECRET:-VGhpcy1pcy1vbmx5LWEtbG9jYWwtZGV2ZWxvcG1lbnQtand0LXNlY3JldC0zMi1ieXRlcyE=}
