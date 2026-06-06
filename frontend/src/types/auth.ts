@@ -14,3 +14,16 @@ export interface LoginResponse {
   expiresInSeconds: number
   user: UserProfile
 }
+
+export function getPrimaryRole(user: UserProfile | null): UserRole | null {
+  if (!user) {
+    return null
+  }
+  if (user.roles.includes('ADMIN')) {
+    return 'ADMIN'
+  }
+  if (user.roles.includes('EMPLOYEE')) {
+    return 'EMPLOYEE'
+  }
+  return null
+}

@@ -2,11 +2,12 @@ import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 const TOKEN_STORAGE_KEY = 'elh.accessToken'
+export const AUTH_UNAUTHORIZED_EVENT = 'elh:auth:unauthorized'
 
 export const tokenStorage = {
-  get: () => window.localStorage.getItem(TOKEN_STORAGE_KEY),
-  set: (token: string) => window.localStorage.setItem(TOKEN_STORAGE_KEY, token),
-  clear: () => window.localStorage.removeItem(TOKEN_STORAGE_KEY),
+  get: () => window.sessionStorage.getItem(TOKEN_STORAGE_KEY),
+  set: (token: string) => window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token),
+  clear: () => window.sessionStorage.removeItem(TOKEN_STORAGE_KEY),
 }
 
 export const httpClient = axios.create({
@@ -23,3 +24,14 @@ httpClient.interceptors.request.use((config) => {
   }
   return config
 })
+
+httpClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      tokenStorage.clear()
+      window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT))
+    }
+    return Promise.reject(error)
+  },
+)
