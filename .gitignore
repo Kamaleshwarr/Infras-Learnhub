@@ -1,0 +1,18 @@
+.idea/
+.vscode/
+*.iml
+
+# Java / Maven
+target/
+*.class
+
+# Logs
+*.log
+
+# Local environment
+.env
+
+# Application runtime data
+data/
+uploads/
+
