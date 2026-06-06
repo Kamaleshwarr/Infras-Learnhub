@@ -43,7 +43,6 @@ public interface LearningInitiativeRepository extends JpaRepository<LearningInit
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = "createdBy")
     @Override
     @EntityGraph(attributePaths = "createdBy")
     Optional<LearningInitiative> findById(UUID id);
