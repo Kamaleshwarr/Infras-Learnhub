@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class JwtService {
     private final JwtProperties jwtProperties;
     private final Clock clock;
 
+    @Autowired
     public JwtService(JwtProperties jwtProperties) {
         this(jwtProperties, Clock.systemUTC());
     }
