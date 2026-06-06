@@ -11,9 +11,17 @@ export interface InitiativeSummary {
   status: 'DRAFT' | 'ACTIVE' | 'EXPIRED'
 }
 
+export interface InitiativeListParams {
+  page?: number
+  size?: number
+  sort?: string
+  status?: InitiativeSummary['status']
+  search?: string
+}
+
 export const initiativesApi = {
-  list: async () => {
-    const response = await httpClient.get<PageResponse<InitiativeSummary>>('/initiatives')
+  list: async (params?: InitiativeListParams) => {
+    const response = await httpClient.get<PageResponse<InitiativeSummary>>('/initiatives', { params })
     return response.data
   },
   get: async (initiativeId: string) => {

@@ -13,19 +13,31 @@ export interface LeaderboardEntry {
   approvedAtUtc?: string
 }
 
+export interface PersonalLeaderboard {
+  globalRank: number | null
+  totalApprovedCertifications: number
+  recentApprovals: Array<{
+    submissionId: string
+    initiativeTitle: string
+    submittedAtUtc: string
+    approvedAtUtc: string
+  }>
+}
+
 export const leaderboardsApi = {
-  global: async () => {
-    const response = await httpClient.get<PageResponse<LeaderboardEntry>>('/leaderboards/global')
+  global: async (params?: { page?: number; size?: number; sort?: string }) => {
+    const response = await httpClient.get<PageResponse<LeaderboardEntry>>('/leaderboards/global', { params })
     return response.data
   },
-  initiative: async (initiativeId: string) => {
+  initiative: async (initiativeId: string, params?: { page?: number; size?: number; sort?: string }) => {
     const response = await httpClient.get<PageResponse<LeaderboardEntry>>(
       `/leaderboards/initiatives/${initiativeId}`,
+      { params },
     )
     return response.data
   },
   me: async () => {
-    const response = await httpClient.get('/leaderboards/me')
+    const response = await httpClient.get<PersonalLeaderboard>('/leaderboards/me')
     return response.data
   },
 }

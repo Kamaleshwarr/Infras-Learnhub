@@ -18,9 +18,9 @@ export interface ProjectKnowledgeItem {
 }
 
 export const projectsApi = {
-  list: async (search?: string) => {
+  list: async (search?: string, params?: { page?: number; size?: number; sort?: string }) => {
     const response = await httpClient.get<PageResponse<ProjectSummary>>('/projects', {
-      params: { search },
+      params: { search, ...params },
     })
     return response.data
   },
