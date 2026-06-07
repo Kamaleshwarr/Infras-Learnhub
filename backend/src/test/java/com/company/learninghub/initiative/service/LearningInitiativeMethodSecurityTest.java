@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -84,7 +85,7 @@ class LearningInitiativeMethodSecurityTest {
                 admin
         );
         PageRequest pageable = PageRequest.of(0, 20);
-        when(initiativeRepository.findActiveForEmployee(eq(null), eq(NOW), eq(pageable)))
+        when(initiativeRepository.findAll(org.mockito.ArgumentMatchers.<Specification<LearningInitiative>>any(), eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(initiative), pageable, 1));
 
         assertThat(initiativeService.list(null, null, pageable, principal(RoleName.EMPLOYEE)).getTotalElements())
