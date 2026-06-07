@@ -9,9 +9,22 @@ export interface CertificateSubmission {
   rejectionReason?: string
 }
 
+export interface SubmissionListParams {
+  page?: number
+  size?: number
+  sort?: string
+  status?: CertificateSubmission['approvalStatus']
+  initiativeId?: string
+  employeeId?: string
+}
+
 export const submissionsApi = {
-  listMine: async () => {
-    const response = await httpClient.get<PageResponse<CertificateSubmission>>('/me/submissions')
+  listMine: async (params?: Omit<SubmissionListParams, 'employeeId'>) => {
+    const response = await httpClient.get<PageResponse<CertificateSubmission>>('/me/submissions', { params })
+    return response.data
+  },
+  listAll: async (params?: SubmissionListParams) => {
+    const response = await httpClient.get<PageResponse<CertificateSubmission>>('/submissions', { params })
     return response.data
   },
   submit: async (initiativeId: string, formData: FormData) => {

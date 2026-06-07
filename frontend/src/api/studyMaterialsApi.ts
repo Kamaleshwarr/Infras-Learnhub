@@ -23,9 +23,9 @@ export const studyMaterialsApi = {
     })
     return response.data
   },
-  search: async (search?: string) => {
+  search: async (search?: string, params?: { page?: number; size?: number; sort?: string }) => {
     const response = await httpClient.get<PageResponse<StudyMaterial>>('/study-materials/materials', {
-      params: { search },
+      params: { search, ...params },
     })
     return response.data
   },
