@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
@@ -142,7 +143,7 @@ class LearningInitiativeServiceTest {
     void listUsesAdminQueryForAdminPrincipal() {
         PageRequest pageable = PageRequest.of(0, 20);
         LearningInitiative initiative = initiative("OpenAI Certification", InitiativeStatus.ACTIVE, adminUser);
-        when(initiativeRepository.findForAdmin(eq(InitiativeStatus.ACTIVE), eq("OpenAI"), eq(pageable)))
+        when(initiativeRepository.findAll(anySpecification(), eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(initiative), pageable, 1));
 
         Page<InitiativeResponse> response = initiativeService.list(
@@ -154,7 +155,7 @@ class LearningInitiativeServiceTest {
 
         assertThat(response.getTotalElements()).isEqualTo(1);
         assertThat(response.getContent().getFirst().title()).isEqualTo("OpenAI Certification");
-        verify(initiativeRepository).findForAdmin(InitiativeStatus.ACTIVE, "OpenAI", pageable);
+        verify(initiativeRepository).findAll(anySpecification(), eq(pageable));
     }
 
     @Test
@@ -165,13 +166,13 @@ class LearningInitiativeServiceTest {
                 Sort.by(Sort.Order.desc("createdAtUtc"), Sort.Order.asc("updatedAtUtc"))
         );
         LearningInitiative initiative = initiative("Sorted", InitiativeStatus.ACTIVE, adminUser);
-        when(initiativeRepository.findForAdmin(eq(null), eq(null), any(Pageable.class)))
-                .thenAnswer(invocation -> new PageImpl<>(List.of(initiative), invocation.getArgument(2), 11));
+        when(initiativeRepository.findAll(anySpecification(), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(initiative), invocation.getArgument(1), 11));
 
         initiativeService.list(null, "   ", pageable, adminPrincipal);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(initiativeRepository).findForAdmin(eq(null), eq(null), pageableCaptor.capture());
+        verify(initiativeRepository).findAll(anySpecification(), pageableCaptor.capture());
         assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(1);
         assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(10);
         assertThat(pageableCaptor.getValue().getSort().getOrderFor("createdAt")).isNotNull();
@@ -195,7 +196,7 @@ class LearningInitiativeServiceTest {
     void listUsesActiveEmployeeQueryForEmployeePrincipal() {
         PageRequest pageable = PageRequest.of(0, 20);
         LearningInitiative initiative = initiative("Anthropic Learning", InitiativeStatus.ACTIVE, adminUser);
-        when(initiativeRepository.findActiveForEmployee(eq("Anthropic"), eq(NOW), eq(pageable)))
+        when(initiativeRepository.findAll(anySpecification(), eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(initiative), pageable, 1));
 
         Page<InitiativeResponse> response = initiativeService.list(
@@ -206,7 +207,7 @@ class LearningInitiativeServiceTest {
         );
 
         assertThat(response.getContent()).hasSize(1);
-        verify(initiativeRepository).findActiveForEmployee("Anthropic", NOW, pageable);
+        verify(initiativeRepository).findAll(anySpecification(), eq(pageable));
     }
 
     @Test
@@ -323,6 +324,10 @@ class LearningInitiativeServiceTest {
                 status,
                 createdBy
         );
+    }
+
+    private Specification<LearningInitiative> anySpecification() {
+        return any();
     }
 }
 

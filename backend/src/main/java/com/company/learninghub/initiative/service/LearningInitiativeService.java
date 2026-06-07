@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -116,9 +118,10 @@ public class LearningInitiativeService {
     ) {
         String normalizedSearch = normalizeSearch(search);
         Pageable repositoryPageable = normalizePageable(pageable);
-        Page<LearningInitiative> initiatives = isAdmin(authenticatedUser)
-                ? initiativeRepository.findForAdmin(status, normalizedSearch, repositoryPageable)
-                : initiativeRepository.findActiveForEmployee(normalizedSearch, Instant.now(clock), repositoryPageable);
+        Specification<LearningInitiative> specification = isAdmin(authenticatedUser)
+                ? adminSpecification(status, normalizedSearch)
+                : employeeSpecification(normalizedSearch, Instant.now(clock));
+        Page<LearningInitiative> initiatives = initiativeRepository.findAll(specification, repositoryPageable);
 
         return initiatives.map(initiativeMapper::toResponse);
     }
@@ -137,6 +140,44 @@ public class LearningInitiativeService {
             return null;
         }
         return search.trim();
+    }
+
+    private Specification<LearningInitiative> adminSpecification(InitiativeStatus status, String search) {
+        return Specification
+                .where(hasStatus(status))
+                .and(titleContains(search));
+    }
+
+    private Specification<LearningInitiative> employeeSpecification(String search, Instant now) {
+        return Specification
+                .where(hasStatus(InitiativeStatus.ACTIVE))
+                .and(startedOnOrBefore(now))
+                .and(expiresOnOrAfter(now))
+                .and(titleContains(search));
+    }
+
+    private Specification<LearningInitiative> hasStatus(InitiativeStatus status) {
+        return (root, query, criteriaBuilder) -> status == null
+                ? criteriaBuilder.conjunction()
+                : criteriaBuilder.equal(root.get("status"), status);
+    }
+
+    private Specification<LearningInitiative> titleContains(String search) {
+        return (root, query, criteriaBuilder) -> {
+            if (!StringUtils.hasText(search)) {
+                return criteriaBuilder.conjunction();
+            }
+            String pattern = "%" + search.toLowerCase(Locale.ROOT) + "%";
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), pattern);
+        };
+    }
+
+    private Specification<LearningInitiative> startedOnOrBefore(Instant now) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("startDateUtc"), now);
+    }
+
+    private Specification<LearningInitiative> expiresOnOrAfter(Instant now) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("expiryDateUtc"), now);
     }
 
     private Pageable normalizePageable(Pageable pageable) {
