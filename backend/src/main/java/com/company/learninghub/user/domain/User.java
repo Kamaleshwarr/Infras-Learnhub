@@ -130,6 +130,11 @@ public class User extends AuditableEntity {
         userRoles.add(userRole);
     }
 
+    public void replaceRole(Role role) {
+        userRoles.clear();
+        assignRole(role);
+    }
+
     public Set<RoleName> roleNames() {
         Set<RoleName> roles = new HashSet<>();
         for (UserRole userRole : userRoles) {
