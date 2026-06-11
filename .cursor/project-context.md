@@ -37,7 +37,16 @@
 
 ## Current Release
 
-v0.2
+**v0.2** — Engineering Learning Hub (merged via PR #17)
+
+Release notes: `docs/releases/release-v0.2.md`
+
+### v0.2 Highlights
+
+- Password Management module (backend + frontend)
+- JWT hardening (`password_changed_at`, deactivated-user rejection)
+- Password reset tokens and email reset flow
+- Cursor project governance documentation (`.cursor/`)
 
 ## Completed Backend Modules
 
@@ -59,13 +68,32 @@ v0.2
 
 ## Completed Features
 
+### Password Management (v0.2)
+
 - Change Password
 - First Login Password Change Enforcement
 - Forgot Password (Email Reset)
 - Reset Password
-- Email Templates
+- Email Templates (`forgot-password.html`, `forgot-password.txt`)
 - Password Reset Tokens
 - JWT Hardening
+
+### Password Management APIs
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| `POST` | `/api/v1/auth/change-password` | Bearer JWT | `204` |
+| `POST` | `/api/v1/auth/forgot-password` | Public | `202` |
+| `POST` | `/api/v1/auth/reset-password` | Public | `204` |
+
+`LoginResponse` and `GET /api/v1/auth/me` expose `mustChangePassword`.
+
+### Password Management Frontend
+
+- `ChangePasswordPage` — `/change-password`
+- `ForgotPasswordPage` — `/forgot-password`
+- `ResetPasswordPage` — `/reset-password?token=...`
+- `MustChangePasswordRoute` — redirects until password is changed
 
 ## User Management Features
 
@@ -129,6 +157,10 @@ frontend/src/
 - Do not recreate identity tables or duplicate `User`, `Role`, `RoleName`, or `UserRole`.
 - Use existing `UserRepository` and `RoleRepository` for identity-related work.
 - Use Flyway only when schema changes are required.
+- Password Management schema is in `V7__password_management.sql` (`must_change_password`, `password_changed_at`, `password_reset_tokens`).
+- Reuse `PasswordService` for all password mutations (change, admin reset, email reset).
+- Store only hashed reset tokens (SHA-256); never persist raw tokens.
+- Use `app.mail.mode=log` for local development (reset URL logged); use `smtp` in production.
 - Use Spring Specifications for dynamic filtering/search where nullable JPQL parameters can cause PostgreSQL type inference problems.
 - Preserve UTC timestamp handling with `Instant` and `TIMESTAMPTZ`.
 - Keep endpoints under `/api/v1`.

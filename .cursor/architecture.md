@@ -1,5 +1,7 @@
 # Learning Hub Architecture
 
+**Current release:** v0.2 (Password Management)
+
 ## Backend Architecture
 
 The backend is a Java 21 / Spring Boot 3 layered application.
@@ -63,7 +65,9 @@ api -> auth -> routes -> layout -> pages -> components -> types
 - Context API owns current user state.
 - `AuthProvider` restores session using `/auth/me`.
 - `ProtectedRoute` blocks unauthenticated access.
+- `MustChangePasswordRoute` redirects users with `mustChangePassword: true` to `/change-password`.
 - `RoleRoute` blocks role-specific routes.
+- Password pages: `ChangePasswordPage`, `ForgotPasswordPage`, `ResetPasswordPage`.
 
 ### Layout Layer
 
@@ -83,9 +87,10 @@ Database is PostgreSQL managed by Flyway.
 
 Core schemas/tables:
 
-- `users`
+- `users` (`must_change_password`, `password_changed_at` — added in v0.2)
 - `roles`
 - `user_roles`
+- `password_reset_tokens` (v0.2)
 - `learning_initiatives`
 - `certificate_documents`
 - `certificate_submissions`
@@ -102,6 +107,7 @@ Core schemas/tables:
 
 ```text
 User -> UserRole -> Role
+User -> PasswordResetToken
 User -> LearningInitiative.createdBy
 User -> CertificateSubmission.employee
 User -> CertificateSubmission.reviewedBy
@@ -131,11 +137,12 @@ Project -> ProjectKnowledgeItem -> ProjectKnowledgeAccessEvent
 
 1. User calls `POST /api/v1/auth/login`.
 2. Backend authenticates credentials using Spring Security and BCrypt.
-3. Backend returns JWT and user summary.
+3. Backend returns JWT and user summary (includes `mustChangePassword`).
 4. Frontend stores JWT in session storage.
-5. Axios attaches `Authorization: Bearer <token>`.
-6. Frontend restores session with `GET /api/v1/auth/me`.
-7. Expired or invalid JWT returns 401 and frontend clears auth state.
+5. If `mustChangePassword` is `true`, frontend redirects to `/change-password`.
+6. Axios attaches `Authorization: Bearer <token>`.
+7. Frontend restores session with `GET /api/v1/auth/me`.
+8. Expired, invalid, pre-password-change, or deactivated-user JWT returns 401 and frontend clears auth state.
 
 ## Password Management Architecture
 
@@ -377,6 +384,7 @@ com.company.learninghub.<module>/
 V1__create_identity_schema.sql
 V2__seed_default_users.sql
 ...
+V7__password_management.sql
 ```
 
 - Add migrations only for schema changes.
@@ -400,7 +408,7 @@ Required test types:
 - Every endpoint needs `@Operation`.
 - Authenticated APIs should use `@SecurityRequirement(name = "bearerAuth")`.
 - Swagger sections should match business module names:
-  - Authentication
+  - Authentication (`/auth/login`, `/auth/me`, `/auth/change-password`, `/auth/forgot-password`, `/auth/reset-password`)
   - Learning Initiatives
   - Certificate Submissions
   - Leaderboards
