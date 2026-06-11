@@ -51,12 +51,30 @@ springdoc:
     operations-sorter: alpha
     tags-sorter: alpha
 
+spring.mail:
+  host: ${SPRING_MAIL_HOST:}
+  port: ${SPRING_MAIL_PORT:587}
+  username: ${SPRING_MAIL_USERNAME:}
+  password: ${SPRING_MAIL_PASSWORD:}
+  properties:
+    mail:
+      smtp:
+        auth: ${SPRING_MAIL_SMTP_AUTH:true}
+        starttls:
+          enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:true}
+
 app:
   security:
     jwt:
       issuer: engineering-learning-hub
       expiration: ${JWT_EXPIRATION:PT1H}
       secret: ${JWT_SECRET:VGhpcy1pcy1vbmx5LWEtbG9jYWwtZGV2ZWxvcG1lbnQtand0LXNlY3JldC0zMi1ieXRlcyE=}
+  mail:
+    mode: ${APP_MAIL_MODE:log}
+    from: ${APP_MAIL_FROM:noreply@learninghub.local}
+  password-reset:
+    expiration: ${APP_PASSWORD_RESET_EXPIRATION:PT1H}
+    frontend-reset-url: ${APP_FRONTEND_RESET_URL:http://localhost:5173/reset-password}
   storage:
     provider: local
     local-root: ${APP_STORAGE_LOCAL_ROOT:./uploads}

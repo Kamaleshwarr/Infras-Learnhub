@@ -62,7 +62,8 @@ public class AuthenticationService {
                 user.getEmployeeId(),
                 user.getFullName(),
                 user.getEmail(),
-                roles
+                roles,
+                user.isMustChangePassword()
         );
     }
 }

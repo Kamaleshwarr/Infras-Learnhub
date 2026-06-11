@@ -4,6 +4,8 @@ import com.company.learninghub.auth.dto.LoginRequest;
 import com.company.learninghub.auth.dto.LoginResponse;
 import com.company.learninghub.auth.dto.UserSummaryResponse;
 import com.company.learninghub.auth.service.AuthenticationService;
+import com.company.learninghub.auth.service.PasswordResetService;
+import com.company.learninghub.auth.service.PasswordService;
 import com.company.learninghub.common.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -36,7 +38,11 @@ class AuthenticationControllerTest {
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new AuthenticationController(authenticationService))
+                .standaloneSetup(new AuthenticationController(
+                        authenticationService,
+                        mock(PasswordService.class),
+                        mock(PasswordResetService.class)
+                ))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
@@ -54,7 +60,7 @@ class AuthenticationControllerTest {
                 "jwt-token",
                 "Bearer",
                 3600,
-                new UserSummaryResponse(null, "E12345", "Employee One", "employee@example.com", Set.of("EMPLOYEE"))
+                new UserSummaryResponse(null, "E12345", "Employee One", "employee@example.com", Set.of("EMPLOYEE"), false)
         );
 
         when(authenticationService.login(request)).thenReturn(response);

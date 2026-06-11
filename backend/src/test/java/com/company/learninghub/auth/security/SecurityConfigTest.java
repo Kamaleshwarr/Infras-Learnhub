@@ -9,7 +9,7 @@ class SecurityConfigTest {
 
     @Test
     void passwordEncoderUsesBCrypt() {
-        SecurityConfig securityConfig = new SecurityConfig(null, null, null);
+        SecurityConfig securityConfig = new SecurityConfig(null, null, null, null);
 
         PasswordEncoder passwordEncoder = securityConfig.passwordEncoder();
         String encoded = passwordEncoder.encode("ValidPass123");

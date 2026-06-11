@@ -1,5 +1,6 @@
 package com.company.learninghub.user.service;
 
+import com.company.learninghub.auth.service.PasswordService;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
@@ -51,15 +52,18 @@ public class UserManagementService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordService passwordService;
 
     public UserManagementService(
             UserRepository userRepository,
             RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            PasswordService passwordService
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.passwordService = passwordService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -147,7 +151,7 @@ public class UserManagementService {
     @Transactional
     public void resetPassword(UUID id, String password) {
         User user = findUser(id);
-        user.setPasswordHash(passwordEncoder.encode(password));
+        passwordService.updatePassword(user, password, true);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -198,6 +202,7 @@ public class UserManagementService {
             }
 
             User user = new User(employeeId, email.toLowerCase(Locale.ROOT), fullName, passwordEncoder.encode(DEFAULT_IMPORT_PASSWORD));
+            user.setMustChangePassword(true);
             user.replaceRole(role);
             userRepository.save(user);
             imported++;
