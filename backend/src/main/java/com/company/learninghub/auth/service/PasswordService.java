@@ -6,6 +6,7 @@ import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.auth.validation.PasswordPolicyValidator;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class PasswordService {
     private final PasswordPolicyValidator passwordPolicyValidator;
     private final Clock clock;
 
+    @Autowired
     public PasswordService(
             UserRepository userRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,

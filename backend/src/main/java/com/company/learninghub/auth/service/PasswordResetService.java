@@ -7,6 +7,7 @@ import com.company.learninghub.auth.dto.ResetPasswordRequest;
 import com.company.learninghub.auth.repository.PasswordResetTokenRepository;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ public class PasswordResetService {
     private final SecureRandom secureRandom;
     private final Clock clock;
 
+    @Autowired
     public PasswordResetService(
             UserRepository userRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
