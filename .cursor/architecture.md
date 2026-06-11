@@ -187,45 +187,7 @@ Users with `must_change_password = true` may log in and receive a JWT, but appli
 
 **Frontend:** `MustChangePasswordRoute` redirects authenticated users with `mustChangePassword: true` to `/change-password` and prevents access to other application routes until the flag is cleared.
 
-### Forgot Password Flow
-
-Self-service recovery uses public endpoints that do not require authentication.
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant AuthController
-    participant PasswordResetService
-    participant EmailService
-    participant UserRepository
-
-    Client->>AuthController: POST /auth/forgot-password { email }
-    AuthController->>PasswordResetService: requestPasswordReset(email)
-    PasswordResetService->>UserRepository: find active user (case-insensitive)
-    PasswordResetService->>PasswordResetService: invalidate prior tokens, create new hashed token
-    PasswordResetService->>EmailService: sendPasswordResetEmail(resetUrl)
-    AuthController-->>Client: 202 Accepted (generic message)
-
-    Client->>AuthController: POST /auth/reset-password { token, newPassword }
-    AuthController->>PasswordResetService: resetPassword(request)
-    PasswordResetService->>PasswordService: updatePasswordFromReset(user, newPassword)
-    AuthController-->>Client: 204 No Content
-```
-
-**`POST /api/v1/auth/forgot-password`:**
-
-- Always returns the same `202` response whether or not the email exists (account enumeration prevention).
-- Only processes active users.
-- Generates a cryptographically secure URL-safe token; only the SHA-256 hash is persisted.
-
-**`POST /api/v1/auth/reset-password`:**
-
-- Accepts the raw token from the email link plus the new password.
-- Marks the token as used and clears `must_change_password`.
-
-**Frontend:** `ForgotPasswordPage` at `/forgot-password`, `ResetPasswordPage` at `/reset-password?token=...`, linked from the login page.
-
-### Password Reset Tokens
+### Password Reset Token Flow
 
 Reset tokens are stored in `password_reset_tokens` (Flyway `V7__password_management.sql`), separate from the `users` table.
 
@@ -246,7 +208,38 @@ Reset tokens are stored in `password_reset_tokens` (Flyway `V7__password_managem
 
 Indexes exist on `user_id`, `token_hash`, and active token lookups.
 
-### Email Service
+**`POST /api/v1/auth/reset-password`:**
+
+- Accepts the raw token from the email link plus the new password.
+- Marks the token as used and clears `must_change_password`.
+
+**Frontend:** `ResetPasswordPage` at `/reset-password?token=...`.
+
+### Forgot Password Email Flow
+
+Self-service recovery begins with a public, unauthenticated request.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant AuthController
+    participant PasswordResetService
+    participant EmailService
+    participant UserRepository
+
+    Client->>AuthController: POST /auth/forgot-password { email }
+    AuthController->>PasswordResetService: requestPasswordReset(email)
+    PasswordResetService->>UserRepository: find active user (case-insensitive)
+    PasswordResetService->>PasswordResetService: invalidate prior tokens, create new hashed token
+    PasswordResetService->>EmailService: sendPasswordResetEmail(resetUrl)
+    AuthController-->>Client: 202 Accepted (generic message)
+```
+
+**`POST /api/v1/auth/forgot-password`:**
+
+- Always returns the same `202` response whether or not the email exists (account enumeration prevention).
+- Only processes active users.
+- Generates a cryptographically secure URL-safe token; only the SHA-256 hash is persisted.
 
 `EmailService` sends password reset messages using classpath templates — not hardcoded body content in Java.
 
@@ -265,6 +258,8 @@ Placeholders: `{{fullName}}`, `{{resetUrl}}`, `{{expirationMinutes}}`.
 | `smtp` | Sends via `JavaMailSender`; compatible with Microsoft 365 and Gmail SMTP. |
 
 Configuration: `app.mail.from`, `spring.mail.*`, `app.password-reset.frontend-reset-url`.
+
+**Frontend:** `ForgotPasswordPage` at `/forgot-password`, linked from the login page.
 
 ### MustChangePasswordFilter
 
@@ -291,7 +286,7 @@ JWTs are stateless — there is no server-side token blacklist. Invalidation is 
 
 After a password change, the client should obtain a new JWT (re-login or session refresh via login call).
 
-### Security Considerations
+### Security Design Decisions
 
 | Concern | Mitigation |
 |---------|------------|
@@ -306,6 +301,7 @@ After a password change, the client should obtain a new JWT (re-login or session
 | First-login enforcement | `MustChangePasswordFilter` blocks application APIs until password is changed |
 | Admin reset | Sets `must_change_password = true` to force change on next login |
 | Email content | External templates; no secrets embedded in Java source |
+| Stateless JWT model | Invalidation via `password_changed_at` and `active` checks rather than a token blacklist |
 
 ## Authorization Model
 

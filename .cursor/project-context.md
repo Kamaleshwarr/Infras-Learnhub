@@ -35,16 +35,20 @@
 - `ADMIN`
 - `EMPLOYEE`
 
+## Current Release
+
+v0.2
+
 ## Completed Backend Modules
 
-1. Authentication
-2. Learning Initiatives
-3. Certificate Submissions
-4. Leaderboards
-5. Study Materials Repository
-6. Project Knowledge Repository
-7. User Management
-8. Password Management
+- Authentication
+- Learning Initiatives
+- Certificate Submissions
+- Leaderboards
+- Study Materials Repository
+- Project Knowledge Repository
+- User Management
+- Password Management
 
 ## Completed Frontend Modules
 
@@ -53,15 +57,15 @@
 3. Role-aware dashboard foundation
 4. Password Management UI
 
-## Password Management Features
+## Completed Features
 
 - Change Password
 - First Login Password Change Enforcement
 - Forgot Password (Email Reset)
 - Reset Password
 - Email Templates
-- JWT Hardening
 - Password Reset Tokens
+- JWT Hardening
 
 ## User Management Features
 
