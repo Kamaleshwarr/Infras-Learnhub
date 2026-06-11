@@ -44,19 +44,32 @@
 5. Study Materials Repository
 6. Project Knowledge Repository
 7. User Management
+8. Password Management
 
 ## Completed Frontend Modules
 
 1. Frontend foundation
 2. Authentication UI
 3. Role-aware dashboard foundation
+4. Password Management UI
+
+## Password Management Features
+
+- Change Password
+- First Login Password Change Enforcement
+- Forgot Password (Email Reset)
+- Reset Password
+- Email Templates
+- JWT Hardening
+- Password Reset Tokens
 
 ## User Management Features
 
 - User CRUD
 - Activate user
 - Deactivate user
-- Password reset
+- Admin Password Reset
+- Force Password Change After Reset
 - CSV import
 - XLS import
 - XLSX import
@@ -64,16 +77,12 @@
 
 ## Pending Features
 
-- User Management UI
-- Change Password
-- First Login Password Change Enforcement
-- Forgot Password / Email Reset
-- Profile Page
-- Profile Photo Upload
-- Full frontend implementation of existing backend modules
-- Notifications
-- Global Search
-- AI Features
+1. User Management UI
+2. Profile Page
+3. Profile Photo Upload
+4. Notifications
+5. Global Search
+6. AI Features
 
 ## Current Backend Package Pattern
 
