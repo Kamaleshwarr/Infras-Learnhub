@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +20,8 @@ public class AuthenticatedUser implements UserDetails {
     private final String email;
     private final String passwordHash;
     private final boolean active;
+    private final boolean mustChangePassword;
+    private final Instant passwordChangedAt;
     private final Set<RoleName> roleNames;
     private final Set<GrantedAuthority> authorities;
 
@@ -29,6 +32,8 @@ public class AuthenticatedUser implements UserDetails {
         this.email = user.getEmail();
         this.passwordHash = user.getPasswordHash();
         this.active = user.isActive();
+        this.mustChangePassword = user.isMustChangePassword();
+        this.passwordChangedAt = user.getPasswordChangedAt();
         this.roleNames = user.roleNames();
         this.authorities = roleNames.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
@@ -57,6 +62,14 @@ public class AuthenticatedUser implements UserDetails {
 
     public Set<RoleName> getRoleNames() {
         return roleNames;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public Instant getPasswordChangedAt() {
+        return passwordChangedAt;
     }
 
     @Override

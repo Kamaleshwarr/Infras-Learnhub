@@ -21,6 +21,7 @@ const employeeUser: UserProfile = {
   fullName: 'Employee One',
   email: 'employee@example.com',
   roles: ['EMPLOYEE'],
+  mustChangePassword: false,
 }
 
 const adminUser: UserProfile = {

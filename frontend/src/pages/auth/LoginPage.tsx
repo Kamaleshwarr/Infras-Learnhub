@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
   Alert,
   Box,
@@ -9,6 +9,7 @@ import {
   CardContent,
   CircularProgress,
   Container,
+  Link,
   Stack,
   TextField,
   Typography,
@@ -44,7 +45,11 @@ export function LoginPage() {
     setSubmitting(true)
     setError(null)
     try {
-      await login(trimmedEmail, password)
+      const response = await login(trimmedEmail, password)
+      if (response.user.mustChangePassword) {
+        navigate('/change-password', { replace: true })
+        return
+      }
       const state = location.state as { from?: { pathname?: string } } | null
       navigate(state?.from?.pathname ?? '/', { replace: true })
     } catch (loginError) {
@@ -92,6 +97,9 @@ export function LoginPage() {
               <Button disabled={!canSubmit} size="large" type="submit" variant="contained">
                 {submitting ? <CircularProgress color="inherit" size={24} /> : 'Sign in'}
               </Button>
+              <Link component={RouterLink} to="/forgot-password" underline="hover">
+                Forgot password?
+              </Link>
             </Stack>
           </CardContent>
         </Card>

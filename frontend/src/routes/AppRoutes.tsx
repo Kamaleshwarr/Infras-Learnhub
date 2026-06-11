@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '../layout/AppLayout'
+import { ChangePasswordPage } from '../pages/auth/ChangePasswordPage'
+import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage'
 import { LoginPage } from '../pages/auth/LoginPage'
+import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { NotFoundPage } from '../pages/errors/NotFoundPage'
 import { InitiativeDetailPage } from '../pages/initiatives/InitiativeDetailPage'
@@ -12,6 +15,7 @@ import { ProjectsPage } from '../pages/projects/ProjectsPage'
 import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
 import { MySubmissionsPage } from '../pages/submissions/MySubmissionsPage'
 import { SubmitCertificatePage } from '../pages/submissions/SubmitCertificatePage'
+import { MustChangePasswordRoute } from './MustChangePasswordRoute'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleRoute } from './RoleRoute'
 
@@ -19,20 +23,25 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<LoginPage />} path="/login" />
+      <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+      <Route element={<ResetPasswordPage />} path="/reset-password" />
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route element={<DashboardPage />} index />
-          <Route element={<InitiativeListPage />} path="initiatives" />
-          <Route element={<InitiativeDetailPage />} path="initiatives/:initiativeId" />
-          <Route element={<RoleRoute roles={['EMPLOYEE']} />}>
-            <Route element={<SubmitCertificatePage />} path="submissions/new" />
-            <Route element={<MySubmissionsPage />} path="submissions" />
+        <Route element={<MustChangePasswordRoute />}>
+          <Route element={<ChangePasswordPage />} path="/change-password" />
+          <Route element={<AppLayout />}>
+            <Route element={<DashboardPage />} index />
+            <Route element={<InitiativeListPage />} path="initiatives" />
+            <Route element={<InitiativeDetailPage />} path="initiatives/:initiativeId" />
+            <Route element={<RoleRoute roles={['EMPLOYEE']} />}>
+              <Route element={<SubmitCertificatePage />} path="submissions/new" />
+              <Route element={<MySubmissionsPage />} path="submissions" />
+            </Route>
+            <Route element={<GlobalLeaderboardPage />} path="leaderboards/global" />
+            <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives" />
+            <Route element={<StudyMaterialsPage />} path="study-materials" />
+            <Route element={<ProjectsPage />} path="projects" />
+            <Route element={<ProjectKnowledgePage />} path="projects/:projectId" />
           </Route>
-          <Route element={<GlobalLeaderboardPage />} path="leaderboards/global" />
-          <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives" />
-          <Route element={<StudyMaterialsPage />} path="study-materials" />
-          <Route element={<ProjectsPage />} path="projects" />
-          <Route element={<ProjectKnowledgePage />} path="projects/:projectId" />
         </Route>
       </Route>
       <Route element={<Navigate replace to="/" />} path="/dashboard" />

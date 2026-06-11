@@ -56,10 +56,29 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             String username = extractUsername(token);
-            return username.equalsIgnoreCase(userDetails.getUsername());
+            if (!username.equalsIgnoreCase(userDetails.getUsername())) {
+                return false;
+            }
+            if (!userDetails.isEnabled()) {
+                return false;
+            }
+            if (userDetails instanceof AuthenticatedUser authenticatedUser) {
+                Instant passwordChangedAt = authenticatedUser.getPasswordChangedAt();
+                if (passwordChangedAt != null) {
+                    Instant issuedAt = extractIssuedAt(token);
+                    if (!issuedAt.isAfter(passwordChangedAt)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    public Instant extractIssuedAt(String token) {
+        return parseClaims(token).getIssuedAt().toInstant();
     }
 
     public long expirationSeconds() {

@@ -1,5 +1,6 @@
 package com.company.learninghub.user.service;
 
+import com.company.learninghub.auth.service.PasswordService;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
@@ -54,13 +55,16 @@ class UserManagementServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private PasswordService passwordService;
+
     private UserManagementService service;
     private Role employeeRole;
     private Role adminRole;
 
     @BeforeEach
     void setUp() {
-        service = new UserManagementService(userRepository, roleRepository, passwordEncoder);
+        service = new UserManagementService(userRepository, roleRepository, passwordEncoder, passwordService);
         employeeRole = role(RoleName.EMPLOYEE);
         adminRole = role(RoleName.ADMIN);
     }
@@ -152,9 +156,8 @@ class UserManagementServiceTest {
         service.activateUser(user.getId());
         assertThat(user.isActive()).isTrue();
 
-        when(passwordEncoder.encode("NewTemp@123")).thenReturn("new-hash");
-        service.resetPassword(user.getId(), "NewTemp@123");
-        assertThat(user.getPasswordHash()).isEqualTo("new-hash");
+        service.resetPassword(user.getId(), "NewTemp@123!");
+        verify(passwordService).updatePassword(user, "NewTemp@123!", true);
     }
 
     @Test

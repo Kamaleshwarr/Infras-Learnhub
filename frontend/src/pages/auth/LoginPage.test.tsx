@@ -12,6 +12,7 @@ const employeeUser: UserProfile = {
   fullName: 'Employee One',
   email: 'employee@example.com',
   roles: ['EMPLOYEE'],
+  mustChangePassword: false,
 }
 
 function renderLogin(login = vi.fn(), initialPath = '/login') {

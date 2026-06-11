@@ -1,13 +1,17 @@
 package com.company.learninghub.auth.security;
 
+import com.company.learninghub.user.domain.Role;
+import com.company.learninghub.user.domain.RoleName;
+import com.company.learninghub.user.domain.User;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +23,7 @@ class JwtServiceTest {
     @Test
     void generateTokenCreatesValidTokenForUser() {
         JwtService jwtService = new JwtService(jwtProperties(Duration.ofMinutes(30)), fixedClock());
-        UserDetails user = User.withUsername("employee@example.com")
+        UserDetails user = org.springframework.security.core.userdetails.User.withUsername("employee@example.com")
                 .password("not-used")
                 .roles("EMPLOYEE")
                 .build();
@@ -34,11 +38,11 @@ class JwtServiceTest {
     @Test
     void isTokenValidRejectsTokenForDifferentUser() {
         JwtService jwtService = new JwtService(jwtProperties(Duration.ofMinutes(30)), fixedClock());
-        UserDetails tokenOwner = User.withUsername("employee@example.com")
+        UserDetails tokenOwner = org.springframework.security.core.userdetails.User.withUsername("employee@example.com")
                 .password("not-used")
                 .roles("EMPLOYEE")
                 .build();
-        UserDetails anotherUser = User.withUsername("other@example.com")
+        UserDetails anotherUser = org.springframework.security.core.userdetails.User.withUsername("other@example.com")
                 .password("not-used")
                 .roles("EMPLOYEE")
                 .build();
@@ -46,6 +50,34 @@ class JwtServiceTest {
         String token = jwtService.generateToken(tokenOwner);
 
         assertThat(jwtService.isTokenValid(token, anotherUser)).isFalse();
+    }
+
+    @Test
+    void isTokenValidRejectsTokenIssuedBeforePasswordChange() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-06T05:00:00Z"), ZoneOffset.UTC);
+        JwtService jwtService = new JwtService(jwtProperties(Duration.ofMinutes(30)), clock);
+        User user = new User("E12345", "employee@example.com", "Employee One", "$2a$12$hash");
+        user.assignRole(new Role(RoleName.EMPLOYEE));
+        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
+        user.setPasswordChangedAt(Instant.parse("2026-06-06T05:30:00Z"));
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.from(user);
+
+        String token = jwtService.generateToken(authenticatedUser);
+
+        assertThat(jwtService.isTokenValid(token, authenticatedUser)).isFalse();
+    }
+
+    @Test
+    void isTokenValidRejectsDisabledUser() {
+        JwtService jwtService = new JwtService(jwtProperties(Duration.ofMinutes(30)), fixedClock());
+        User user = new User("E12345", "employee@example.com", "Employee One", "$2a$12$hash");
+        user.assignRole(new Role(RoleName.EMPLOYEE));
+        user.setActive(false);
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.from(user);
+
+        String token = jwtService.generateToken(authenticatedUser);
+
+        assertThat(jwtService.isTokenValid(token, authenticatedUser)).isFalse();
     }
 
     private JwtProperties jwtProperties(Duration expiration) {
