@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { usersApi } from '../../api/usersApi'
+import { useAuth } from '../../auth/useAuth'
 import type { PageResponse } from '../../types/api'
 import type { UserSummary } from '../../types/users'
 import { UserListPage } from './UserListPage'
@@ -10,7 +11,14 @@ import { UserListPage } from './UserListPage'
 vi.mock('../../api/usersApi', () => ({
   usersApi: {
     list: vi.fn(),
+    get: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   },
+}))
+
+vi.mock('../../auth/useAuth', () => ({
+  useAuth: vi.fn(),
 }))
 
 const users: UserSummary[] = [
@@ -61,6 +69,17 @@ describe('UserListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(usersApi.list).mockResolvedValue(pageResponse)
+    vi.mocked(usersApi.get).mockResolvedValue(users[0])
+    vi.mocked(useAuth).mockReturnValue({
+      user: {
+        id: 'user-1',
+        employeeId: 'EMP001',
+        fullName: 'Admin User',
+        email: 'admin@example.com',
+        mustChangePassword: false,
+        roles: ['ADMIN'],
+      },
+    } as ReturnType<typeof useAuth>)
   })
 
   it('renders users from the API', async () => {
@@ -132,5 +151,54 @@ describe('UserListPage', () => {
     expect(
       await screen.findByText('Unable to load users. Please refresh or try again later.'),
     ).toBeInTheDocument()
+  })
+
+  it('opens create dialog and refreshes list after successful create', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.create).mockResolvedValue({
+      ...users[1],
+      employeeId: 'EMP010',
+      fullName: 'New Employee',
+      id: 'user-10',
+    })
+
+    renderUserListPage('/users?fullName=Admin&page=1&sort=email,desc')
+
+    await waitFor(() => expect(screen.getByText('Admin User')).toBeInTheDocument())
+    expect(usersApi.list).toHaveBeenCalledWith({
+      page: 1,
+      size: 20,
+      sort: 'email,desc',
+      fullName: 'Admin',
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Create User' }))
+    const dialog = within(screen.getByRole('dialog'))
+    await user.type(dialog.getByRole('textbox', { name: 'Employee ID' }), 'EMP010')
+    await user.type(dialog.getByRole('textbox', { name: 'Full Name' }), 'New Employee')
+    await user.type(dialog.getByRole('textbox', { name: 'Email' }), 'new.employee@example.com')
+    await user.type(dialog.getByLabelText(/^Password/), 'Temp@12345')
+    await user.type(dialog.getByLabelText(/^Confirm Password/), 'Temp@12345')
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('User created successfully.')).toBeInTheDocument()
+    await waitFor(() => expect(usersApi.list).toHaveBeenCalledTimes(2))
+    expect(usersApi.list).toHaveBeenLastCalledWith({
+      page: 1,
+      size: 20,
+      sort: 'email,desc',
+      fullName: 'Admin',
+    })
+  })
+
+  it('opens edit dialog from row action', async () => {
+    const user = userEvent.setup()
+    renderUserListPage()
+
+    await waitFor(() => expect(screen.getByText('Admin User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Edit user Admin User' }))
+
+    expect(await screen.findByText('Edit User')).toBeInTheDocument()
+    expect(usersApi.get).toHaveBeenCalledWith('user-1')
   })
 })
