@@ -132,7 +132,6 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
         role: form.role,
       })
       onSuccess()
-      onClose()
     } catch (error) {
       setFormError(resolveApiError(error, 'Unable to update user. Please try again.'))
       setFieldErrors(getValidationErrors(error) ?? {})

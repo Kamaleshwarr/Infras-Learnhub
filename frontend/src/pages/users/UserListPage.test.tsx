@@ -181,7 +181,7 @@ describe('UserListPage', () => {
     await user.type(dialog.getByLabelText(/^Confirm Password/), 'Temp@12345')
     await user.click(dialog.getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByText('User created successfully.')).toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toHaveTextContent('User created successfully.')
     await waitFor(() => expect(usersApi.list).toHaveBeenCalledTimes(2))
     expect(usersApi.list).toHaveBeenLastCalledWith({
       page: 1,
@@ -200,5 +200,33 @@ describe('UserListPage', () => {
 
     expect(await screen.findByText('Edit User')).toBeInTheDocument()
     expect(usersApi.get).toHaveBeenCalledWith('user-1')
+  })
+
+  it('shows success snackbar after edit and preserves list query', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.update).mockResolvedValue({
+      ...users[0],
+      fullName: 'Updated Admin',
+    })
+
+    renderUserListPage('/users?fullName=Admin&page=1&sort=email,desc')
+
+    await waitFor(() => expect(screen.getByText('Admin User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Edit user Admin User' }))
+
+    const dialog = within(screen.getByRole('dialog'))
+    await dialog.findByRole('textbox', { name: 'Full Name' })
+    await user.clear(dialog.getByRole('textbox', { name: 'Full Name' }))
+    await user.type(dialog.getByRole('textbox', { name: 'Full Name' }), 'Updated Admin')
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('User updated successfully.')
+    await waitFor(() => expect(usersApi.list).toHaveBeenCalledTimes(2))
+    expect(usersApi.list).toHaveBeenLastCalledWith({
+      page: 1,
+      size: 20,
+      sort: 'email,desc',
+      fullName: 'Admin',
+    })
   })
 })

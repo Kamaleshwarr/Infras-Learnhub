@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert, Box, Button, Snackbar } from '@mui/material'
+import { Alert, Box, Button } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import { usersApi } from '../../api/usersApi'
 import { useAuth } from '../../auth/useAuth'
@@ -7,6 +7,9 @@ import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { CreateUserDialog } from '../../components/users/CreateUserDialog'
 import { EditUserDialog } from '../../components/users/EditUserDialog'
+import { USER_MANAGEMENT_MESSAGES } from '../../components/users/userManagementMessages'
+import type { UserManagementNotification } from '../../components/users/UserManagementSnackbar'
+import { UserManagementSnackbar } from '../../components/users/UserManagementSnackbar'
 import { UserFilters } from '../../components/users/UserFilters'
 import { UserListToolbar } from '../../components/users/UserListToolbar'
 import { UserTable } from '../../components/users/UserTable'
@@ -41,9 +44,7 @@ export function UserListPage() {
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<UserSummary | null>(null)
-  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(
-    null,
-  )
+  const [notification, setNotification] = useState<UserManagementNotification | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
 
   useEffect(() => {
@@ -59,6 +60,10 @@ export function UserListPage() {
 
   const refreshUsers = useCallback(() => {
     setRefreshToken((current) => current + 1)
+  }, [])
+
+  const showSuccessNotification = useCallback((message: string) => {
+    setNotification({ message, severity: 'success' })
   }, [])
 
   useEffect(() => {
@@ -120,12 +125,14 @@ export function UserListPage() {
   }
 
   function handleCreateSuccess() {
-    setSnackbar({ message: 'User created successfully.', severity: 'success' })
+    setCreateOpen(false)
+    showSuccessNotification(USER_MANAGEMENT_MESSAGES.createSuccess)
     refreshUsers()
   }
 
   function handleEditSuccess() {
-    setSnackbar({ message: 'User updated successfully.', severity: 'success' })
+    setEditingUser(null)
+    showSuccessNotification(USER_MANAGEMENT_MESSAGES.updateSuccess)
     refreshUsers()
   }
 
@@ -180,11 +187,7 @@ export function UserListPage() {
           totalElements={pageData.totalElements}
         />
       ) : null}
-      <CreateUserDialog
-        onClose={() => setCreateOpen(false)}
-        onSuccess={handleCreateSuccess}
-        open={createOpen}
-      />
+      <CreateUserDialog onClose={() => setCreateOpen(false)} onSuccess={handleCreateSuccess} open={createOpen} />
       <EditUserDialog
         currentUserId={currentUser?.id}
         onClose={() => setEditingUser(null)}
@@ -192,18 +195,7 @@ export function UserListPage() {
         open={Boolean(editingUser)}
         user={editingUser}
       />
-      <Snackbar
-        anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
-        autoHideDuration={5000}
-        onClose={() => setSnackbar(null)}
-        open={Boolean(snackbar)}
-      >
-        {snackbar ? (
-          <Alert onClose={() => setSnackbar(null)} severity={snackbar.severity} sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        ) : undefined}
-      </Snackbar>
+      <UserManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
     </Box>
   )
 }

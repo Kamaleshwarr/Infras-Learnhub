@@ -68,7 +68,7 @@ describe('CreateUserDialog', () => {
       }),
     )
     expect(onSuccess).toHaveBeenCalledTimes(1)
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onClose).not.toHaveBeenCalled()
   })
 
   it('shows server validation errors', async () => {

@@ -107,6 +107,6 @@ describe('EditUserDialog', () => {
       }),
     )
     expect(onSuccess).toHaveBeenCalledTimes(1)
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onClose).not.toHaveBeenCalled()
   })
 })

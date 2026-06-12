@@ -21,6 +21,7 @@ import {
 import type { UserRole } from '../../types/auth'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { normalizeEmail } from '../../utils/email'
+import { normalizeEmployeeId } from '../../utils/employeeId'
 
 interface CreateUserDialogProps {
   open: boolean
@@ -90,14 +91,13 @@ export function CreateUserDialog({ open, onClose, onSuccess }: CreateUserDialogP
 
     try {
       await usersApi.create({
-        employeeId: form.employeeId.trim(),
+        employeeId: normalizeEmployeeId(form.employeeId),
         fullName: form.fullName.trim(),
         email: normalizedEmail,
         role: form.role,
         password: form.password,
       })
       onSuccess()
-      onClose()
     } catch (error) {
       setFormError(resolveApiError(error, 'Unable to create user. Please try again.'))
       setFieldErrors(getValidationErrors(error) ?? {})
