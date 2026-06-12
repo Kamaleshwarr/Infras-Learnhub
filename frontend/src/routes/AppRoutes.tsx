@@ -15,6 +15,7 @@ import { ProjectsPage } from '../pages/projects/ProjectsPage'
 import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
 import { MySubmissionsPage } from '../pages/submissions/MySubmissionsPage'
 import { SubmitCertificatePage } from '../pages/submissions/SubmitCertificatePage'
+import { UserListPage } from '../pages/users/UserListPage'
 import { MustChangePasswordRoute } from './MustChangePasswordRoute'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleRoute } from './RoleRoute'
@@ -35,6 +36,9 @@ export function AppRoutes() {
             <Route element={<RoleRoute roles={['EMPLOYEE']} />}>
               <Route element={<SubmitCertificatePage />} path="submissions/new" />
               <Route element={<MySubmissionsPage />} path="submissions" />
+            </Route>
+            <Route element={<RoleRoute roles={['ADMIN']} />}>
+              <Route element={<UserListPage />} path="users" />
             </Route>
             <Route element={<GlobalLeaderboardPage />} path="leaderboards/global" />
             <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives" />

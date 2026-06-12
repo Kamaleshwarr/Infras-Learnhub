@@ -10,6 +10,7 @@ const employeeUser: UserProfile = {
   employeeId: 'EMP001',
   fullName: 'Employee One',
   email: 'employee@example.com',
+  mustChangePassword: false,
   roles: ['EMPLOYEE'],
 }
 
@@ -55,6 +56,18 @@ describe('Sidebar role-aware navigation', () => {
     expect(screen.queryAllByText('My Submissions')).toHaveLength(0)
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Projects').length).toBeGreaterThan(0)
+  })
+
+  it('shows admin-only users navigation to admins', () => {
+    renderSidebar(adminUser)
+
+    expect(screen.getAllByText('Users').length).toBeGreaterThan(0)
+  })
+
+  it('hides admin-only users navigation from employees', () => {
+    renderSidebar(employeeUser)
+
+    expect(screen.queryAllByText('Users')).toHaveLength(0)
   })
 })
 
