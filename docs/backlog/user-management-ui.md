@@ -40,3 +40,19 @@ Read-only side drawer opened from a user row showing full account metadata (`GET
 **Phase:** Optional backend enhancement
 
 Backend list filters are AND-combined field-specific queries. A single `search` query parameter with OR matching across `employeeId`, `fullName`, and `email` would improve quick-search UX beyond the current `fullName` mapping.
+
+---
+
+## UM-004 — View User Details
+
+**Status:** Open  
+**Phase:** Future enhancement
+
+Read-only view of a single user opened from the list (drawer or dedicated panel) without entering edit mode. Shows full account metadata from `GET /api/v1/users/{id}` including employee ID, name, email, role, status, timestamps, and (once UM-001 ships) `mustChangePassword`.
+
+**Scope:**
+
+- `ViewUserDetailsDrawer` or dialog component
+- Row "View" action or row click on `UserTable`
+- Optional URL deep-link: `/users?userId={id}`
+- Entry points to Edit, Activate/Deactivate, and Reset Password (Phase 3+)

@@ -40,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +72,7 @@ class UserManagementServiceTest {
 
     @Test
     void createUserValidatesUniquenessAndAssignsRole() {
-        when(userRepository.existsByEmployeeId("EMP002")).thenReturn(false);
+        when(userRepository.existsByEmployeeIdIgnoreCase("EMP002")).thenReturn(false);
         when(userRepository.existsByEmailIgnoreCase("john.doe@company.com")).thenReturn(false);
         when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
         when(passwordEncoder.encode("Temp@123")).thenReturn("hashed-password");
@@ -100,7 +101,7 @@ class UserManagementServiceTest {
 
     @Test
     void createUserRejectsDuplicateEmployeeIdAndEmail() {
-        when(userRepository.existsByEmployeeId("EMP002")).thenReturn(true);
+        when(userRepository.existsByEmployeeIdIgnoreCase("EMP002")).thenReturn(true);
 
         assertThatThrownBy(() -> service.createUser(new CreateUserRequest(
                 "EMP002",
@@ -112,7 +113,7 @@ class UserManagementServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Employee ID already exists");
 
-        when(userRepository.existsByEmployeeId("EMP003")).thenReturn(false);
+        when(userRepository.existsByEmployeeIdIgnoreCase("EMP003")).thenReturn(false);
         when(userRepository.existsByEmailIgnoreCase("jane.doe@company.com")).thenReturn(true);
 
         assertThatThrownBy(() -> service.createUser(new CreateUserRequest(
@@ -124,6 +125,44 @@ class UserManagementServiceTest {
         )))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Email already exists");
+    }
+
+    @Test
+    void createUserRejectsDuplicateEmployeeIdIgnoringCase() {
+        when(userRepository.existsByEmployeeIdIgnoreCase("EMP001")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.createUser(new CreateUserRequest(
+                "emp001",
+                "Jane Doe",
+                "jane.doe@company.com",
+                RoleName.EMPLOYEE,
+                "Temp@12345"
+        )))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Employee ID already exists");
+    }
+
+    @Test
+    void createUserNormalizesEmployeeIdToUppercase() {
+        when(userRepository.existsByEmployeeIdIgnoreCase("EMP010")).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase("jane.doe@company.com")).thenReturn(false);
+        when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
+        when(passwordEncoder.encode("Temp@12345")).thenReturn("hashed-password");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
+            return user;
+        });
+
+        UserResponse response = service.createUser(new CreateUserRequest(
+                "emp010",
+                "Jane Doe",
+                "jane.doe@company.com",
+                RoleName.EMPLOYEE,
+                "Temp@12345"
+        ));
+
+        assertThat(response.employeeId()).isEqualTo("EMP010");
     }
 
     @Test
@@ -143,6 +182,24 @@ class UserManagementServiceTest {
         assertThat(response.email()).isEqualTo("john.updated@company.com");
         assertThat(response.role()).isEqualTo(RoleName.ADMIN);
         assertThat(user.roleNames()).containsExactly(RoleName.ADMIN);
+    }
+
+    @Test
+    void updateUserKeepsSameRoleWithoutReplacingRoleAssignment() {
+        User user = user("EMP002", "john.doe@company.com", RoleName.EMPLOYEE);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("john.doe@company.com")).thenReturn(Optional.of(user));
+
+        UserResponse response = service.updateUser(user.getId(), new UpdateUserRequest(
+                "John Updated",
+                "john.doe@company.com",
+                RoleName.EMPLOYEE
+        ));
+
+        assertThat(response.fullName()).isEqualTo("John Updated");
+        assertThat(response.role()).isEqualTo(RoleName.EMPLOYEE);
+        assertThat(user.roleNames()).containsExactly(RoleName.EMPLOYEE);
+        verify(roleRepository, never()).findByName(any());
     }
 
     @Test
@@ -201,7 +258,7 @@ class UserManagementServiceTest {
                         EMP005,Jane Doe,jane.doe@company.com,EMPLOYEE
                         """.getBytes()
         );
-        when(userRepository.existsByEmployeeId(any())).thenReturn(false);
+        when(userRepository.existsByEmployeeIdIgnoreCase(any())).thenReturn(false);
         when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
         when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
         when(passwordEncoder.encode(any())).thenReturn("hash");
@@ -221,7 +278,7 @@ class UserManagementServiceTest {
 
     @Test
     void importUsersSupportsXlsAndXlsx() throws Exception {
-        when(userRepository.existsByEmployeeId(any())).thenReturn(false);
+        when(userRepository.existsByEmployeeIdIgnoreCase(any())).thenReturn(false);
         when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
         when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
         when(passwordEncoder.encode(any())).thenReturn("hash");

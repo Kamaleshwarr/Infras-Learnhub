@@ -42,3 +42,8 @@ export function isPasswordPolicyCompliant(password: string) {
   }
   return /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)
 }
+
+export function isPasswordSameAsEmail(password: string, email: string) {
+  const normalizedEmail = email.trim().toLowerCase()
+  return normalizedEmail.length > 0 && password === normalizedEmail
+}

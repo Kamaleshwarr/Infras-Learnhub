@@ -57,3 +57,17 @@ export const USER_SORTABLE_COLUMNS = [
 ] as const
 
 export type UserSortableColumn = (typeof USER_SORTABLE_COLUMNS)[number]
+
+export interface CreateUserRequest {
+  employeeId: string
+  fullName: string
+  email: string
+  role: UserRole
+  password: string
+}
+
+export interface UpdateUserRequest {
+  fullName: string
+  email: string
+  role: UserRole
+}

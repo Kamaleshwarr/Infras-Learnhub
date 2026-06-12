@@ -21,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
 
     boolean existsByEmployeeId(String employeeId);
 
+    boolean existsByEmployeeIdIgnoreCase(String employeeId);
+
     Optional<User> findByEmployeeId(String employeeId);
 }
 
