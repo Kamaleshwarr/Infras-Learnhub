@@ -43,11 +43,11 @@ describe('userImportPreview', () => {
     await expect(estimateImportRowCount(file)).resolves.toBe(1)
   })
 
-  it('ignores template comment lines', async () => {
+  it('ignores hash-prefixed comment lines in csv files', async () => {
     const file = new File(
       [
         'Employee ID,Full Name,Email,Role\n',
-        '# Valid role values: ADMIN, EMPLOYEE\n',
+        '# Notes are ignored when users add their own comment lines\n',
         'EMP010,Jane Doe,jane@example.com,EMPLOYEE\n',
       ],
       'users.csv',
