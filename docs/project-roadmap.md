@@ -1,20 +1,40 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-15 (v0.3 — User Management UI Phases 1–3)
+Last updated: 2026-06-12 (v0.4 — User Management UI Phase 4)
 
 ## Release Overview
 
 | Release | Theme | Status |
 |---------|-------|--------|
 | v0.2 | Password Management + backend foundations | Shipped (PR #17) |
-| **v0.3** | **User Management UI (Phases 1–3)** | **Shipped (PRs #18–#20)** |
-| v0.4 | User Management UI Phase 4 (bulk import) | Planned |
+| v0.3 | User Management UI (Phases 1–3) | Shipped (PRs #18–#20) |
+| **v0.4** | **User Management UI Phase 4 (bulk import)** | **Shipped (PRs #22–#24)** |
 
-Release notes: `docs/releases/release-v0.3.md`
+Release notes: `docs/releases/release-v0.4.md`
 
 ---
 
-## Shipped — v0.3 User Management UI
+## Shipped — v0.4 User Management UI Phase 4
+
+### Bulk Import & Template (PR #22)
+
+- **Bulk Import UI** — multi-step dialog: file select → preview → confirm → results
+- **Import Preview** — estimated data-row count and filename before upload
+- **Download Template** — header-only CSV from toolbar
+- **Create-only import** — new users only; default password with forced change on first login
+- **Upload lockdown** — controls disabled during preview/import
+- **Result summary** — imported/failed counts and per-row errors; list refresh on success
+
+### Import quality fixes (PRs #23, #24)
+
+- **Blank row parser improvements** — skip trailing empty CSV/Excel rows
+- **Preview/import alignment** — frontend preview matches backend skip rules
+- **Header-only template** — no comment rows that Excel treats as data
+- **Import role guidance** — `ADMIN`, `EMPLOYEE` only; helper text in dialog
+
+---
+
+## Shipped — v0.3 User Management UI (Phases 1–3)
 
 ### Phase 1 — Users List (PR #18)
 
@@ -41,16 +61,9 @@ Release notes: `docs/releases/release-v0.3.md`
 
 ---
 
-## In Progress / Next
+## Next (awaiting approval)
 
-### Phase 4 — Bulk User Import UI (pending approval)
-
-- Bulk import dialog (CSV, XLS, XLSX)
-- Download import template from toolbar
-- Import result summary with per-row errors
-- List refresh after successful import
-
-See approved architecture in Phase 4 plan (awaiting implementation approval).
+No implementation in progress. Recommended next feature: **Profile Management** (see status report).
 
 ---
 
@@ -61,9 +74,10 @@ See approved architecture in Phase 4 plan (awaiting implementation approval).
 | UM-002 | User Details Drawer | Read-only metadata + action shortcuts |
 | UM-003 | Unified cross-field search | Optional backend `search` param |
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
-| — | Profile Management | v0.4+ |
-| — | Notifications | v0.4+ |
-| — | Global Search | v0.4+ |
+| UM-006 | Downloadable import error report | Post-import CSV/text export |
+| — | Profile Management | v0.5+ candidate |
+| — | Notifications | v0.5+ |
+| — | Global Search | v0.5+ |
 
 Backlog detail: `docs/backlog/user-management-ui.md`
 
@@ -77,7 +91,7 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 - Leaderboards
 - Study Materials Repository
 - Project Knowledge Repository
-- User Management (API)
+- User Management (API + import parsers)
 - Password Management
 
 ## Completed Frontend Modules
@@ -86,4 +100,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 2. Authentication UI
 3. Role-aware dashboard
 4. Password Management UI
-5. **User Management UI — Phases 1–3**
+5. **User Management UI — Phases 1–4** (list, CRUD, activate/deactivate/reset, bulk import)
