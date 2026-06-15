@@ -320,13 +320,8 @@ class UserManagementServiceTest {
     }
 
     @Test
-    void generateTemplateReturnsCsvHeaderAndRoleGuidance() {
-        assertThat(new String(service.generateTemplate())).isEqualTo(
-                """
-                Employee ID,Full Name,Email,Role
-                # Valid role values: ADMIN, EMPLOYEE
-                """
-        );
+    void generateTemplateReturnsHeaderRowOnly() {
+        assertThat(new String(service.generateTemplate())).isEqualTo("Employee ID,Full Name,Email,Role\n");
     }
 
     @Test

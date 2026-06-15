@@ -47,10 +47,7 @@ import java.util.UUID;
 @Service
 public class UserManagementService {
 
-    private static final String TEMPLATE = """
-            Employee ID,Full Name,Email,Role
-            # Valid role values: ADMIN, EMPLOYEE
-            """;
+    private static final String TEMPLATE = "Employee ID,Full Name,Email,Role\n";
     private static final String DEFAULT_IMPORT_PASSWORD = "Temp@12345";
 
     private final UserRepository userRepository;
