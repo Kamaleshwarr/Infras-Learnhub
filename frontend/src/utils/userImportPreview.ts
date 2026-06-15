@@ -5,6 +5,14 @@ export function isAcceptedImportFile(file: File) {
   return IMPORT_FILE_EXTENSIONS.some((extension) => filename.endsWith(extension))
 }
 
+export function normalizeImportCell(value: string) {
+  return value.replace(/\u00a0/g, ' ').replace(/\u200b/g, ' ').trim()
+}
+
+export function isBlankImportRow(columns: string[]) {
+  return [0, 1, 2, 3].every((index) => !normalizeImportCell(columns[index] ?? ''))
+}
+
 function splitCsvLine(line: string) {
   const values: string[] = []
   let current = ''
@@ -16,14 +24,14 @@ function splitCsvLine(line: string) {
       continue
     }
     if (character === ',' && !quoted) {
-      values.push(current.trim())
+      values.push(normalizeImportCell(current))
       current = ''
       continue
     }
     current += character
   }
 
-  values.push(current.trim())
+  values.push(normalizeImportCell(current))
   return values
 }
 
@@ -37,15 +45,19 @@ function isImportHeader(columns: string[]) {
   )
 }
 
+function isImportCommentLine(line: string) {
+  return line.trim().startsWith('#')
+}
+
 function countCsvDataRows(content: string) {
   let count = 0
 
   for (const line of content.split(/\r?\n/)) {
-    if (!line.trim()) {
+    if (!line.trim() || isImportCommentLine(line)) {
       continue
     }
     const columns = splitCsvLine(line)
-    if (isImportHeader(columns)) {
+    if (isImportHeader(columns) || isBlankImportRow(columns)) {
       continue
     }
     count += 1

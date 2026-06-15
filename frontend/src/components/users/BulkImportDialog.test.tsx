@@ -31,6 +31,40 @@ describe('BulkImportDialog', () => {
     vi.clearAllMocks()
   })
 
+  it('documents valid role values in the import dialog', () => {
+    render(
+      <BulkImportDialog
+        onClose={onClose}
+        onComplete={onComplete}
+        onDownloadTemplate={onDownloadTemplate}
+        open
+      />,
+    )
+
+    expect(screen.getByText('Valid role values: ADMIN, EMPLOYEE')).toBeInTheDocument()
+  })
+
+  it('excludes comma-only trailing rows from preview row count', async () => {
+    const user = userEvent.setup()
+    render(
+      <BulkImportDialog
+        onClose={onClose}
+        onComplete={onComplete}
+        onDownloadTemplate={onDownloadTemplate}
+        open
+      />,
+    )
+
+    await user.upload(
+      getFileInput(),
+      createCsvFile(
+        'Employee ID,Full Name,Email,Role\nEMP010,Jane Doe,jane@example.com,EMPLOYEE\n,,,\n , , ,\n',
+      ),
+    )
+
+    expect(await getDialog().findByText('1 data row detected.')).toBeInTheDocument()
+  })
+
   it('shows preview with filename and row count before import', async () => {
     const user = userEvent.setup()
     render(
@@ -161,6 +195,37 @@ describe('BulkImportDialog', () => {
     expect(dialog.getByText('Row 5 - Invalid role MANAGER')).toBeInTheDocument()
     expect(dialog.getByText('Row 6 - Missing required values')).toBeInTheDocument()
     expect(dialog.getByText(/Some rows were imported successfully/)).toBeInTheDocument()
+  })
+
+  it('shows invalid role errors for values such as Manager and Administrator', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.importUsers).mockResolvedValue({
+      totalRows: 2,
+      imported: 0,
+      failed: 2,
+      errors: ['Row 2 - Invalid role Manager', 'Row 3 - Invalid role Administrator'],
+    })
+
+    render(
+      <BulkImportDialog
+        onClose={onClose}
+        onComplete={onComplete}
+        onDownloadTemplate={onDownloadTemplate}
+        open
+      />,
+    )
+
+    await user.upload(
+      getFileInput(),
+      createCsvFile(
+        'Employee ID,Full Name,Email,Role\nEMP010,Jane Doe,jane@example.com,Manager\nEMP011,John Doe,john@example.com,Administrator\n',
+      ),
+    )
+    await user.click(await screen.findByRole('button', { name: 'Import users' }))
+
+    const dialog = getDialog()
+    expect(await dialog.findByText('Row 2 - Invalid role Manager')).toBeInTheDocument()
+    expect(dialog.getByText('Row 3 - Invalid role Administrator')).toBeInTheDocument()
   })
 
   it('warns when an empty csv has no data rows', async () => {

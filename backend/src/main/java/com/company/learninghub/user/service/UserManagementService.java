@@ -47,7 +47,10 @@ import java.util.UUID;
 @Service
 public class UserManagementService {
 
-    private static final String TEMPLATE = "Employee ID,Full Name,Email,Role\n";
+    private static final String TEMPLATE = """
+            Employee ID,Full Name,Email,Role
+            # Valid role values: ADMIN, EMPLOYEE
+            """;
     private static final String DEFAULT_IMPORT_PASSWORD = "Temp@12345";
 
     private final UserRepository userRepository;
@@ -349,14 +352,20 @@ public class UserManagementService {
             int rowNumber = 0;
             while ((line = reader.readLine()) != null) {
                 rowNumber++;
-                if (!StringUtils.hasText(line)) {
+                if (!StringUtils.hasText(line) || isImportCommentLine(line)) {
                     continue;
                 }
                 List<String> columns = splitCsvLine(line);
-                if (isHeader(columns)) {
+                if (isHeader(columns) || isBlankImportRow(columns)) {
                     continue;
                 }
-                rows.add(new ImportRow(rowNumber, value(columns, 0), value(columns, 1), value(columns, 2), value(columns, 3)));
+                rows.add(new ImportRow(
+                        rowNumber,
+                        normalizeImportCell(value(columns, 0)),
+                        normalizeImportCell(value(columns, 1)),
+                        normalizeImportCell(value(columns, 2)),
+                        normalizeImportCell(value(columns, 3))
+                ));
             }
         }
         return rows;
@@ -371,13 +380,13 @@ public class UserManagementService {
             if (c == '"') {
                 quoted = !quoted;
             } else if (c == ',' && !quoted) {
-                values.add(current.toString().trim());
+                values.add(normalizeImportCell(current.toString()));
                 current.setLength(0);
             } else {
                 current.append(c);
             }
         }
-        values.add(current.toString().trim());
+        values.add(normalizeImportCell(current.toString()));
         return values;
     }
 
@@ -394,7 +403,7 @@ public class UserManagementService {
                         cellValue(row.getCell(2), formatter),
                         cellValue(row.getCell(3), formatter)
                 );
-                if (isHeader(columns) || columns.stream().allMatch(value -> !StringUtils.hasText(value))) {
+                if (isHeader(columns) || isImportCommentRow(columns) || isBlankImportRow(columns)) {
                     continue;
                 }
                 rows.add(new ImportRow(rowNumber, columns.get(0), columns.get(1), columns.get(2), columns.get(3)));
@@ -404,7 +413,30 @@ public class UserManagementService {
     }
 
     private String cellValue(Cell cell, DataFormatter formatter) {
-        return cell == null ? "" : formatter.formatCellValue(cell).trim();
+        return normalizeImportCell(cell == null ? "" : formatter.formatCellValue(cell));
+    }
+
+    private boolean isImportCommentLine(String line) {
+        return line.trim().startsWith("#");
+    }
+
+    private boolean isImportCommentRow(List<String> columns) {
+        String firstColumn = normalizeImportCell(value(columns, 0));
+        return firstColumn.startsWith("#");
+    }
+
+    private boolean isBlankImportRow(List<String> columns) {
+        return !StringUtils.hasText(normalizeImportCell(value(columns, 0)))
+                && !StringUtils.hasText(normalizeImportCell(value(columns, 1)))
+                && !StringUtils.hasText(normalizeImportCell(value(columns, 2)))
+                && !StringUtils.hasText(normalizeImportCell(value(columns, 3)));
+    }
+
+    private String normalizeImportCell(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace('\u00a0', ' ').replace('\u200b', ' ').trim();
     }
 
     private boolean isHeader(List<String> columns) {

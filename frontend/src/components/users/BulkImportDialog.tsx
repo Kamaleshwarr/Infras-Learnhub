@@ -158,6 +158,9 @@ export function BulkImportDialog({ open, onClose, onComplete, onDownloadTemplate
               <Typography color="text.secondary" variant="body2">
                 Upload a CSV, XLS, or XLSX file with columns: Employee ID, Full Name, Email, Role.
               </Typography>
+              <Typography color="text.secondary" variant="body2">
+                Valid role values: ADMIN, EMPLOYEE
+              </Typography>
               <Box>
                 <label htmlFor="bulk-import-file-input">
                   <Button component="span" disabled={controlsDisabled} variant="outlined">

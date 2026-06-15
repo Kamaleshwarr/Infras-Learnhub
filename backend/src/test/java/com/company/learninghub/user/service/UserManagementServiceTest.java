@@ -320,8 +320,155 @@ class UserManagementServiceTest {
     }
 
     @Test
-    void generateTemplateReturnsCsvHeader() {
-        assertThat(new String(service.generateTemplate())).isEqualTo("Employee ID,Full Name,Email,Role\n");
+    void generateTemplateReturnsCsvHeaderAndRoleGuidance() {
+        assertThat(new String(service.generateTemplate())).isEqualTo(
+                """
+                Employee ID,Full Name,Email,Role
+                # Valid role values: ADMIN, EMPLOYEE
+                """
+        );
+    }
+
+    @Test
+    void importUsersIgnoresBlankCsvRowsAndCommaOnlyLines() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "users.csv",
+                "text/csv",
+                """
+                        Employee ID,Full Name,Email,Role
+                        EMP010,Jane Doe,jane@example.com,EMPLOYEE
+                        ,,,
+                        , , ,
+                        
+                        ,,,
+                        """.getBytes()
+        );
+        when(userRepository.existsByEmployeeIdIgnoreCase(any())).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
+        when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
+        when(passwordEncoder.encode(any())).thenReturn("hash");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserImportResponse response = service.importUsers(file);
+
+        assertThat(response.totalRows()).isEqualTo(1);
+        assertThat(response.imported()).isEqualTo(1);
+        assertThat(response.failed()).isZero();
+        assertThat(response.errors()).isEmpty();
+    }
+
+    @Test
+    void importUsersReportsMissingRequiredValuesForPartialRowsOnly() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "users.csv",
+                "text/csv",
+                """
+                        Employee ID,Full Name,Email,Role
+                        EMP010,Jane Doe,,EMPLOYEE
+                        ,,,
+                        """.getBytes()
+        );
+
+        UserImportResponse response = service.importUsers(file);
+
+        assertThat(response.totalRows()).isEqualTo(1);
+        assertThat(response.imported()).isZero();
+        assertThat(response.failed()).isEqualTo(1);
+        assertThat(response.errors()).containsExactly("Row 2 - Missing required values");
+    }
+
+    @Test
+    void importUsersIgnoresWhitespaceOnlyCsvRows() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "users.csv",
+                "text/csv",
+                """
+                        Employee ID,Full Name,Email,Role
+                        EMP010,Jane Doe,jane@example.com,EMPLOYEE
+                           \u00a0  ,   ,   ,
+                        """.getBytes()
+        );
+        when(userRepository.existsByEmployeeIdIgnoreCase(any())).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
+        when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
+        when(passwordEncoder.encode(any())).thenReturn("hash");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserImportResponse response = service.importUsers(file);
+
+        assertThat(response.totalRows()).isEqualTo(1);
+        assertThat(response.imported()).isEqualTo(1);
+        assertThat(response.failed()).isZero();
+    }
+
+    @Test
+    void importUsersRejectsInvalidRoleNamesSuchAsManagerAndAdministrator() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "users.csv",
+                "text/csv",
+                """
+                        Employee ID,Full Name,Email,Role
+                        EMP010,Jane Doe,jane@example.com,Manager
+                        EMP011,John Doe,john@example.com,Administrator
+                        """.getBytes()
+        );
+        when(userRepository.existsByEmployeeIdIgnoreCase(any())).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
+
+        UserImportResponse response = service.importUsers(file);
+
+        assertThat(response.totalRows()).isEqualTo(2);
+        assertThat(response.imported()).isZero();
+        assertThat(response.failed()).isEqualTo(2);
+        assertThat(response.errors()).containsExactly(
+                "Row 2 - Invalid role Manager",
+                "Row 3 - Invalid role Administrator"
+        );
+    }
+
+    @Test
+    void importUsersIgnoresEmptyTrailingExcelRows() throws Exception {
+        when(userRepository.existsByEmployeeIdIgnoreCase(any())).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
+        when(roleRepository.findByName(RoleName.EMPLOYEE)).thenReturn(Optional.of(employeeRole));
+        when(passwordEncoder.encode(any())).thenReturn("hash");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Users");
+        Row header = sheet.createRow(0);
+        header.createCell(0).setCellValue("Employee ID");
+        header.createCell(1).setCellValue("Full Name");
+        header.createCell(2).setCellValue("Email");
+        header.createCell(3).setCellValue("Role");
+        Row data = sheet.createRow(1);
+        data.createCell(0).setCellValue("EMP010");
+        data.createCell(1).setCellValue("Jane Doe");
+        data.createCell(2).setCellValue("jane@example.com");
+        data.createCell(3).setCellValue("EMPLOYEE");
+        sheet.createRow(4);
+        sheet.createRow(5);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "users.xlsx",
+                "application/octet-stream",
+                outputStream.toByteArray()
+        );
+
+        UserImportResponse response = service.importUsers(file);
+
+        assertThat(response.totalRows()).isEqualTo(1);
+        assertThat(response.imported()).isEqualTo(1);
+        assertThat(response.failed()).isZero();
+        assertThat(response.errors()).isEmpty();
     }
 
     private MockMultipartFile workbookFile(String filename, Workbook workbook) throws Exception {

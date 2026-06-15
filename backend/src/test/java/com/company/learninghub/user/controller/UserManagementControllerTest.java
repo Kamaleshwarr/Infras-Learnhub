@@ -175,12 +175,15 @@ class UserManagementControllerTest {
 
     @Test
     void templateDownloadReturnsCsv() throws Exception {
-        when(userManagementService.generateTemplate()).thenReturn("Employee ID,Full Name,Email,Role\n".getBytes());
+        when(userManagementService.generateTemplate()).thenReturn("""
+                Employee ID,Full Name,Email,Role
+                # Valid role values: ADMIN, EMPLOYEE
+                """.getBytes());
 
         mockMvc.perform(get("/api/v1/users/import/template"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/csv"))
-                .andExpect(content().string("Employee ID,Full Name,Email,Role\n"));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Valid role values: ADMIN, EMPLOYEE")));
     }
 
     private User adminUser() {
