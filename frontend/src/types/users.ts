@@ -7,9 +7,9 @@ export interface UserSummary {
   email: string
   role: UserRole
   active: boolean
+  mustChangePassword: boolean
   createdAtUtc: string
   updatedAtUtc: string
-  mustChangePassword?: boolean
 }
 
 export interface UserListParams {
@@ -70,4 +70,8 @@ export interface UpdateUserRequest {
   fullName: string
   email: string
   role: UserRole
+}
+
+export interface ResetPasswordRequest {
+  password: string
 }

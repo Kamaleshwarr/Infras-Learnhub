@@ -19,6 +19,7 @@ const adminUser: UserSummary = {
   employeeId: 'EMP001',
   fullName: 'Admin User',
   id: 'user-1',
+  mustChangePassword: false,
   role: 'ADMIN',
   updatedAtUtc: '2026-06-01T00:00:00Z',
 }

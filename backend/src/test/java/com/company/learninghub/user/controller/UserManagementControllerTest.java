@@ -1,7 +1,10 @@
 package com.company.learninghub.user.controller;
 
+import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.pagination.PageResponse;
+import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
+import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.dto.CreateUserRequest;
 import com.company.learninghub.user.dto.ResetPasswordRequest;
 import com.company.learninghub.user.dto.UpdateUserRequest;
@@ -17,8 +20,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.time.Instant;
@@ -54,7 +61,10 @@ class UserManagementControllerTest {
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new UserManagementController(userManagementService))
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setCustomArgumentResolvers(
+                        new PageableHandlerMethodArgumentResolver(),
+                        new AuthenticationPrincipalArgumentResolver()
+                )
                 .setValidator(validator)
                 .build();
     }
@@ -62,6 +72,7 @@ class UserManagementControllerTest {
     @AfterEach
     void tearDown() {
         validator.close();
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -76,7 +87,8 @@ class UserManagementControllerTest {
                         .queryParam("active", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].employeeId").value("EMP002"));
+                .andExpect(jsonPath("$.content[0].employeeId").value("EMP002"))
+                .andExpect(jsonPath("$.content[0].mustChangePassword").value(false));
     }
 
     @Test
@@ -119,7 +131,7 @@ class UserManagementControllerTest {
         UpdateUserRequest update = new UpdateUserRequest("John Doe", "john.doe@company.com", RoleName.ADMIN);
         when(userManagementService.updateUser(id, update)).thenReturn(userResponse());
         when(userManagementService.activateUser(id)).thenReturn(userResponse());
-        when(userManagementService.deactivateUser(id)).thenReturn(userResponse());
+        when(userManagementService.deactivateUser(eq(id), any())).thenReturn(userResponse());
 
         mockMvc.perform(put("/api/v1/users/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -128,6 +140,15 @@ class UserManagementControllerTest {
 
         mockMvc.perform(patch("/api/v1/users/{id}/activate", id))
                 .andExpect(status().isOk());
+
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.from(adminUser());
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(
+                        authenticatedUser,
+                        null,
+                        authenticatedUser.getAuthorities()
+                )
+        );
 
         mockMvc.perform(patch("/api/v1/users/{id}/deactivate", id))
                 .andExpect(status().isOk());
@@ -162,6 +183,13 @@ class UserManagementControllerTest {
                 .andExpect(content().string("Employee ID,Full Name,Email,Role\n"));
     }
 
+    private User adminUser() {
+        User user = new User("EMP001", "admin@example.com", "Admin User", "$2a$12$hash");
+        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
+        user.assignRole(new Role(RoleName.ADMIN));
+        return user;
+    }
+
     private UserResponse userResponse() {
         return new UserResponse(
                 UUID.randomUUID(),
@@ -170,6 +198,7 @@ class UserManagementControllerTest {
                 "john.doe@company.com",
                 RoleName.EMPLOYEE,
                 true,
+                false,
                 Instant.parse("2026-06-10T00:00:00Z"),
                 Instant.parse("2026-06-10T00:00:00Z")
         );

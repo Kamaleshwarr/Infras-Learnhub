@@ -3,10 +3,12 @@ import { Alert, Box, Button } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import { usersApi } from '../../api/usersApi'
 import { useAuth } from '../../auth/useAuth'
+import { ConfirmActionDialog } from '../../components/common/ConfirmActionDialog'
 import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { CreateUserDialog } from '../../components/users/CreateUserDialog'
 import { EditUserDialog } from '../../components/users/EditUserDialog'
+import { ResetPasswordDialog } from '../../components/users/ResetPasswordDialog'
 import { USER_MANAGEMENT_MESSAGES } from '../../components/users/userManagementMessages'
 import type { UserManagementNotification } from '../../components/users/UserManagementSnackbar'
 import { UserManagementSnackbar } from '../../components/users/UserManagementSnackbar'
@@ -16,6 +18,7 @@ import { UserTable } from '../../components/users/UserTable'
 import type { PageResponse } from '../../types/api'
 import type { UserListQuery, UserSummary } from '../../types/users'
 import { DEFAULT_USER_LIST_QUERY } from '../../types/users'
+import { resolveApiError } from '../../utils/apiErrors'
 import {
   buildUserListSearchParams,
   parseUserListQuery,
@@ -34,6 +37,11 @@ const EMPTY_PAGE: PageResponse<UserSummary> = {
   sort: [{ property: 'employeeId', direction: 'ASC' }],
 }
 
+type ConfirmActionState =
+  | { type: 'activate'; user: UserSummary }
+  | { type: 'deactivate'; user: UserSummary }
+  | null
+
 export function UserListPage() {
   const { user: currentUser } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -44,6 +52,10 @@ export function UserListPage() {
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<UserSummary | null>(null)
+  const [confirmAction, setConfirmAction] = useState<ConfirmActionState>(null)
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserSummary | null>(null)
+  const [confirmSubmitting, setConfirmSubmitting] = useState(false)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
   const [notification, setNotification] = useState<UserManagementNotification | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
 
@@ -136,6 +148,55 @@ export function UserListPage() {
     refreshUsers()
   }
 
+  function openConfirmAction(type: 'activate' | 'deactivate', user: UserSummary) {
+    setConfirmError(null)
+    setConfirmAction({ type, user })
+  }
+
+  function closeConfirmAction() {
+    if (!confirmSubmitting) {
+      setConfirmAction(null)
+      setConfirmError(null)
+    }
+  }
+
+  async function handleConfirmAction() {
+    if (!confirmAction) {
+      return
+    }
+
+    setConfirmSubmitting(true)
+    setConfirmError(null)
+
+    try {
+      if (confirmAction.type === 'activate') {
+        await usersApi.activate(confirmAction.user.id)
+        setConfirmAction(null)
+        showSuccessNotification(USER_MANAGEMENT_MESSAGES.activateSuccess)
+      } else {
+        await usersApi.deactivate(confirmAction.user.id)
+        setConfirmAction(null)
+        showSuccessNotification(USER_MANAGEMENT_MESSAGES.deactivateSuccess)
+      }
+      refreshUsers()
+    } catch (error) {
+      setConfirmError(
+        resolveApiError(
+          error,
+          `Unable to ${confirmAction.type} user. Please try again.`,
+        ),
+      )
+    } finally {
+      setConfirmSubmitting(false)
+    }
+  }
+
+  function handleResetPasswordSuccess() {
+    setResetPasswordUser(null)
+    showSuccessNotification(USER_MANAGEMENT_MESSAGES.resetPasswordSuccess)
+    refreshUsers()
+  }
+
   const hasActiveFilters =
     Boolean(appliedQuery.employeeId) ||
     Boolean(appliedQuery.fullName) ||
@@ -170,9 +231,13 @@ export function UserListPage() {
         onDraftChange={setDraftQuery}
       />
       <UserTable
+        currentUserId={currentUser?.id}
         hasActiveFilters={hasActiveFilters}
         loading={loading}
+        onActivate={(user) => openConfirmAction('activate', user)}
+        onDeactivate={(user) => openConfirmAction('deactivate', user)}
         onEdit={setEditingUser}
+        onResetPassword={setResetPasswordUser}
         onSort={handleSort}
         showMustChangePasswordColumn={showMustChangePasswordColumn}
         sort={appliedQuery.sort}
@@ -194,6 +259,34 @@ export function UserListPage() {
         onSuccess={handleEditSuccess}
         open={Boolean(editingUser)}
         user={editingUser}
+      />
+      <ConfirmActionDialog
+        confirmColor={confirmAction?.type === 'activate' ? 'success' : 'warning'}
+        confirmLabel={confirmAction?.type === 'activate' ? 'Activate user' : 'Deactivate user'}
+        onClose={closeConfirmAction}
+        onConfirm={handleConfirmAction}
+        open={Boolean(confirmAction)}
+        submitting={confirmSubmitting}
+        title={confirmAction?.type === 'activate' ? 'Activate user' : 'Deactivate user'}
+        user={confirmAction?.user ?? null}
+      >
+        {confirmError ? <Alert severity="error">{confirmError}</Alert> : null}
+        {confirmAction?.type === 'deactivate' ? (
+          <>
+            <Alert severity="warning">
+              This user will be unable to sign in until reactivated.
+            </Alert>
+            <Alert severity="info">
+              This action does not delete the user. The account can be reactivated later.
+            </Alert>
+          </>
+        ) : null}
+      </ConfirmActionDialog>
+      <ResetPasswordDialog
+        onClose={() => setResetPasswordUser(null)}
+        onSuccess={handleResetPasswordSuccess}
+        open={Boolean(resetPasswordUser)}
+        user={resetPasswordUser}
       />
       <UserManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
     </Box>
