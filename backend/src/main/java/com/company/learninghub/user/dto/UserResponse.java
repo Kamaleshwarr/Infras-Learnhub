@@ -12,6 +12,7 @@ public record UserResponse(
         String email,
         RoleName role,
         boolean active,
+        boolean mustChangePassword,
         Instant createdAtUtc,
         Instant updatedAtUtc
 ) {

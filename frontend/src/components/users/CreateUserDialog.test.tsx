@@ -50,6 +50,7 @@ describe('CreateUserDialog', () => {
       employeeId: 'EMP010',
       fullName: 'Jane Doe',
       id: 'user-10',
+      mustChangePassword: true,
       role: 'EMPLOYEE',
       updatedAtUtc: '2026-06-12T00:00:00Z',
     })

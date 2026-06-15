@@ -14,6 +14,9 @@ vi.mock('../../api/usersApi', () => ({
     get: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    activate: vi.fn(),
+    deactivate: vi.fn(),
+    resetPassword: vi.fn(),
   },
 }))
 
@@ -29,16 +32,18 @@ const users: UserSummary[] = [
     employeeId: 'EMP001',
     fullName: 'Admin User',
     id: 'user-1',
+    mustChangePassword: false,
     role: 'ADMIN',
     updatedAtUtc: '2026-06-01T00:00:00Z',
   },
   {
-    active: false,
+    active: true,
     createdAtUtc: '2026-06-02T00:00:00Z',
     email: 'employee@example.com',
     employeeId: 'EMP002',
     fullName: 'Employee User',
     id: 'user-2',
+    mustChangePassword: true,
     role: 'EMPLOYEE',
     updatedAtUtc: '2026-06-02T00:00:00Z',
   },
@@ -132,14 +137,10 @@ describe('UserListPage', () => {
   })
 
   it('shows must change password column when API returns the field', async () => {
-    vi.mocked(usersApi.list).mockResolvedValue({
-      ...pageResponse,
-      content: [{ ...users[0], mustChangePassword: true }, users[1]],
-    })
-
     renderUserListPage()
 
     expect(await screen.findByText('Must Change Password')).toBeInTheDocument()
+    expect(screen.getByText('No')).toBeInTheDocument()
     expect(screen.getByText('Yes')).toBeInTheDocument()
   })
 
@@ -228,5 +229,72 @@ describe('UserListPage', () => {
       sort: 'email,desc',
       fullName: 'Admin',
     })
+  })
+
+  it('activates an inactive user after confirmation', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.list).mockResolvedValue({
+      ...pageResponse,
+      content: [users[0], { ...users[1], active: false }],
+    })
+    vi.mocked(usersApi.activate).mockResolvedValue({ ...users[1], active: true })
+
+    renderUserListPage()
+
+    await waitFor(() => expect(screen.getByText('Employee User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Activate user Employee User' }))
+    await user.click(screen.getByRole('button', { name: 'Activate user' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('User activated successfully.')
+    expect(usersApi.activate).toHaveBeenCalledWith('user-2')
+    await waitFor(() => expect(usersApi.list).toHaveBeenCalledTimes(2))
+  })
+
+  it('deactivates another user after confirmation', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.deactivate).mockResolvedValue({ ...users[1], active: false })
+
+    renderUserListPage()
+
+    await waitFor(() => expect(screen.getByText('Employee User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Deactivate user Employee User' }))
+
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.getByText('This action does not delete the user. The account can be reactivated later.')).toBeInTheDocument()
+    await user.click(dialog.getByRole('button', { name: 'Deactivate user' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('User deactivated successfully.')
+    expect(usersApi.deactivate).toHaveBeenCalledWith('user-2')
+  })
+
+  it('disables self-deactivation for the signed-in admin', async () => {
+    renderUserListPage()
+
+    await waitFor(() => expect(screen.getByText('Admin User')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Deactivate user Admin User' })).toBeDisabled()
+    expect(usersApi.deactivate).not.toHaveBeenCalled()
+  })
+
+  it('resets password after confirmation and password entry', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.resetPassword).mockResolvedValue()
+
+    renderUserListPage()
+
+    await waitFor(() => expect(screen.getByText('Employee User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Reset password for Employee User' }))
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    const dialog = within(screen.getByRole('dialog'))
+    await user.type(dialog.getByLabelText(/^New Password/), 'Temp@12345')
+    await user.type(dialog.getByLabelText(/^Confirm Password/), 'Temp@12345')
+    await user.click(dialog.getByRole('button', { name: 'Reset password' }))
+
+    expect(
+      await screen.findByText(
+        'Password reset successfully. User will be required to change their password at next sign-in.',
+      ),
+    ).toBeInTheDocument()
+    expect(usersApi.resetPassword).toHaveBeenCalledWith('user-2', { password: 'Temp@12345' })
   })
 })

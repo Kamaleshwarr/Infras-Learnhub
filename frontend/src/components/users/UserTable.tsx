@@ -1,8 +1,12 @@
+import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined'
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import LockResetOutlinedIcon from '@mui/icons-material/LockResetOutlined'
 import {
   IconButton,
   Paper,
   Skeleton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -23,8 +27,12 @@ interface UserTableProps {
   loading: boolean
   showMustChangePasswordColumn: boolean
   hasActiveFilters: boolean
+  currentUserId?: string
   onSort: (property: string) => void
   onEdit: (user: UserSummary) => void
+  onActivate: (user: UserSummary) => void
+  onDeactivate: (user: UserSummary) => void
+  onResetPassword: (user: UserSummary) => void
 }
 
 const BASE_COLUMNS: SortableColumn[] = [
@@ -52,8 +60,12 @@ export function UserTable({
   loading,
   showMustChangePasswordColumn,
   hasActiveFilters,
+  currentUserId,
   onSort,
   onEdit,
+  onActivate,
+  onDeactivate,
+  onResetPassword,
 }: UserTableProps) {
   const columns = [
     ...BASE_COLUMNS,
@@ -100,29 +112,77 @@ export function UserTable({
         <Table>
           <SortableTableHead columns={columns} onSort={onSort} sort={sort} />
           <TableBody>
-            {users.map((user) => (
-              <TableRow hover key={user.id}>
-                <TableCell>{user.employeeId}</TableCell>
-                <TableCell>{user.fullName}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  <UserRoleChip role={user.role} />
-                </TableCell>
-                <TableCell>
-                  <UserStatusChip active={user.active} />
-                </TableCell>
-                {showMustChangePasswordColumn ? (
-                  <TableCell>{user.mustChangePassword ? 'Yes' : 'No'}</TableCell>
-                ) : null}
-                <TableCell align="right">
-                  <Tooltip title="Edit user">
-                    <IconButton aria-label={`Edit user ${user.fullName}`} onClick={() => onEdit(user)} size="small">
-                      <EditOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
+            {users.map((user) => {
+              const isSelf = Boolean(currentUserId && user.id === currentUserId)
+
+              return (
+                <TableRow hover key={user.id}>
+                  <TableCell>{user.employeeId}</TableCell>
+                  <TableCell>{user.fullName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <UserRoleChip role={user.role} />
+                  </TableCell>
+                  <TableCell>
+                    <UserStatusChip active={user.active} />
+                  </TableCell>
+                  {showMustChangePasswordColumn ? (
+                    <TableCell>{user.mustChangePassword ? 'Yes' : 'No'}</TableCell>
+                  ) : null}
+                  <TableCell align="right">
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
+                      {user.active ? (
+                        <Tooltip
+                          title={
+                            isSelf ? 'You cannot deactivate your own account.' : 'Deactivate user'
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              aria-disabled={isSelf}
+                              aria-label={`Deactivate user ${user.fullName}`}
+                              disabled={isSelf}
+                              onClick={isSelf ? undefined : () => onDeactivate(user)}
+                              size="small"
+                            >
+                              <BlockOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="Activate user">
+                          <IconButton
+                            aria-label={`Activate user ${user.fullName}`}
+                            onClick={() => onActivate(user)}
+                            size="small"
+                          >
+                              <CheckCircleOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      <Tooltip title="Reset password">
+                        <IconButton
+                          aria-label={`Reset password for ${user.fullName}`}
+                          onClick={() => onResetPassword(user)}
+                          size="small"
+                        >
+                          <LockResetOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit user">
+                        <IconButton
+                          aria-label={`Edit user ${user.fullName}`}
+                          onClick={() => onEdit(user)}
+                          size="small"
+                        >
+                          <EditOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </TableContainer>

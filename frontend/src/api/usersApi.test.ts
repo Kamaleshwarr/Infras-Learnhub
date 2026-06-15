@@ -7,6 +7,7 @@ vi.mock('./httpClient', () => ({
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
   },
 }))
 
@@ -54,6 +55,7 @@ describe('usersApi', () => {
       employeeId: 'EMP001',
       fullName: 'Admin User',
       id: 'user-1',
+      mustChangePassword: false,
       role: 'ADMIN',
       updatedAtUtc: '2026-06-01T00:00:00Z',
     }
@@ -73,7 +75,14 @@ describe('usersApi', () => {
       role: 'EMPLOYEE' as const,
       password: 'Temp@12345',
     }
-    const response = { id: 'user-10', ...request, active: true, createdAtUtc: '', updatedAtUtc: '' }
+    const response = {
+      id: 'user-10',
+      ...request,
+      active: true,
+      createdAtUtc: '',
+      mustChangePassword: true,
+      updatedAtUtc: '',
+    }
     vi.mocked(httpClient.post).mockResolvedValue({ data: response })
 
     const result = await usersApi.create(request)
@@ -95,6 +104,7 @@ describe('usersApi', () => {
       employeeId: 'EMP001',
       fullName: 'Updated Admin',
       id: 'user-1',
+      mustChangePassword: false,
       role: 'ADMIN',
       updatedAtUtc: '2026-06-02T00:00:00Z',
     }
@@ -104,5 +114,55 @@ describe('usersApi', () => {
 
     expect(httpClient.put).toHaveBeenCalledWith('/users/user-1', request)
     expect(result).toEqual(response)
+  })
+
+  it('activates a user', async () => {
+    const response = {
+      active: true,
+      createdAtUtc: '2026-06-01T00:00:00Z',
+      email: 'employee@example.com',
+      employeeId: 'EMP002',
+      fullName: 'Employee User',
+      id: 'user-2',
+      mustChangePassword: false,
+      role: 'EMPLOYEE',
+      updatedAtUtc: '2026-06-02T00:00:00Z',
+    }
+    vi.mocked(httpClient.patch).mockResolvedValue({ data: response })
+
+    const result = await usersApi.activate('user-2')
+
+    expect(httpClient.patch).toHaveBeenCalledWith('/users/user-2/activate')
+    expect(result).toEqual(response)
+  })
+
+  it('deactivates a user', async () => {
+    const response = {
+      active: false,
+      createdAtUtc: '2026-06-01T00:00:00Z',
+      email: 'employee@example.com',
+      employeeId: 'EMP002',
+      fullName: 'Employee User',
+      id: 'user-2',
+      mustChangePassword: false,
+      role: 'EMPLOYEE',
+      updatedAtUtc: '2026-06-02T00:00:00Z',
+    }
+    vi.mocked(httpClient.patch).mockResolvedValue({ data: response })
+
+    const result = await usersApi.deactivate('user-2')
+
+    expect(httpClient.patch).toHaveBeenCalledWith('/users/user-2/deactivate')
+    expect(result).toEqual(response)
+  })
+
+  it('resets a user password', async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ data: undefined })
+
+    await usersApi.resetPassword('user-2', { password: 'NewTemp@12345' })
+
+    expect(httpClient.post).toHaveBeenCalledWith('/users/user-2/reset-password', {
+      password: 'NewTemp@12345',
+    })
   })
 })

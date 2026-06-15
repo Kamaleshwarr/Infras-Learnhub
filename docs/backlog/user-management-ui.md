@@ -4,18 +4,19 @@ Items deferred beyond the approved phased rollout.
 
 ## UM-001 — Expose `mustChangePassword` in `UserResponse`
 
-**Status:** Open  
+**Status:** Done (Phase 3)  
 **Phase:** Backend prerequisite for list column
 
-The `users` table and `User` entity already store `must_change_password`, but `UserResponse` does not include the field. The Phase 1 list page detects the column dynamically when any list item includes `mustChangePassword`; until this backend change ships, the column stays hidden.
+`UserResponse` now includes `mustChangePassword`, mapped from `User.isMustChangePassword()` in `UserManagementService.toResponse()`. The Users list shows the Must Change Password column when the API returns the field.
 
-**Required backend change:**
+---
 
-1. Add `boolean mustChangePassword` to `UserResponse`.
-2. Map `user.isMustChangePassword()` in `UserManagementService.toResponse()`.
-3. Update controller tests and OpenAPI schema.
+## UM-005 — Backend self-deactivation guard
 
-**Frontend follow-up:** Column appears automatically once the API returns the field.
+**Status:** Done (Phase 3)  
+**Phase:** Defense-in-depth alongside frontend guard
+
+`PATCH /api/v1/users/{id}/deactivate` rejects requests where the target user ID matches the authenticated admin (`400` with message *"You cannot deactivate your own account"*).
 
 ---
 

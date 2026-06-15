@@ -211,7 +211,7 @@ class UserManagementServiceTest {
         User user = user("EMP002", "john.doe@company.com", RoleName.EMPLOYEE);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
-        service.deactivateUser(user.getId());
+        service.deactivateUser(user.getId(), null);
         assertThat(user.isActive()).isFalse();
 
         service.activateUser(user.getId());
@@ -219,6 +219,30 @@ class UserManagementServiceTest {
 
         service.resetPassword(user.getId(), "NewTemp@123!");
         verify(passwordService).updatePassword(user, "NewTemp@123!", true);
+    }
+
+    @Test
+    void deactivateUserRejectsSelfDeactivation() {
+        User user = user("EMP002", "john.doe@company.com", RoleName.ADMIN);
+        com.company.learninghub.auth.security.AuthenticatedUser authenticatedUser =
+                com.company.learninghub.auth.security.AuthenticatedUser.from(user);
+
+        assertThatThrownBy(() -> service.deactivateUser(user.getId(), authenticatedUser))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("You cannot deactivate your own account");
+
+        assertThat(user.isActive()).isTrue();
+    }
+
+    @Test
+    void toResponseIncludesMustChangePassword() {
+        User user = user("EMP002", "john.doe@company.com", RoleName.EMPLOYEE);
+        user.setMustChangePassword(true);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        UserResponse response = service.getUser(user.getId());
+
+        assertThat(response.mustChangePassword()).isTrue();
     }
 
     @Test

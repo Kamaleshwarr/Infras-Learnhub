@@ -1,5 +1,6 @@
 package com.company.learninghub.user.service;
 
+import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.auth.service.PasswordService;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.user.domain.Role;
@@ -144,7 +145,10 @@ public class UserManagementService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public UserResponse deactivateUser(UUID id) {
+    public UserResponse deactivateUser(UUID id, AuthenticatedUser authenticatedUser) {
+        if (authenticatedUser != null && id.equals(authenticatedUser.getId())) {
+            throw new IllegalArgumentException("You cannot deactivate your own account");
+        }
         User user = findUser(id);
         user.setActive(false);
         return toResponse(user);
@@ -244,6 +248,7 @@ public class UserManagementService {
                 user.getEmail(),
                 primaryRole(user),
                 user.isActive(),
+                user.isMustChangePassword(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );

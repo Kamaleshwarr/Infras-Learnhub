@@ -1,5 +1,6 @@
 package com.company.learninghub.user.controller;
 
+import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.dto.CreateUserRequest;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -109,8 +111,11 @@ public class UserManagementController {
 
     @PatchMapping("/{id}/deactivate")
     @Operation(summary = "Deactivate a user", description = "ADMIN only.")
-    public ResponseEntity<UserResponse> deactivateUser(@PathVariable UUID id) {
-        return ResponseEntity.ok(userManagementService.deactivateUser(id));
+    public ResponseEntity<UserResponse> deactivateUser(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+        return ResponseEntity.ok(userManagementService.deactivateUser(id, authenticatedUser));
     }
 
     @PostMapping("/{id}/reset-password")
