@@ -1,4 +1,6 @@
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import {
+  IconButton,
   Paper,
   Skeleton,
   Table,
@@ -6,6 +8,7 @@ import {
   TableCell,
   TableContainer,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { SortableTableHead } from '../common/SortableTableHead'
@@ -21,6 +24,7 @@ interface UserTableProps {
   showMustChangePasswordColumn: boolean
   hasActiveFilters: boolean
   onSort: (property: string) => void
+  onEdit: (user: UserSummary) => void
 }
 
 const BASE_COLUMNS: SortableColumn[] = [
@@ -36,6 +40,12 @@ const MUST_CHANGE_PASSWORD_COLUMN: SortableColumn = {
   label: 'Must Change Password',
 }
 
+const ACTIONS_COLUMN: SortableColumn = {
+  id: 'actions',
+  label: 'Actions',
+  align: 'right',
+}
+
 export function UserTable({
   users,
   sort,
@@ -43,10 +53,13 @@ export function UserTable({
   showMustChangePasswordColumn,
   hasActiveFilters,
   onSort,
+  onEdit,
 }: UserTableProps) {
-  const columns = showMustChangePasswordColumn
-    ? [...BASE_COLUMNS, MUST_CHANGE_PASSWORD_COLUMN]
-    : BASE_COLUMNS
+  const columns = [
+    ...BASE_COLUMNS,
+    ...(showMustChangePasswordColumn ? [MUST_CHANGE_PASSWORD_COLUMN] : []),
+    ACTIONS_COLUMN,
+  ]
 
   if (loading) {
     return (
@@ -101,6 +114,13 @@ export function UserTable({
                 {showMustChangePasswordColumn ? (
                   <TableCell>{user.mustChangePassword ? 'Yes' : 'No'}</TableCell>
                 ) : null}
+                <TableCell align="right">
+                  <Tooltip title="Edit user">
+                    <IconButton aria-label={`Edit user ${user.fullName}`} onClick={() => onEdit(user)} size="small">
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

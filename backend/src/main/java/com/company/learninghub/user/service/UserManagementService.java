@@ -95,9 +95,9 @@ public class UserManagementService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public UserResponse createUser(CreateUserRequest request) {
-        String employeeId = normalizeRequired(request.employeeId(), "Employee ID is required");
+        String employeeId = normalizeEmployeeId(request.employeeId());
         String email = normalizeRequired(request.email(), "Email is required").toLowerCase(Locale.ROOT);
-        if (userRepository.existsByEmployeeId(employeeId)) {
+        if (userRepository.existsByEmployeeIdIgnoreCase(employeeId)) {
             throw new IllegalArgumentException("Employee ID already exists");
         }
         if (userRepository.existsByEmailIgnoreCase(email)) {
@@ -127,8 +127,11 @@ public class UserManagementService {
 
         user.setFullName(normalizeRequired(request.fullName(), "Full name is required"));
         user.setEmail(email);
-        user.replaceRole(findRole(request.role()));
-        return toResponse(user);
+        RoleName requestedRole = request.role();
+        if (!user.hasRoleName(requestedRole)) {
+            user.replaceRole(findRole(requestedRole));
+        }
+        return toResponse(userRepository.save(user));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -178,7 +181,9 @@ public class UserManagementService {
                 errors.add("Row " + row.rowNumber() + " - Missing required values");
                 continue;
             }
-            if (!seenEmployeeIds.add(employeeId.toLowerCase(Locale.ROOT)) || userRepository.existsByEmployeeId(employeeId)) {
+            String normalizedEmployeeId = normalizeEmployeeId(employeeId);
+            if (!seenEmployeeIds.add(normalizedEmployeeId)
+                    || userRepository.existsByEmployeeIdIgnoreCase(normalizedEmployeeId)) {
                 errors.add("Row " + row.rowNumber() + " - Duplicate employeeId " + employeeId);
                 continue;
             }
@@ -201,7 +206,12 @@ public class UserManagementService {
                 continue;
             }
 
-            User user = new User(employeeId, email.toLowerCase(Locale.ROOT), fullName, passwordEncoder.encode(DEFAULT_IMPORT_PASSWORD));
+            User user = new User(
+                    normalizedEmployeeId,
+                    email.toLowerCase(Locale.ROOT),
+                    fullName,
+                    passwordEncoder.encode(DEFAULT_IMPORT_PASSWORD)
+            );
             user.setMustChangePassword(true);
             user.replaceRole(role);
             userRepository.save(user);
@@ -294,6 +304,11 @@ public class UserManagementService {
         };
         Sort.Order translated = new Sort.Order(order.getDirection(), property, order.getNullHandling());
         return order.isIgnoreCase() ? translated.ignoreCase() : translated;
+    }
+
+    private String normalizeEmployeeId(String value) {
+        String employeeId = normalizeRequired(value, "Employee ID is required");
+        return employeeId.toUpperCase(Locale.ROOT);
     }
 
     private String normalizeRequired(String value, String message) {
