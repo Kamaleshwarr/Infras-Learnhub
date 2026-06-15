@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { usersApi } from '../../api/usersApi'
@@ -51,6 +51,70 @@ describe('EditUserDialog', () => {
     const dialog = getDialog()
     expect(dialog.getByRole('textbox', { name: 'Employee ID' })).toHaveValue('EMP001')
     expect(dialog.getByRole('textbox', { name: 'Full Name' })).toHaveValue('Admin User')
+  })
+
+  it('disables save until the form is dirty', async () => {
+    render(
+      <EditUserDialog
+        currentUserId="user-2"
+        onClose={onClose}
+        onSuccess={onSuccess}
+        open
+        user={adminUser}
+      />,
+    )
+
+    const dialog = getDialog()
+    expect(await dialog.findByRole('button', { name: 'Save' })).toBeDisabled()
+  })
+
+  it('enables save when a field changes and disables again when reverted', async () => {
+    const user = userEvent.setup()
+    render(
+      <EditUserDialog
+        currentUserId="user-2"
+        onClose={onClose}
+        onSuccess={onSuccess}
+        open
+        user={adminUser}
+      />,
+    )
+
+    const dialog = getDialog()
+    const fullNameField = await dialog.findByRole('textbox', { name: 'Full Name' })
+    const saveButton = dialog.getByRole('button', { name: 'Save' })
+
+    expect(saveButton).toBeDisabled()
+
+    await user.clear(fullNameField)
+    await user.type(fullNameField, 'Updated Admin')
+    expect(saveButton).toBeEnabled()
+
+    await user.clear(fullNameField)
+    await user.type(fullNameField, 'Admin User')
+    expect(saveButton).toBeDisabled()
+  })
+
+  it('does not submit when no changes were made', async () => {
+    render(
+      <EditUserDialog
+        currentUserId="user-2"
+        onClose={onClose}
+        onSuccess={onSuccess}
+        open
+        user={adminUser}
+      />,
+    )
+
+    const dialog = getDialog()
+    const form = await dialog.findByRole('textbox', { name: 'Full Name' })
+    expect(form).toBeInTheDocument()
+    expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled()
+
+    fireEvent.submit(dialog.getByRole('button', { name: 'Save' }).closest('form')!)
+
+    expect(usersApi.update).not.toHaveBeenCalled()
+    expect(onSuccess).not.toHaveBeenCalled()
   })
 
   it('disables role changes when editing the current admin', async () => {

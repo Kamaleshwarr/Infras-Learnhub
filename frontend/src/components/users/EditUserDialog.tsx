@@ -19,6 +19,8 @@ import type { UserRole } from '../../types/auth'
 import type { UserSummary } from '../../types/users'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { normalizeEmail } from '../../utils/email'
+import type { EditFormBaseline, EditFormState } from './editUserForm'
+import { hasEditFormValidationErrors, isEditFormDirty } from './editUserForm'
 import { UserStatusChip } from './UserStatusChip'
 
 interface EditUserDialogProps {
@@ -29,14 +31,11 @@ interface EditUserDialogProps {
   onSuccess: () => void
 }
 
-interface EditFormState {
-  fullName: string
-  email: string
-  role: UserRole
-}
+const EMPTY_FORM: EditFormState = { fullName: '', email: '', role: 'EMPLOYEE' }
 
 export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }: EditUserDialogProps) {
-  const [form, setForm] = useState<EditFormState>({ fullName: '', email: '', role: 'EMPLOYEE' })
+  const [form, setForm] = useState<EditFormState>(EMPTY_FORM)
+  const [baseline, setBaseline] = useState<EditFormBaseline | null>(null)
   const [loadedUser, setLoadedUser] = useState<UserSummary | null>(null)
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -45,16 +44,21 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
 
   const isEditingSelf = Boolean(user && currentUserId && user.id === currentUserId)
   const normalizedEmail = normalizeEmail(form.email)
+  const isDirty = isEditFormDirty(form, baseline, !isEditingSelf)
+  const hasValidationErrors = hasEditFormValidationErrors(form, fieldErrors)
   const canSubmit =
-    form.fullName.trim().length > 0 &&
-    normalizedEmail.length > 0 &&
+    Boolean(loadedUser) &&
+    Boolean(baseline) &&
+    isDirty &&
+    !hasValidationErrors &&
     !loading &&
     !submitting
 
   useEffect(() => {
     if (!open || !user) {
       setLoadedUser(null)
-      setForm({ fullName: '', email: '', role: 'EMPLOYEE' })
+      setBaseline(null)
+      setForm(EMPTY_FORM)
       setFieldErrors({})
       setFormError(null)
       setLoading(false)
@@ -69,6 +73,7 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
       email: selectedUser.email,
       role: selectedUser.role,
     })
+    setBaseline(null)
     setLoadedUser(selectedUser)
 
     let mounted = true
@@ -78,13 +83,15 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
       setFormError(null)
       try {
         const freshUser = await usersApi.get(selectedUser.id)
+        const nextForm = {
+          fullName: freshUser.fullName,
+          email: freshUser.email,
+          role: freshUser.role ?? selectedUser.role,
+        }
         if (mounted) {
           setLoadedUser(freshUser)
-          setForm({
-            fullName: freshUser.fullName,
-            email: freshUser.email,
-            role: freshUser.role ?? selectedUser.role,
-          })
+          setForm(nextForm)
+          setBaseline(nextForm)
         }
       } catch (error) {
         if (mounted) {
@@ -117,7 +124,7 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canSubmit || !loadedUser) {
+    if (!canSubmit || !loadedUser || !isDirty) {
       return
     }
 
@@ -224,7 +231,7 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
           <Button disabled={submitting} onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={!canSubmit || !loadedUser} type="submit" variant="contained">
+          <Button disabled={!canSubmit} type="submit" variant="contained">
             {submitting ? <CircularProgress color="inherit" size={24} /> : 'Save'}
           </Button>
         </DialogActions>
