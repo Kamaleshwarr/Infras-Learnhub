@@ -17,7 +17,13 @@ vi.mock('../../api/usersApi', () => ({
     activate: vi.fn(),
     deactivate: vi.fn(),
     resetPassword: vi.fn(),
+    importUsers: vi.fn(),
+    downloadImportTemplate: vi.fn(),
   },
+}))
+
+vi.mock('../../utils/downloadBlob', () => ({
+  downloadBlob: vi.fn(),
 }))
 
 vi.mock('../../auth/useAuth', () => ({
@@ -296,5 +302,55 @@ describe('UserListPage', () => {
       ),
     ).toBeInTheDocument()
     expect(usersApi.resetPassword).toHaveBeenCalledWith('user-2', { password: 'Temp@12345' })
+  })
+
+  it('downloads the import template from the toolbar', async () => {
+    const user = userEvent.setup()
+    const { downloadBlob } = await import('../../utils/downloadBlob')
+    vi.mocked(usersApi.downloadImportTemplate).mockResolvedValue(
+      new Blob(['Employee ID,Full Name,Email,Role\n']),
+    )
+
+    renderUserListPage()
+
+    await waitFor(() => expect(screen.getByText('Admin User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Download Template' }))
+
+    expect(await screen.findByText('Import template downloaded.')).toBeInTheDocument()
+    expect(usersApi.downloadImportTemplate).toHaveBeenCalledTimes(1)
+    expect(downloadBlob).toHaveBeenCalled()
+  })
+
+  it('imports users after preview confirmation and refreshes the list', async () => {
+    const user = userEvent.setup()
+    vi.mocked(usersApi.importUsers).mockResolvedValue({
+      totalRows: 1,
+      imported: 1,
+      failed: 0,
+      errors: [],
+    })
+
+    renderUserListPage('/users?fullName=Admin&page=1&sort=email,desc')
+
+    await waitFor(() => expect(screen.getByText('Admin User')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Import Users' }))
+
+    const file = new File(
+      ['Employee ID,Full Name,Email,Role\nEMP010,Jane Doe,jane@example.com,EMPLOYEE\n'],
+      'users.csv',
+      { type: 'text/csv' },
+    )
+    await user.upload(document.getElementById('bulk-import-file-input') as HTMLInputElement, file)
+    await user.click(await screen.findByRole('button', { name: 'Import users' }))
+
+    expect(await screen.findByText('1 user imported successfully.')).toBeInTheDocument()
+    expect(usersApi.importUsers).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(usersApi.list).toHaveBeenCalledTimes(2))
+    expect(usersApi.list).toHaveBeenLastCalledWith({
+      page: 1,
+      size: 20,
+      sort: 'email,desc',
+      fullName: 'Admin',
+    })
   })
 })

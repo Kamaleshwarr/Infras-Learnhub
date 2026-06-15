@@ -75,3 +75,10 @@ export interface UpdateUserRequest {
 export interface ResetPasswordRequest {
   password: string
 }
+
+export interface UserImportResponse {
+  totalRows: number
+  imported: number
+  failed: number
+  errors: string[]
+}

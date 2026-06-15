@@ -7,6 +7,7 @@ import { ConfirmActionDialog } from '../../components/common/ConfirmActionDialog
 import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { CreateUserDialog } from '../../components/users/CreateUserDialog'
+import { BulkImportDialog } from '../../components/users/BulkImportDialog'
 import { EditUserDialog } from '../../components/users/EditUserDialog'
 import { ResetPasswordDialog } from '../../components/users/ResetPasswordDialog'
 import { USER_MANAGEMENT_MESSAGES } from '../../components/users/userManagementMessages'
@@ -16,9 +17,10 @@ import { UserFilters } from '../../components/users/UserFilters'
 import { UserListToolbar } from '../../components/users/UserListToolbar'
 import { UserTable } from '../../components/users/UserTable'
 import type { PageResponse } from '../../types/api'
-import type { UserListQuery, UserSummary } from '../../types/users'
+import type { UserListQuery, UserImportResponse, UserSummary } from '../../types/users'
 import { DEFAULT_USER_LIST_QUERY } from '../../types/users'
 import { resolveApiError } from '../../utils/apiErrors'
+import { downloadBlob } from '../../utils/downloadBlob'
 import {
   buildUserListSearchParams,
   parseUserListQuery,
@@ -51,6 +53,8 @@ export function UserListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false)
   const [editingUser, setEditingUser] = useState<UserSummary | null>(null)
   const [confirmAction, setConfirmAction] = useState<ConfirmActionState>(null)
   const [resetPasswordUser, setResetPasswordUser] = useState<UserSummary | null>(null)
@@ -76,6 +80,10 @@ export function UserListPage() {
 
   const showSuccessNotification = useCallback((message: string) => {
     setNotification({ message, severity: 'success' })
+  }, [])
+
+  const showErrorNotification = useCallback((message: string) => {
+    setNotification({ message, severity: 'error' })
   }, [])
 
   useEffect(() => {
@@ -197,6 +205,32 @@ export function UserListPage() {
     refreshUsers()
   }
 
+  async function handleDownloadTemplate() {
+    setDownloadingTemplate(true)
+    try {
+      const blob = await usersApi.downloadImportTemplate()
+      downloadBlob(blob, 'user-import-template.csv')
+      showSuccessNotification(USER_MANAGEMENT_MESSAGES.templateDownloadSuccess)
+    } catch (error) {
+      showErrorNotification(resolveApiError(error, 'Unable to download import template. Please try again.'))
+    } finally {
+      setDownloadingTemplate(false)
+    }
+  }
+
+  function handleImportComplete(result: UserImportResponse) {
+    if (result.imported > 0) {
+      showSuccessNotification(USER_MANAGEMENT_MESSAGES.importSuccess(result.imported))
+      refreshUsers()
+      return
+    }
+    showErrorNotification(USER_MANAGEMENT_MESSAGES.importNoRows)
+  }
+
+  function handleImportDialogClose() {
+    setImportOpen(false)
+  }
+
   const hasActiveFilters =
     Boolean(appliedQuery.employeeId) ||
     Boolean(appliedQuery.fullName) ||
@@ -210,7 +244,12 @@ export function UserListPage() {
         description="Search, filter, and manage employee accounts."
         title="User Management"
       />
-      <UserListToolbar onCreateUser={() => setCreateOpen(true)} />
+      <UserListToolbar
+        downloadingTemplate={downloadingTemplate}
+        onCreateUser={() => setCreateOpen(true)}
+        onDownloadTemplate={() => void handleDownloadTemplate()}
+        onImportUsers={() => setImportOpen(true)}
+      />
       {error ? (
         <Alert
           action={
@@ -287,6 +326,12 @@ export function UserListPage() {
         onSuccess={handleResetPasswordSuccess}
         open={Boolean(resetPasswordUser)}
         user={resetPasswordUser}
+      />
+      <BulkImportDialog
+        onClose={handleImportDialogClose}
+        onComplete={handleImportComplete}
+        onDownloadTemplate={() => void handleDownloadTemplate()}
+        open={importOpen}
       />
       <UserManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
     </Box>

@@ -20,6 +20,20 @@ Items deferred beyond the approved phased rollout.
 
 ---
 
+## UM-006 — Downloadable import results / error report
+
+**Status:** Open  
+**Phase:** Backend enhancement (optional)
+
+The Phase 4 import UI displays row-level errors inline after import. A downloadable CSV or text report of import results (including failed rows and error messages) would improve auditability for large imports.
+
+**Scope:**
+
+- Backend endpoint or response attachment for import result export
+- Frontend "Download error report" action on the results step
+
+---
+
 ## UM-002 — User Details Drawer
 
 **Status:** Open  
