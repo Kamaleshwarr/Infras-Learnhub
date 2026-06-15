@@ -1,6 +1,13 @@
 import { httpClient } from './httpClient'
 import type { PageResponse } from '../types/api'
-import type { CreateUserRequest, ResetPasswordRequest, UpdateUserRequest, UserListParams, UserSummary } from '../types/users'
+import type {
+  CreateUserRequest,
+  ResetPasswordRequest,
+  UpdateUserRequest,
+  UserImportResponse,
+  UserListParams,
+  UserSummary,
+} from '../types/users'
 
 export const usersApi = {
   list: async (params?: UserListParams) => {
@@ -29,5 +36,19 @@ export const usersApi = {
   },
   resetPassword: async (userId: string, request: ResetPasswordRequest) => {
     await httpClient.post(`/users/${userId}/reset-password`, request)
+  },
+  importUsers: async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await httpClient.post<UserImportResponse>('/users/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+  downloadImportTemplate: async () => {
+    const response = await httpClient.get<Blob>('/users/import/template', {
+      responseType: 'blob',
+    })
+    return response.data
   },
 }

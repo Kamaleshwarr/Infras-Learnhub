@@ -165,4 +165,36 @@ describe('usersApi', () => {
       password: 'NewTemp@12345',
     })
   })
+
+  it('imports users with multipart form data', async () => {
+    const file = new File(['Employee ID,Full Name,Email,Role\n'], 'users.csv', { type: 'text/csv' })
+    const response = {
+      totalRows: 1,
+      imported: 1,
+      failed: 0,
+      errors: [],
+    }
+    vi.mocked(httpClient.post).mockResolvedValue({ data: response })
+
+    const result = await usersApi.importUsers(file)
+
+    expect(httpClient.post).toHaveBeenCalledWith('/users/import', expect.any(FormData), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    const formData = vi.mocked(httpClient.post).mock.calls[0]?.[1] as FormData
+    expect(formData.get('file')).toBe(file)
+    expect(result).toEqual(response)
+  })
+
+  it('downloads the import template as a blob', async () => {
+    const blob = new Blob(['Employee ID,Full Name,Email,Role\n'])
+    vi.mocked(httpClient.get).mockResolvedValue({ data: blob })
+
+    const result = await usersApi.downloadImportTemplate()
+
+    expect(httpClient.get).toHaveBeenCalledWith('/users/import/template', {
+      responseType: 'blob',
+    })
+    expect(result).toBe(blob)
+  })
 })
