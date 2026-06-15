@@ -37,9 +37,16 @@
 
 ## Current Release
 
-**v0.2** — Engineering Learning Hub (merged via PR #17)
+**v0.3** — User Management UI Phases 1–3 (merged via PRs #18–#20)
 
-Release notes: `docs/releases/release-v0.2.md`
+Release notes: `docs/releases/release-v0.3.md`  
+Roadmap: `docs/project-roadmap.md`
+
+### v0.3 Highlights
+
+- User Management UI: list, create, edit, activate, deactivate, reset password
+- `mustChangePassword` on `UserResponse` (UM-001)
+- Backend self-deactivation guard (UM-005)
 
 ### v0.2 Highlights
 
@@ -65,6 +72,7 @@ Release notes: `docs/releases/release-v0.2.md`
 2. Authentication UI
 3. Role-aware dashboard foundation
 4. Password Management UI
+5. User Management UI (Phases 1–3: list, create/edit, activate/deactivate/reset)
 
 ## Completed Features
 
