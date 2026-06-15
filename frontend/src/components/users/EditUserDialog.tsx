@@ -83,7 +83,7 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
           setForm({
             fullName: freshUser.fullName,
             email: freshUser.email,
-            role: freshUser.role,
+            role: freshUser.role ?? selectedUser.role,
           })
         }
       } catch (error) {
@@ -143,7 +143,7 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
   return (
     <Dialog fullWidth maxWidth="sm" onClose={submitting ? undefined : onClose} open={open}>
       <DialogTitle>Edit User</DialogTitle>
-      <form onSubmit={handleSubmit}>
+      <form autoComplete="off" onSubmit={handleSubmit}>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             {formError ? <Alert severity="error">{formError}</Alert> : null}
@@ -159,25 +159,29 @@ export function EditUserDialog({ open, user, currentUserId, onClose, onSuccess }
                   value={loadedUser?.employeeId ?? ''}
                 />
                 <TextField
+                  autoComplete="off"
                   autoFocus
                   disabled={submitting}
                   error={Boolean(fieldErrors.fullName)}
                   helperText={fieldErrors.fullName}
                   label="Full Name"
+                  name="editFullName"
                   slotProps={{ htmlInput: { maxLength: 200 } }}
                   onChange={(event) => updateField('fullName', event.target.value)}
                   required
                   value={form.fullName}
                 />
                 <TextField
+                  autoComplete="off"
                   disabled={submitting}
                   error={Boolean(fieldErrors.email)}
                   helperText={fieldErrors.email}
                   label="Email"
+                  name="editEmail"
                   slotProps={{ htmlInput: { maxLength: 320 } }}
                   onChange={(event) => updateField('email', event.target.value)}
                   required
-                  type="email"
+                  type="text"
                   value={form.email}
                 />
                 <TextField

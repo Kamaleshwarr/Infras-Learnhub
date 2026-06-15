@@ -154,6 +154,9 @@ public class User extends AuditableEntity {
     }
 
     public void replaceRole(Role role) {
+        if (hasRoleName(role.getName()) && userRoles.size() == 1) {
+            return;
+        }
         userRoles.clear();
         assignRole(role);
     }
@@ -164,6 +167,10 @@ public class User extends AuditableEntity {
             roles.add(userRole.getRole().getName());
         }
         return Collections.unmodifiableSet(roles);
+    }
+
+    public boolean hasRoleName(RoleName roleName) {
+        return roleNames().contains(roleName);
     }
 
     @Override

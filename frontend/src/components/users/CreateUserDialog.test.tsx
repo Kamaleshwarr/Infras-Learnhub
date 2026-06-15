@@ -29,6 +29,12 @@ describe('CreateUserDialog', () => {
     expect(getDialog().getByRole('combobox', { name: 'Role' })).toHaveTextContent('Employee')
   })
 
+  it('initializes with an empty employee ID field', () => {
+    render(<CreateUserDialog onClose={onClose} onSuccess={onSuccess} open />)
+
+    expect(getDialog().getByRole('textbox', { name: 'Employee ID' })).toHaveValue('')
+  })
+
   it('disables save until the form is valid', () => {
     render(<CreateUserDialog onClose={onClose} onSuccess={onSuccess} open />)
 

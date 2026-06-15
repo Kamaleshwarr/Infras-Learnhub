@@ -171,6 +171,7 @@ class UserManagementServiceTest {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.findByEmailIgnoreCase("john.updated@company.com")).thenReturn(Optional.empty());
         when(roleRepository.findByName(RoleName.ADMIN)).thenReturn(Optional.of(adminRole));
+        when(userRepository.save(user)).thenReturn(user);
 
         UserResponse response = service.updateUser(user.getId(), new UpdateUserRequest(
                 "John Updated",
@@ -189,6 +190,7 @@ class UserManagementServiceTest {
         User user = user("EMP002", "john.doe@company.com", RoleName.EMPLOYEE);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.findByEmailIgnoreCase("john.doe@company.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
 
         UserResponse response = service.updateUser(user.getId(), new UpdateUserRequest(
                 "John Updated",
@@ -199,7 +201,9 @@ class UserManagementServiceTest {
         assertThat(response.fullName()).isEqualTo("John Updated");
         assertThat(response.role()).isEqualTo(RoleName.EMPLOYEE);
         assertThat(user.roleNames()).containsExactly(RoleName.EMPLOYEE);
+        assertThat(user.getUserRoles()).hasSize(1);
         verify(roleRepository, never()).findByName(any());
+        verify(userRepository).save(user);
     }
 
     @Test

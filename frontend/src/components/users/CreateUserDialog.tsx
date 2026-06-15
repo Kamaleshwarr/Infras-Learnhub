@@ -45,8 +45,8 @@ export function CreateUserDialog({ open, onClose, onSuccess }: CreateUserDialogP
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!open) {
-      setForm(EMPTY_FORM)
+    if (open) {
+      setForm({ ...EMPTY_FORM })
       setFieldErrors({})
       setFormError(null)
       setSubmitting(false)
@@ -109,40 +109,46 @@ export function CreateUserDialog({ open, onClose, onSuccess }: CreateUserDialogP
   return (
     <Dialog fullWidth maxWidth="sm" onClose={submitting ? undefined : onClose} open={open}>
       <DialogTitle>Create User</DialogTitle>
-      <form onSubmit={handleSubmit}>
+      <form autoComplete="off" onSubmit={handleSubmit}>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             {formError ? <Alert severity="error">{formError}</Alert> : null}
             <TextField
+              autoComplete="off"
               autoFocus
               disabled={submitting}
               error={Boolean(fieldErrors.employeeId)}
               helperText={fieldErrors.employeeId}
               label="Employee ID"
+              name="newEmployeeId"
               slotProps={{ htmlInput: { maxLength: 64 } }}
               onChange={(event) => updateField('employeeId', event.target.value)}
               required
               value={form.employeeId}
             />
             <TextField
+              autoComplete="off"
               disabled={submitting}
               error={Boolean(fieldErrors.fullName)}
               helperText={fieldErrors.fullName}
               label="Full Name"
+              name="newFullName"
               slotProps={{ htmlInput: { maxLength: 200 } }}
               onChange={(event) => updateField('fullName', event.target.value)}
               required
               value={form.fullName}
             />
             <TextField
+              autoComplete="off"
               disabled={submitting}
               error={Boolean(fieldErrors.email)}
               helperText={fieldErrors.email}
               label="Email"
+              name="newEmail"
               slotProps={{ htmlInput: { maxLength: 320 } }}
               onChange={(event) => updateField('email', event.target.value)}
               required
-              type="email"
+              type="text"
               value={form.email}
             />
             <TextField
@@ -159,6 +165,7 @@ export function CreateUserDialog({ open, onClose, onSuccess }: CreateUserDialogP
               <MenuItem value="ADMIN">Admin</MenuItem>
             </TextField>
             <TextField
+              autoComplete="new-password"
               disabled={submitting}
               error={
                 Boolean(fieldErrors.password) ||
@@ -171,18 +178,21 @@ export function CreateUserDialog({ open, onClose, onSuccess }: CreateUserDialogP
                   : PASSWORD_POLICY_MESSAGE)
               }
               label="Password"
+              name="newPassword"
               onChange={(event) => updateField('password', event.target.value)}
               required
               type="password"
               value={form.password}
             />
             <TextField
+              autoComplete="new-password"
               disabled={submitting}
               error={form.confirmPassword.length > 0 && !passwordsMatch}
               helperText={
                 form.confirmPassword.length > 0 && !passwordsMatch ? 'Passwords do not match.' : ' '
               }
               label="Confirm Password"
+              name="newConfirmPassword"
               onChange={(event) => updateField('confirmPassword', event.target.value)}
               required
               type="password"

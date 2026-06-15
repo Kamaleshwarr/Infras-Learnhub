@@ -128,10 +128,10 @@ public class UserManagementService {
         user.setFullName(normalizeRequired(request.fullName(), "Full name is required"));
         user.setEmail(email);
         RoleName requestedRole = request.role();
-        if (primaryRole(user) != requestedRole) {
+        if (!user.hasRoleName(requestedRole)) {
             user.replaceRole(findRole(requestedRole));
         }
-        return toResponse(user);
+        return toResponse(userRepository.save(user));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
