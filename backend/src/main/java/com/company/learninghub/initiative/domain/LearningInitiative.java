@@ -15,6 +15,8 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -116,9 +118,13 @@ public class LearningInitiative extends AuditableEntity {
     }
 
     public boolean isVisibleToEmployeesAt(Instant now) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate today = LocalDate.ofInstant(now, utc);
+        LocalDate startDate = LocalDate.ofInstant(startDateUtc, utc);
+        LocalDate expiryDate = LocalDate.ofInstant(expiryDateUtc, utc);
         return InitiativeStatus.ACTIVE.equals(status)
-                && !startDateUtc.isAfter(now)
-                && !expiryDateUtc.isBefore(now);
+                && !startDate.isAfter(today)
+                && !expiryDate.isBefore(today);
     }
 
     @Override

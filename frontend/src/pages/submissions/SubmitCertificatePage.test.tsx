@@ -6,7 +6,6 @@ import { initiativesApi } from '../../api/initiativesApi'
 import { loadAllMySubmissions } from '../../api/loadAllMySubmissions'
 import { submissionsApi } from '../../api/submissionsApi'
 import { SUBMISSION_MESSAGES } from '../../components/submissions/submissionMessages'
-import type { CertificateSubmission } from '../../types/submissions'
 import { SubmitCertificatePage } from './SubmitCertificatePage'
 import { MySubmissionsPage } from './MySubmissionsPage'
 
@@ -94,36 +93,31 @@ describe('SubmitCertificatePage', () => {
     vi.mocked(loadAllMySubmissions).mockResolvedValue([existingSubmission])
   })
 
-  it('loads initiatives and hides initiatives that already have submissions', async () => {
+  it('renders temporary diagnostics with filtering evidence', async () => {
     renderSubmitPage()
 
-    expect(screen.getByLabelText('Loading initiatives')).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Submit Certificate diagnostics')).toBeInTheDocument(),
+    )
+    expect(screen.getByText(/"availableInitiativesCount": 1/)).toBeInTheDocument()
+    expect(screen.getByText(/"submittedInitiativeIds": \[/)).toBeInTheDocument()
+  })
 
+  it('shows unsubmitted initiatives and disables already-submitted options', async () => {
+    renderSubmitPage()
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
     await userEvent.click(screen.getByRole('combobox', { name: /Initiative/i }))
-    expect(screen.queryByRole('option', { name: 'AWS Certification' })).not.toBeInTheDocument()
+
+    expect(screen.getByRole('option', { name: 'AWS Certification (already submitted)' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
     expect(screen.getByRole('option', { name: 'Azure Certification' })).toBeInTheDocument()
   })
 
   it('still shows initiatives when submission history cannot be loaded', async () => {
     vi.mocked(loadAllMySubmissions).mockRejectedValue(new Error('forbidden'))
-
-    renderSubmitPage()
-
-    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
-    await userEvent.click(screen.getByRole('combobox', { name: /Initiative/i }))
-
-    expect(screen.getByRole('option', { name: 'AWS Certification' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: 'Azure Certification' })).toBeInTheDocument()
-  })
-
-  it('keeps initiatives visible when a submission record is missing initiative metadata', async () => {
-    vi.mocked(loadAllMySubmissions).mockResolvedValue([
-      {
-        ...existingSubmission,
-        initiative: undefined,
-      } as unknown as CertificateSubmission,
-    ])
 
     renderSubmitPage()
 
@@ -188,5 +182,6 @@ describe('SubmitCertificatePage', () => {
     await waitFor(() =>
       expect(screen.getByText(SUBMISSION_MESSAGES.allInitiativesSubmitted)).toBeInTheDocument(),
     )
+    expect(screen.getByRole('button', { name: 'Submit certificate' })).toBeDisabled()
   })
 })

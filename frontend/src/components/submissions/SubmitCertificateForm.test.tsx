@@ -10,10 +10,18 @@ const initiatives: InitiativeSummary[] = [
   {
     description: 'AWS certification program',
     expiryDateUtc: '2026-12-31T00:00:00Z',
-    id: 'initiative-1',
+    id: '550E8400-E29B-41D4-A716-446655440001',
     startDateUtc: '2026-01-01T00:00:00Z',
     status: 'ACTIVE',
     title: 'AWS Certification',
+  },
+  {
+    description: 'Azure certification program',
+    expiryDateUtc: '2026-12-31T00:00:00Z',
+    id: '550e8400-e29b-41d4-a716-446655440002',
+    startDateUtc: '2026-01-01T00:00:00Z',
+    status: 'ACTIVE',
+    title: 'Azure Certification',
   },
 ]
 
@@ -28,10 +36,12 @@ describe('SubmitCertificateForm', () => {
     return render(
       <SubmitCertificateForm
         emptyMessage={null}
+        infoMessage={null}
         initiatives={initiatives}
         loadError={null}
         loadingInitiatives={false}
         onSubmit={onSubmit}
+        submittedInitiativeIds={new Set(['550e8400-e29b-41d4-a716-446655440001'])}
         submitting={false}
         {...overrides}
       />,
@@ -54,7 +64,7 @@ describe('SubmitCertificateForm', () => {
     renderForm()
 
     await user.click(screen.getByRole('combobox', { name: /Initiative/i }))
-    await user.click(screen.getByRole('option', { name: 'AWS Certification' }))
+    await user.click(screen.getByRole('option', { name: 'Azure Certification' }))
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const invalidFile = new File(['doc'], 'certificate.doc', { type: 'application/msword' })
@@ -71,7 +81,7 @@ describe('SubmitCertificateForm', () => {
     renderForm()
 
     await user.click(screen.getByRole('combobox', { name: /Initiative/i }))
-    await user.click(screen.getByRole('option', { name: 'AWS Certification' }))
+    await user.click(screen.getByRole('option', { name: 'Azure Certification' }))
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const certificateFile = new File(['pdf'], 'certificate.pdf', { type: 'application/pdf' })
@@ -81,7 +91,7 @@ describe('SubmitCertificateForm', () => {
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({
-        initiativeId: 'initiative-1',
+        initiativeId: '550e8400-e29b-41d4-a716-446655440002',
         file: certificateFile,
         comments: 'Passed the exam',
       }),
@@ -109,7 +119,7 @@ describe('SubmitCertificateForm', () => {
     renderForm()
 
     await user.click(screen.getByRole('combobox', { name: /Initiative/i }))
-    await user.click(screen.getByRole('option', { name: 'AWS Certification' }))
+    await user.click(screen.getByRole('option', { name: 'Azure Certification' }))
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, {
@@ -122,10 +132,24 @@ describe('SubmitCertificateForm', () => {
     )
   })
 
+  it('shows already-submitted initiatives as disabled options', async () => {
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.click(screen.getByRole('combobox', { name: /Initiative/i }))
+
+    expect(screen.getByRole('option', { name: 'AWS Certification (already submitted)' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.getByRole('option', { name: 'Azure Certification' })).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
   it('shows empty-state messaging when no initiatives are available', () => {
     renderForm({
       emptyMessage: SUBMISSION_MESSAGES.noInitiativesAvailable,
       initiatives: [],
+      submittedInitiativeIds: new Set(),
     })
 
     expect(screen.getByText(SUBMISSION_MESSAGES.noInitiativesAvailable)).toBeInTheDocument()

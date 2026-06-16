@@ -16,6 +16,7 @@ import {
 import type { InitiativeSummary } from '../../api/initiativesApi'
 import { resolveApiError } from '../../utils/apiErrors'
 import { getCertificateAcceptAttribute, isAllowedCertificateFile } from './certificateFileValidation'
+import { normalizeInitiativeId } from './submissionInitiativeFilter'
 import { MAX_SUBMISSION_COMMENTS_LENGTH, SUBMISSION_MESSAGES } from './submissionMessages'
 
 export interface SubmitCertificateValues {
@@ -26,9 +27,11 @@ export interface SubmitCertificateValues {
 
 interface SubmitCertificateFormProps {
   initiatives: InitiativeSummary[]
+  submittedInitiativeIds: Set<string>
   loadingInitiatives: boolean
   loadError: string | null
   emptyMessage: string | null
+  infoMessage: string | null
   submitting: boolean
   onSubmit: (values: SubmitCertificateValues) => Promise<void>
 }
@@ -46,9 +49,11 @@ const EMPTY_FORM = {
 
 export function SubmitCertificateForm({
   initiatives,
+  submittedInitiativeIds,
   loadingInitiatives,
   loadError,
   emptyMessage,
+  infoMessage,
   submitting,
   onSubmit,
 }: SubmitCertificateFormProps) {
@@ -60,6 +65,9 @@ export function SubmitCertificateForm({
 
   const commentsLength = form.comments.length
   const formDisabled = loadingInitiatives || submitting || Boolean(loadError) || Boolean(emptyMessage)
+  const selectableInitiatives = initiatives.filter(
+    (initiative) => !submittedInitiativeIds.has(normalizeInitiativeId(initiative.id)),
+  )
 
   function updateField<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [field]: value }))
@@ -92,6 +100,8 @@ export function SubmitCertificateForm({
 
     if (!form.initiativeId) {
       errors.initiativeId = SUBMISSION_MESSAGES.initiativeRequired
+    } else if (submittedInitiativeIds.has(normalizeInitiativeId(form.initiativeId))) {
+      errors.initiativeId = SUBMISSION_MESSAGES.duplicateSubmission
     }
 
     if (!selectedFile) {
@@ -139,6 +149,7 @@ export function SubmitCertificateForm({
     <Paper sx={{ p: 3 }}>
       {loadError ? <Alert severity="error" sx={{ mb: 2 }}>{loadError}</Alert> : null}
       {emptyMessage ? <Alert severity="info" sx={{ mb: 2 }}>{emptyMessage}</Alert> : null}
+      {infoMessage ? <Alert severity="info" sx={{ mb: 2 }}>{infoMessage}</Alert> : null}
       {formError ? <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert> : null}
 
       <Box component="form" noValidate onSubmit={(event) => void handleSubmit(event)}>
@@ -154,11 +165,14 @@ export function SubmitCertificateForm({
             select
             value={form.initiativeId}
           >
-            {initiatives.map((initiative) => (
-              <MenuItem key={initiative.id} value={initiative.id}>
-                {initiative.title}
-              </MenuItem>
-            ))}
+            {initiatives.map((initiative) => {
+              const alreadySubmitted = submittedInitiativeIds.has(normalizeInitiativeId(initiative.id))
+              return (
+                <MenuItem key={initiative.id} disabled={alreadySubmitted} value={initiative.id}>
+                  {alreadySubmitted ? `${initiative.title} (already submitted)` : initiative.title}
+                </MenuItem>
+              )
+            })}
           </TextField>
 
           <Box>
@@ -207,7 +221,7 @@ export function SubmitCertificateForm({
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
-              disabled={formDisabled || initiatives.length === 0 || submitting}
+              disabled={formDisabled || selectableInitiatives.length === 0 || submitting}
               startIcon={submitting ? <CircularProgress color="inherit" size={18} /> : undefined}
               type="submit"
               variant="contained"

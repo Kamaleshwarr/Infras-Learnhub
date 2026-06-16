@@ -25,6 +25,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -149,10 +151,15 @@ public class LearningInitiativeService {
     }
 
     private Specification<LearningInitiative> employeeSpecification(String search, Instant now) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate today = LocalDate.ofInstant(now, utc);
+        Instant startOfToday = today.atStartOfDay(utc).toInstant();
+        Instant startOfTomorrow = today.plusDays(1).atStartOfDay(utc).toInstant();
+
         return Specification
                 .where(hasStatus(InitiativeStatus.ACTIVE))
-                .and(startedOnOrBefore(now))
-                .and(expiresOnOrAfter(now))
+                .and(startsOnOrBeforeToday(startOfTomorrow))
+                .and(expiresOnOrAfterToday(startOfToday))
                 .and(titleContains(search));
     }
 
@@ -172,12 +179,12 @@ public class LearningInitiativeService {
         };
     }
 
-    private Specification<LearningInitiative> startedOnOrBefore(Instant now) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("startDateUtc"), now);
+    private Specification<LearningInitiative> startsOnOrBeforeToday(Instant startOfTomorrow) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("startDateUtc"), startOfTomorrow);
     }
 
-    private Specification<LearningInitiative> expiresOnOrAfter(Instant now) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("expiryDateUtc"), now);
+    private Specification<LearningInitiative> expiresOnOrAfterToday(Instant startOfToday) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("expiryDateUtc"), startOfToday);
     }
 
     private Pageable normalizePageable(Pageable pageable) {
