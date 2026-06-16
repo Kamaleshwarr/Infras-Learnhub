@@ -27,6 +27,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * In-app notification inbox service.
+ * <p>
+ * v0.6 actively produces certificate-workflow notifications only. Account lifecycle
+ * helper methods remain for schema compatibility and a future email channel; they
+ * are not called by domain producers in v0.6.
+ */
 @Service
 public class NotificationService {
 

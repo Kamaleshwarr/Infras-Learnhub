@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-16 (v0.5 — Profile Management Phases 1–4)
+Last updated: 2026-06-16 (v0.6 — Notifications in validation)
 
 ## Release Overview
 
@@ -9,10 +9,10 @@ Last updated: 2026-06-16 (v0.5 — Profile Management Phases 1–4)
 | v0.2 | Password Management + backend foundations | Shipped (PR #17) |
 | v0.3 | User Management UI (Phases 1–3) | Shipped (PRs #18–#20) |
 | v0.4 | User Management UI Phase 4 (bulk import) | Shipped (PRs #22–#24) |
-| **v0.5** | **Profile Management (Phases 1–4)** | **Shipped (PR #27)** |
+| v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
+| **v0.6** | **In-App Notifications (certificate workflow)** | **In validation (PR #28)** |
 
-Release notes: `docs/releases/release-v0.5.md`  
-Workstream summary: `docs/releases/profile-management-final-summary.md`
+Release notes: `docs/releases/release-v0.6.md`
 
 ---
 
@@ -95,13 +95,23 @@ Workstream summary: `docs/releases/profile-management-final-summary.md`
 
 ---
 
-## Next (awaiting approval)
+## Next (awaiting validation)
 
-No implementation in progress. Recommended next feature: **Notifications** or **Global Search** (see status report).
+**v0.6 Notifications** — draft PR #28 on `cursor/v0.6-notifications-dd41`. Certificate-workflow in-app notifications only; badge sync fix pending re-validation.
 
 ---
 
-## Backlog (post v0.5)
+## In progress — v0.6 Notifications
+
+- Flyway `V9__create_notifications.sql`
+- Notification module + inbox APIs
+- Certificate producers: `CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`
+- Frontend bell, dropdown, `/notifications` page, sidebar nav
+- Account lifecycle types deferred to future email channel (not produced in-app)
+
+---
+
+## Backlog (post v0.6)
 
 | ID | Item | Notes |
 |----|------|-------|
@@ -109,8 +119,8 @@ No implementation in progress. Recommended next feature: **Notifications** or **
 | UM-003 | Unified cross-field search | Optional backend `search` param |
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
 | UM-006 | Downloadable import error report | Post-import CSV/text export |
-| — | Notifications | v0.6 candidate |
-| — | Global Search | v0.6 candidate |
+| — | Global Search | v0.7 candidate |
+| — | Email notifications (account lifecycle) | Post v0.6 |
 | — | AI Features | Future |
 
 Backlog detail: `docs/backlog/user-management-ui.md`
@@ -128,6 +138,7 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 - User Management (API + import parsers)
 - Password Management
 - **Profile Management**
+- **Notifications** (certificate workflow in-app; validation in progress)
 
 ## Completed Frontend Modules
 
@@ -136,4 +147,5 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 3. Role-aware dashboard
 4. Password Management UI
 5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
-6. **Profile Management UI — Phases 1–4** (view, edit, change-password entry, avatar)
+6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
+7. **Notifications UI** — bell, dropdown, inbox page (validation in progress)

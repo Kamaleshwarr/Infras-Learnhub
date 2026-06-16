@@ -1,16 +1,69 @@
 # Testing & Defect History
 
-Last updated: 2026-06-16 (v0.5)
+Last updated: 2026-06-16 (v0.6 — Notifications in validation)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.5) |
+| Area | Command | Baseline (v0.6) |
 |------|---------|-----------------|
-| Frontend | `cd frontend && npm test` | **132 tests** (31 files) |
+| Frontend | `cd frontend && npm test` | **140 tests** (33 files) |
 | Frontend build | `cd frontend && npm run build` | Pass |
+| Backend (notifications) | `mvn -f backend/pom.xml test -Dtest='com.company.learninghub.notification.**'` | Pass |
 | Backend (profile) | `mvn -f backend/pom.xml test -Dtest='Profile*Test'` | Pass |
 | Backend (user mgmt) | `mvn -f backend/pom.xml test -Dtest='UserManagement*Test'` | Pass |
 | Backend (full) | `mvn -f backend/pom.xml test` | Pass (10 integration tests skipped without Docker) |
+
+---
+
+## Notifications — Validation History
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Backend startup | **Passed** (after NTF-D01) | `@Autowired` on `NotificationService` constructor |
+| Badge synchronization | **Re-validation pending** | NTF-D02 fix on branch; shared `NotificationProvider` |
+| Certificate producers | Pending | Submit / approve / reject |
+| Account producers removed | Pending | Option B — no in-app generation from user management |
+| Scope | Approved | Certificate workflow only for v0.6 in-app |
+
+---
+
+## Defects — Notifications (v0.6)
+
+| ID | Symptom | Root cause | Fix | Verified |
+|----|---------|------------|-----|----------|
+| NTF-D01 | Backend failed to start; `NotificationService` `BeanInstantiationException` | Multiple constructors without `@Autowired` on production entry point | `@Autowired` on public constructor | Backend startup |
+| NTF-D02 | Bell badge stale after mark-read on `/notifications` | Isolated unread-count state in bell hook vs page | `NotificationProvider` + `refresh()` after read mutations | Re-validation pending |
+
+---
+
+## Notifications — Test coverage added
+
+| Component / area | Tests |
+|------------------|-------|
+| `NotificationServiceTest` | Inbox, unread count, mark read, certificate + factory helpers |
+| `NotificationFactoryTest` | Message templates |
+| `NotificationControllerTest` | API contracts |
+| `NotificationMethodSecurityTest` | `@PreAuthorize` on inbox APIs |
+| `CertificateSubmissionServiceTest` | Producer calls on submit/approve/reject |
+| `NotificationBell.test.tsx` | Badge render, dropdown, mark-all-read sync |
+| `NotificationsPage.test.tsx` | List, filters, mark-all-read, badge sync regression |
+| `MustChangePasswordFilterTest` | Notification API allowlist |
+
+---
+
+## Regression Checklist (Notifications)
+
+Run before v0.6 merge:
+
+1. Backend starts; Flyway `V9` applied
+2. `GET /notifications/unread-count` matches bell badge
+3. Certificate submit → all active admins notified (`CERTIFICATE_SUBMITTED`)
+4. Approve / reject → employee notified
+5. User create, activate, deactivate, reset-password → **no** new in-app notification
+6. Mark-read on `/notifications` updates badge immediately
+7. Mark-read / mark-all-read in dropdown updates badge immediately
+8. Historical account-type rows (if present) still list correctly
+9. `mustChangePassword` user can access `/notifications` and bell APIs
 
 ---
 

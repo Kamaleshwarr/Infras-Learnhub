@@ -113,7 +113,7 @@ export function NotificationsPage() {
   return (
     <Box>
       <PageHeader
-        description="Review platform updates about certificate reviews, account changes, and onboarding."
+        description="Review certificate submission updates and approval outcomes."
         title="Notifications"
       />
 
