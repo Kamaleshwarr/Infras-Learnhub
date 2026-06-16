@@ -1,13 +1,17 @@
+import type { ReactNode } from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { notificationsApi } from '../../api/notificationsApi'
+import { NotificationBell } from '../../components/notifications/NotificationBell'
+import { NotificationProvider } from '../../notifications/NotificationProvider'
 import { NotificationsPage } from './NotificationsPage'
 
 vi.mock('../../api/notificationsApi', () => ({
   notificationsApi: {
     list: vi.fn(),
+    unreadCount: vi.fn(),
     markRead: vi.fn(),
     markAllRead: vi.fn(),
   },
@@ -36,18 +40,32 @@ const pageResponse = {
   sort: [{ property: 'createdAt', direction: 'DESC' as const }],
 }
 
+function renderWithProvider(ui: ReactNode) {
+  return render(
+    <MemoryRouter>
+      <NotificationProvider>{ui}</NotificationProvider>
+    </MemoryRouter>,
+  )
+}
+
+function renderNotificationsWithBell() {
+  return renderWithProvider(
+    <>
+      <NotificationBell />
+      <NotificationsPage />
+    </>,
+  )
+}
+
 describe('NotificationsPage', () => {
   beforeEach(() => {
     vi.mocked(notificationsApi.list).mockResolvedValue(pageResponse)
     vi.mocked(notificationsApi.markAllRead).mockResolvedValue()
+    vi.mocked(notificationsApi.unreadCount).mockResolvedValue({ count: 0 })
   })
 
   it('renders notification list', async () => {
-    render(
-      <MemoryRouter>
-        <NotificationsPage />
-      </MemoryRouter>,
-    )
+    renderWithProvider(<NotificationsPage />)
 
     expect(await screen.findByText('Certificate approved')).toBeInTheDocument()
     expect(screen.getByText('Your certificate submission was approved.')).toBeInTheDocument()
@@ -60,11 +78,7 @@ describe('NotificationsPage', () => {
       totalElements: 0,
     })
 
-    render(
-      <MemoryRouter>
-        <NotificationsPage />
-      </MemoryRouter>,
-    )
+    renderWithProvider(<NotificationsPage />)
 
     const unreadTab = await screen.findByRole('tab', { name: 'Unread' })
     unreadTab.click()
@@ -75,17 +89,30 @@ describe('NotificationsPage', () => {
   it('marks all notifications as read', async () => {
     const user = userEvent.setup()
 
-    render(
-      <MemoryRouter>
-        <NotificationsPage />
-      </MemoryRouter>,
-    )
+    renderWithProvider(<NotificationsPage />)
 
     await screen.findByText('Certificate approved')
     await user.click(screen.getByRole('button', { name: 'Mark all as read' }))
 
     await waitFor(() => {
       expect(notificationsApi.markAllRead).toHaveBeenCalled()
+    })
+  })
+
+  it('updates bell badge after mark all read on notifications page', async () => {
+    const user = userEvent.setup()
+    vi.mocked(notificationsApi.unreadCount)
+      .mockResolvedValueOnce({ count: 2 })
+      .mockResolvedValue({ count: 0 })
+
+    renderNotificationsWithBell()
+
+    expect(await screen.findByText('2')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Mark all as read' }))
+
+    await waitFor(() => {
+      expect(notificationsApi.markAllRead).toHaveBeenCalled()
+      expect(screen.queryByText('2')).not.toBeInTheDocument()
     })
   })
 })

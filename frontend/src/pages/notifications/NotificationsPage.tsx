@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert, Box, Button, CircularProgress, List, Paper, Tab, Tabs } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { notificationsApi } from '../../api/notificationsApi'
+import { useNotifications } from '../../notifications/useNotifications'
 import { NotificationListItem } from '../../components/notifications/NotificationMenu'
 import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
@@ -24,6 +25,7 @@ const EMPTY_PAGE: PageResponse<Notification> = {
 
 export function NotificationsPage() {
   const navigate = useNavigate()
+  const { refresh: refreshUnreadCount } = useNotifications()
   const [readFilter, setReadFilter] = useState<ReadFilter>('all')
   const [page, setPage] = useState(0)
   const [size, setSize] = useState(20)
@@ -80,6 +82,7 @@ export function NotificationsPage() {
       try {
         if (!notification.read) {
           await notificationsApi.markRead(notification.id)
+          await refreshUnreadCount()
           setRefreshToken((current) => current + 1)
         }
       } catch {
@@ -90,7 +93,7 @@ export function NotificationsPage() {
         navigate(notification.actionPath)
       }
     },
-    [navigate],
+    [navigate, refreshUnreadCount],
   )
 
   const handleMarkAllRead = useCallback(async () => {
@@ -98,13 +101,14 @@ export function NotificationsPage() {
     setError(null)
     try {
       await notificationsApi.markAllRead()
+      await refreshUnreadCount()
       setRefreshToken((current) => current + 1)
     } catch (markError) {
       setError(resolveApiError(markError, 'Unable to mark notifications as read.'))
     } finally {
       setMarkingAllRead(false)
     }
-  }, [])
+  }, [refreshUnreadCount])
 
   return (
     <Box>

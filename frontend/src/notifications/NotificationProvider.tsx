@@ -1,9 +1,23 @@
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { notificationsApi } from '../api/notificationsApi'
 
 const POLL_INTERVAL_MS = 60_000
 
-export function useUnreadNotificationCount() {
+export interface NotificationContextValue {
+  unreadCount: number
+  loading: boolean
+  error: string | null
+  refresh: () => Promise<void>
+}
+
+export const NotificationContext = createContext<NotificationContextValue | undefined>(undefined)
+
+interface NotificationProviderProps {
+  children: ReactNode
+}
+
+export function NotificationProvider({ children }: NotificationProviderProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,20 +53,15 @@ export function useUnreadNotificationCount() {
     }
   }, [refresh])
 
-  const decrementUnreadCount = useCallback((amount = 1) => {
-    setUnreadCount((current) => Math.max(0, current - amount))
-  }, [])
+  const value = useMemo(
+    () => ({
+      unreadCount,
+      loading,
+      error,
+      refresh,
+    }),
+    [error, loading, refresh, unreadCount],
+  )
 
-  const clearUnreadCount = useCallback(() => {
-    setUnreadCount(0)
-  }, [])
-
-  return {
-    unreadCount,
-    loading,
-    error,
-    refresh,
-    decrementUnreadCount,
-    clearUnreadCount,
-  }
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>
 }

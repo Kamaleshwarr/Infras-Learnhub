@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { notificationsApi } from '../../api/notificationsApi'
+import { NotificationProvider } from '../../notifications/NotificationProvider'
 import { NotificationBell } from './NotificationBell'
 
 vi.mock('../../api/notificationsApi', () => ({
@@ -13,6 +14,16 @@ vi.mock('../../api/notificationsApi', () => ({
     markAllRead: vi.fn(),
   },
 }))
+
+function renderNotificationBell() {
+  return render(
+    <MemoryRouter>
+      <NotificationProvider>
+        <NotificationBell />
+      </NotificationProvider>
+    </MemoryRouter>,
+  )
+}
 
 describe('NotificationBell', () => {
   beforeEach(() => {
@@ -42,11 +53,7 @@ describe('NotificationBell', () => {
   })
 
   it('renders unread badge count', async () => {
-    render(
-      <MemoryRouter>
-        <NotificationBell />
-      </MemoryRouter>,
-    )
+    renderNotificationBell()
 
     expect(await screen.findByLabelText('Notifications')).toBeInTheDocument()
     expect(await screen.findByText('3')).toBeInTheDocument()
@@ -55,11 +62,7 @@ describe('NotificationBell', () => {
   it('opens dropdown with notification preview', async () => {
     const user = userEvent.setup()
 
-    render(
-      <MemoryRouter>
-        <NotificationBell />
-      </MemoryRouter>,
-    )
+    renderNotificationBell()
 
     await user.click(await screen.findByLabelText('Notifications'))
 
@@ -67,24 +70,23 @@ describe('NotificationBell', () => {
     expect(screen.getByText('View all notifications')).toBeInTheDocument()
   })
 
-  it('marks all notifications read from dropdown', async () => {
+  it('marks all notifications read from dropdown and refreshes badge', async () => {
     const user = userEvent.setup()
     vi.mocked(notificationsApi.markAllRead).mockResolvedValue()
     vi.mocked(notificationsApi.unreadCount)
       .mockResolvedValueOnce({ count: 2 })
       .mockResolvedValue({ count: 0 })
 
-    render(
-      <MemoryRouter>
-        <NotificationBell />
-      </MemoryRouter>,
-    )
+    renderNotificationBell()
 
     await user.click(await screen.findByLabelText('Notifications'))
+    expect(await screen.findByText('2')).toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Mark all read' }))
 
     await waitFor(() => {
       expect(notificationsApi.markAllRead).toHaveBeenCalled()
+      expect(screen.queryByText('2')).not.toBeInTheDocument()
     })
   })
 })

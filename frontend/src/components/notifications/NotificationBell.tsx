@@ -1,11 +1,11 @@
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined'
 import { Badge, IconButton, Tooltip } from '@mui/material'
 import { useState } from 'react'
-import { useUnreadNotificationCount } from '../../hooks/useUnreadNotificationCount'
+import { useNotifications } from '../../notifications/useNotifications'
 import { NotificationMenu } from './NotificationMenu'
 
 export function NotificationBell() {
-  const { unreadCount, refresh, clearUnreadCount } = useUnreadNotificationCount()
+  const { unreadCount } = useNotifications()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const open = Boolean(anchorEl)
 
@@ -20,17 +20,7 @@ export function NotificationBell() {
       </Tooltip>
       <NotificationMenu
         anchorEl={anchorEl}
-        onClose={() => {
-          setAnchorEl(null)
-          void refresh()
-        }}
-        onUnreadCountChange={(nextCount) => {
-          if (nextCount === 0) {
-            clearUnreadCount()
-            return
-          }
-          void refresh()
-        }}
+        onClose={() => setAnchorEl(null)}
         open={open}
       />
     </>

@@ -12,6 +12,7 @@ import {
 import { useCallback, useState } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { notificationsApi } from '../../api/notificationsApi'
+import { useNotifications } from '../../notifications/useNotifications'
 import type { Notification } from '../../types/notifications'
 import { resolveApiError } from '../../utils/apiErrors'
 
@@ -55,11 +56,11 @@ interface NotificationMenuProps {
   anchorEl: HTMLElement | null
   open: boolean
   onClose: () => void
-  onUnreadCountChange: (nextCount: number) => void
 }
 
-export function NotificationMenu({ anchorEl, open, onClose, onUnreadCountChange }: NotificationMenuProps) {
+export function NotificationMenu({ anchorEl, open, onClose }: NotificationMenuProps) {
   const navigate = useNavigate()
+  const { refresh } = useNotifications()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -87,7 +88,7 @@ export function NotificationMenu({ anchorEl, open, onClose, onUnreadCountChange 
       try {
         if (!notification.read) {
           await notificationsApi.markRead(notification.id)
-          onUnreadCountChange(Math.max(0, (await notificationsApi.unreadCount()).count))
+          await refresh()
         }
       } catch {
         // Navigation should still proceed when mark-read fails.
@@ -98,7 +99,7 @@ export function NotificationMenu({ anchorEl, open, onClose, onUnreadCountChange 
         navigate(notification.actionPath)
       }
     },
-    [navigate, onClose, onUnreadCountChange],
+    [navigate, onClose, refresh],
   )
 
   const handleMarkAllRead = useCallback(async () => {
@@ -113,13 +114,13 @@ export function NotificationMenu({ anchorEl, open, onClose, onUnreadCountChange 
           readAtUtc: notification.readAtUtc ?? new Date().toISOString(),
         })),
       )
-      onUnreadCountChange(0)
+      await refresh()
     } catch (markError) {
       setError(resolveApiError(markError, 'Unable to mark notifications as read.'))
     } finally {
       setMarkingAllRead(false)
     }
-  }, [onUnreadCountChange])
+  }, [refresh])
 
   return (
     <Menu
