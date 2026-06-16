@@ -13,12 +13,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class AuthenticationService {
+
+    private static final String AVATAR_URL = "/api/v1/profile/avatar";
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -67,8 +71,16 @@ public class AuthenticationService {
                 user.getFullName(),
                 user.getEmail(),
                 roles,
-                user.isMustChangePassword()
+                user.isMustChangePassword(),
+                resolveAvatarUrl(user.getId())
         );
+    }
+
+    private String resolveAvatarUrl(UUID userId) {
+        return userRepository.findById(userId)
+                .filter(dbUser -> StringUtils.hasText(dbUser.getAvatarStorageKey()))
+                .map(dbUser -> AVATAR_URL)
+                .orElse(null);
     }
 }
 

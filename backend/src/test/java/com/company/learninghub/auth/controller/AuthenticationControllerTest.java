@@ -60,7 +60,7 @@ class AuthenticationControllerTest {
                 "jwt-token",
                 "Bearer",
                 3600,
-                new UserSummaryResponse(null, "E12345", "Employee One", "employee@example.com", Set.of("EMPLOYEE"), false)
+                new UserSummaryResponse(null, "E12345", "Employee One", "employee@example.com", Set.of("EMPLOYEE"), false, null)
         );
 
         when(authenticationService.login(request)).thenReturn(response);

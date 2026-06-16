@@ -54,6 +54,20 @@ export function ProfilePage() {
     }
   }
 
+  async function handleAvatarUpdated(updatedProfile: Profile, successMessage: string) {
+    setProfile(updatedProfile)
+    setNotification({ message: successMessage, severity: 'success' })
+    try {
+      await refreshProfile()
+    } catch {
+      setNotification({ message: PROFILE_MESSAGES.avatarUploadError, severity: 'error' })
+    }
+  }
+
+  function handleAvatarError(message: string) {
+    setNotification({ message, severity: 'error' })
+  }
+
   return (
     <Box>
       <PageHeader
@@ -71,6 +85,15 @@ export function ProfilePage() {
 
       {!loading && !error && profile && !isEditing ? (
         <ProfileViewSection
+          onAvatarError={handleAvatarError}
+          onAvatarUpdated={(updatedProfile) =>
+            handleAvatarUpdated(
+              updatedProfile,
+              updatedProfile.hasAvatar
+                ? PROFILE_MESSAGES.avatarUploadSuccess
+                : PROFILE_MESSAGES.avatarDeleteSuccess,
+            )
+          }
           onChangePassword={() => navigate('/change-password')}
           onEdit={() => setIsEditing(true)}
           profile={profile}

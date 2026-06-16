@@ -2,7 +2,9 @@ package com.company.learninghub.profile.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.auth.service.AuthenticationService;
+import com.company.learninghub.profile.config.ProfileProperties;
 import com.company.learninghub.profile.mapper.ProfileMapper;
+import com.company.learninghub.storage.AvatarStorageService;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -75,9 +77,27 @@ class ProfileMethodSecurityTest {
         ProfileService profileService(
                 UserRepository userRepository,
                 ProfileMapper profileMapper,
-                AuthenticationService authenticationService
+                AuthenticationService authenticationService,
+                AvatarStorageService avatarStorageService,
+                ProfileProperties profileProperties
         ) {
-            return new ProfileService(userRepository, profileMapper, authenticationService);
+            return new ProfileService(
+                    userRepository,
+                    profileMapper,
+                    authenticationService,
+                    avatarStorageService,
+                    profileProperties
+            );
+        }
+
+        @Bean
+        AvatarStorageService avatarStorageService() {
+            return mock(AvatarStorageService.class);
+        }
+
+        @Bean
+        ProfileProperties profileProperties() {
+            return new ProfileProperties();
         }
 
         @Bean

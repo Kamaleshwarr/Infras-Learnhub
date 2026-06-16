@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string
   roles: UserRole[]
   mustChangePassword: boolean
+  avatarUrl?: string | null
 }
 
 export interface LoginResponse {

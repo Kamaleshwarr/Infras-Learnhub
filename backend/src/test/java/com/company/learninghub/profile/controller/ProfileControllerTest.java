@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -30,7 +31,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -155,6 +158,47 @@ class ProfileControllerTest {
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.validationErrors.fullName").exists())
                 .andExpect(jsonPath("$.validationErrors.email").exists());
+    }
+
+    @Test
+    void uploadAvatarReturnsUpdatedProfile() throws Exception {
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.from(employeeUser());
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(authenticatedUser, null, authenticatedUser.getAuthorities())
+        );
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "avatar".getBytes());
+        ProfileResponse profile = new ProfileResponse(
+                authenticatedUser.getId(),
+                "EMP001",
+                "Jane Doe",
+                "jane.doe@company.com",
+                RoleName.EMPLOYEE,
+                true,
+                false,
+                true,
+                "/api/v1/profile/avatar",
+                Instant.parse("2026-01-01T00:00:00Z"),
+                Instant.parse("2026-06-01T00:00:00Z")
+        );
+        when(profileService.uploadAvatar(eq(authenticatedUser), any())).thenReturn(profile);
+
+        mockMvc.perform(multipart("/api/v1/profile/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasAvatar").value(true))
+                .andExpect(jsonPath("$.avatarUrl").value("/api/v1/profile/avatar"));
+    }
+
+    @Test
+    void deleteAvatarReturnsNoContent() throws Exception {
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.from(employeeUser());
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(authenticatedUser, null, authenticatedUser.getAuthorities())
+        );
+
+        mockMvc.perform(delete("/api/v1/profile/avatar"))
+                .andExpect(status().isNoContent());
+
+        verify(profileService).deleteAvatar(authenticatedUser);
     }
 
     private User employeeUser() {

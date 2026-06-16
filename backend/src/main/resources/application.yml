@@ -75,6 +75,8 @@ app:
   password-reset:
     expiration: ${APP_PASSWORD_RESET_EXPIRATION:PT1H}
     frontend-reset-url: ${APP_FRONTEND_RESET_URL:http://localhost:5173/reset-password}
+  profile:
+    avatar-max-size-bytes: ${APP_PROFILE_AVATAR_MAX_SIZE_BYTES:2097152}
   storage:
     provider: local
     local-root: ${APP_STORAGE_LOCAL_ROOT:./uploads}

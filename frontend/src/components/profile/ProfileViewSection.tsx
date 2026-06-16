@@ -3,6 +3,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { UserStatusChip } from '../users/UserStatusChip'
 import { ProfileAvatar } from './ProfileAvatar'
+import { ProfileAvatarUpload } from './ProfileAvatarUpload'
 import type { Profile } from '../../types/profile'
 
 interface ProfileViewSectionProps {
@@ -10,6 +11,9 @@ interface ProfileViewSectionProps {
   onEdit?: () => void
   onChangePassword?: () => void
   showChangePassword?: boolean
+  onAvatarUpdated?: (profile: Profile) => void
+  onAvatarError?: (message: string) => void
+  avatarBusy?: boolean
 }
 
 export function ProfileViewSection({
@@ -17,19 +21,34 @@ export function ProfileViewSection({
   onEdit,
   onChangePassword,
   showChangePassword = false,
+  onAvatarUpdated,
+  onAvatarError,
+  avatarBusy = false,
 }: ProfileViewSectionProps) {
   return (
     <Card>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
         <Stack spacing={3}>
           <Stack spacing={2} sx={{ alignItems: 'center' }}>
-            <ProfileAvatar fullName={profile.fullName} hasAvatar={profile.hasAvatar} />
+            <ProfileAvatar
+              avatarCacheKey={profile.updatedAtUtc}
+              fullName={profile.fullName}
+              hasAvatar={profile.hasAvatar}
+            />
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h5">{profile.fullName}</Typography>
               <Typography color="text.secondary" variant="body2">
                 {profile.email}
               </Typography>
             </Box>
+            {onAvatarUpdated && onAvatarError ? (
+              <ProfileAvatarUpload
+                disabled={avatarBusy}
+                onError={onAvatarError}
+                onUpdated={onAvatarUpdated}
+                profile={profile}
+              />
+            ) : null}
           </Stack>
 
           <Grid container spacing={2}>

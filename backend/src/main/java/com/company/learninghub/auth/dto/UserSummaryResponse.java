@@ -18,7 +18,9 @@ public record UserSummaryResponse(
         @Schema(description = "Assigned roles")
         Set<String> roles,
         @Schema(description = "Whether the user must change password before accessing the application")
-        boolean mustChangePassword
+        boolean mustChangePassword,
+        @Schema(description = "Relative URL to fetch the avatar image when present")
+        String avatarUrl
 ) {
 }
 

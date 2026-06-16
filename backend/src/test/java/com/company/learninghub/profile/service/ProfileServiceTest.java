@@ -3,10 +3,13 @@ package com.company.learninghub.profile.service;
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.auth.service.AuthenticationService;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
+import com.company.learninghub.profile.config.ProfileProperties;
 import com.company.learninghub.profile.dto.ProfileResponse;
 import com.company.learninghub.profile.dto.ProfileUpdateResponse;
 import com.company.learninghub.profile.dto.UpdateProfileRequest;
 import com.company.learninghub.profile.mapper.ProfileMapper;
+import com.company.learninghub.storage.AvatarStorageService;
+import com.company.learninghub.storage.StoredFile;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -14,9 +17,9 @@ import com.company.learninghub.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
@@ -39,11 +42,22 @@ class ProfileServiceTest {
     @Mock
     private AuthenticationService authenticationService;
 
+    @Mock
+    private AvatarStorageService avatarStorageService;
+
+    private ProfileProperties profileProperties;
     private ProfileService profileService;
 
     @BeforeEach
     void setUp() {
-        profileService = new ProfileService(userRepository, new ProfileMapper(), authenticationService);
+        profileProperties = new ProfileProperties();
+        profileService = new ProfileService(
+                userRepository,
+                new ProfileMapper(),
+                authenticationService,
+                avatarStorageService,
+                profileProperties
+        );
     }
 
     @Test
@@ -173,6 +187,79 @@ class ProfileServiceTest {
 
         assertThat(response.profile().fullName()).isEqualTo("Jane Smith");
         assertThat(response.accessToken()).isNull();
+    }
+
+    @Test
+    void uploadAvatarStoresMetadataAndDeletesPreviousFile() {
+        User user = employeeUser();
+        user.setAvatarStorageKey("avatars/old.png");
+        AuthenticatedUser principal = AuthenticatedUser.from(user);
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[16]);
+        StoredFile storedFile = new StoredFile("LOCAL", "avatars/new.png", "avatar.png", "image/png", 16);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(avatarStorageService.store(user.getId(), file)).thenReturn(storedFile);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProfileResponse response = profileService.uploadAvatar(principal, file);
+
+        assertThat(response.hasAvatar()).isTrue();
+        assertThat(response.avatarUrl()).isEqualTo("/api/v1/profile/avatar");
+        verify(avatarStorageService).deleteQuietly("avatars/old.png");
+        verify(userRepository).save(user);
+        assertThat(user.getAvatarStorageKey()).isEqualTo("avatars/new.png");
+    }
+
+    @Test
+    void uploadAvatarRejectsUnsupportedFileType() {
+        User user = employeeUser();
+        AuthenticatedUser principal = AuthenticatedUser.from(user);
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.gif", "image/gif", new byte[16]);
+
+        assertThatThrownBy(() -> profileService.uploadAvatar(principal, file))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Avatar file must be a JPG, JPEG, PNG, or WebP image");
+    }
+
+    @Test
+    void uploadAvatarRejectsOversizedFile() {
+        User user = employeeUser();
+        AuthenticatedUser principal = AuthenticatedUser.from(user);
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                new byte[(int) profileProperties.getAvatarMaxSizeBytes() + 1]
+        );
+
+        assertThatThrownBy(() -> profileService.uploadAvatar(principal, file))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Avatar file must be 2 MB or smaller");
+    }
+
+    @Test
+    void deleteAvatarIsIdempotentWhenAvatarMissing() {
+        User user = employeeUser();
+        AuthenticatedUser principal = AuthenticatedUser.from(user);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        profileService.deleteAvatar(principal);
+
+        verify(avatarStorageService, never()).deleteQuietly(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteAvatarClearsMetadataAndDeletesStoredFile() {
+        User user = employeeUser();
+        user.setAvatarStorageKey("avatars/user/photo.png");
+        AuthenticatedUser principal = AuthenticatedUser.from(user);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        profileService.deleteAvatar(principal);
+
+        verify(avatarStorageService).deleteQuietly("avatars/user/photo.png");
+        assertThat(user.getAvatarStorageKey()).isNull();
     }
 
     private User employeeUser() {
