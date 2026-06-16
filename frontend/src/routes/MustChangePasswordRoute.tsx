@@ -9,9 +9,5 @@ export function MustChangePasswordRoute() {
     return <Navigate to="/change-password" replace />
   }
 
-  if (!user?.mustChangePassword && location.pathname === '/change-password') {
-    return <Navigate to="/" replace />
-  }
-
   return <Outlet />
 }
