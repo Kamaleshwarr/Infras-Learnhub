@@ -7,7 +7,7 @@ import type { InitiativeSummary } from './initiativesApi'
 import type { LeaderboardEntry, PersonalLeaderboard } from './leaderboardsApi'
 import type { ProjectSummary } from './projectsApi'
 import type { StudyMaterial } from './studyMaterialsApi'
-import type { CertificateSubmission } from './submissionsApi'
+import type { CertificateSubmission } from '../types/submissions'
 
 const EXPIRING_WINDOW_DAYS = 14
 

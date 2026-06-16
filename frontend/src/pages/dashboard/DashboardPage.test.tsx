@@ -54,8 +54,28 @@ const dashboardData: DashboardData = {
   mySubmissions: [
     {
       approvalStatus: 'APPROVED',
+      certificateDocument: {
+        contentType: 'application/pdf',
+        fileSizeBytes: 1024,
+        id: 'document-1',
+        originalFilename: 'certificate.pdf',
+      },
+      certificateDocumentId: 'document-1',
+      createdAtUtc: '2026-06-01T00:00:00Z',
+      employee: {
+        email: 'employee@example.com',
+        employeeId: 'EMP001',
+        fullName: 'Employee One',
+        id: 'employee-1',
+      },
       id: 'submission-1',
+      initiative: {
+        id: 'initiative-1',
+        status: 'ACTIVE',
+        title: 'AI Certification',
+      },
       submittedAtUtc: '2026-06-01T00:00:00Z',
+      updatedAtUtc: '2026-06-01T00:00:00Z',
     },
   ],
   pendingReviewsCount: 7,
