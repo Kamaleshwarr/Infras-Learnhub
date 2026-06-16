@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-16 (v0.5 — Profile Management Phases 1–4)
+Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
 
 ## Release Overview
 
@@ -9,10 +9,13 @@ Last updated: 2026-06-16 (v0.5 — Profile Management Phases 1–4)
 | v0.2 | Password Management + backend foundations | Shipped (PR #17) |
 | v0.3 | User Management UI (Phases 1–3) | Shipped (PRs #18–#20) |
 | v0.4 | User Management UI Phase 4 (bulk import) | Shipped (PRs #22–#24) |
-| **v0.5** | **Profile Management (Phases 1–4)** | **Shipped (PR #27)** |
+| v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
+| **v0.6** | **In-App Notification Infrastructure** | **Shipped (PR #28)** |
+| v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Proposed (awaiting approval) |
 
-Release notes: `docs/releases/release-v0.5.md`  
-Workstream summary: `docs/releases/profile-management-final-summary.md`
+Release notes: `docs/releases/release-v0.6.md`  
+Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
+Proposed next: `docs/releases/release-v0.6.1-proposed.md`
 
 ---
 
@@ -95,13 +98,40 @@ Workstream summary: `docs/releases/profile-management-final-summary.md`
 
 ---
 
-## Next (awaiting approval)
+## Shipped — v0.6 In-App Notification Infrastructure (PR #28)
 
-No implementation in progress. Recommended next feature: **Notifications** or **Global Search** (see status report).
+**Classification:** Foundation release — not notification feature complete.
+
+### Delivered
+
+- Flyway `V9__create_notifications.sql` — notification persistence
+- Notification module + inbox APIs (`GET` list, unread-count, mark-read, mark-all-read)
+- Certificate backend producers: `CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`
+- Frontend bell, dropdown, `/notifications` page, sidebar nav
+- Badge synchronization via `NotificationProvider`
+- Account lifecycle types deferred to future email channel (not produced in-app)
+
+### Known limitation
+
+- Certificate submit / approve / reject workflows are **backend-only** (placeholder submission pages; no admin review UI)
+- End-to-end notification validation blocked until **v0.6.1**
 
 ---
 
-## Backlog (post v0.5)
+## Next (proposed — awaiting approval)
+
+**v0.6.1 — Certificate Workflow UI & Notification E2E Validation**
+
+- Submit Certificate page
+- My Submissions page
+- Admin Review page with approve/reject
+- Application E2E validation of notification producers
+
+Plan: `docs/releases/release-v0.6.1-proposed.md`
+
+---
+
+## Backlog (post v0.6.1)
 
 | ID | Item | Notes |
 |----|------|-------|
@@ -109,8 +139,8 @@ No implementation in progress. Recommended next feature: **Notifications** or **
 | UM-003 | Unified cross-field search | Optional backend `search` param |
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
 | UM-006 | Downloadable import error report | Post-import CSV/text export |
-| — | Notifications | v0.6 candidate |
-| — | Global Search | v0.6 candidate |
+| — | Global Search | v0.7 candidate |
+| — | Email notifications (account lifecycle) | Post v0.6.1 |
 | — | AI Features | Future |
 
 Backlog detail: `docs/backlog/user-management-ui.md`
@@ -128,6 +158,7 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 - User Management (API + import parsers)
 - Password Management
 - **Profile Management**
+- **Notifications** (infrastructure: persistence, APIs, certificate backend producers)
 
 ## Completed Frontend Modules
 
@@ -136,4 +167,5 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 3. Role-aware dashboard
 4. Password Management UI
 5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
-6. **Profile Management UI — Phases 1–4** (view, edit, change-password entry, avatar)
+6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
+7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)

@@ -140,7 +140,7 @@ public class UserManagementService {
     public UserResponse activateUser(UUID id) {
         User user = findUser(id);
         user.setActive(true);
-        return toResponse(user);
+        return toResponse(userRepository.save(user));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -151,7 +151,7 @@ public class UserManagementService {
         }
         User user = findUser(id);
         user.setActive(false);
-        return toResponse(user);
+        return toResponse(userRepository.save(user));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

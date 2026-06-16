@@ -60,4 +60,45 @@ class MustChangePasswordFilterTest {
         verify(chain).doFilter(request, response);
         SecurityContextHolder.clearContext();
     }
+
+    @Test
+    void allowsNotificationEndpointsWhenPasswordChangeRequired() throws Exception {
+        User user = new User("E12345", "employee@example.com", "Employee One", "$2a$12$hash");
+        user.setMustChangePassword(true);
+        user.assignRole(new Role(RoleName.EMPLOYEE));
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(AuthenticatedUser.from(user), null, AuthenticatedUser.from(user).getAuthorities())
+        );
+
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/notifications/unread-count");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void allowsMarkNotificationReadWhenPasswordChangeRequired() throws Exception {
+        User user = new User("E12345", "employee@example.com", "Employee One", "$2a$12$hash");
+        user.setMustChangePassword(true);
+        user.assignRole(new Role(RoleName.EMPLOYEE));
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(AuthenticatedUser.from(user), null, AuthenticatedUser.from(user).getAuthorities())
+        );
+
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                "PATCH",
+                "/api/v1/notifications/00000000-0000-0000-0000-000000000001/read"
+        );
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        SecurityContextHolder.clearContext();
+    }
 }

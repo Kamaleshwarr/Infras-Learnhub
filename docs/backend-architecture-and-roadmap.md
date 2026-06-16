@@ -1,6 +1,6 @@
 # Backend Architecture & Roadmap
 
-Last updated: 2026-06-16 (v0.5)
+Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
 
 ## Stack
 
@@ -137,6 +137,42 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 
 ---
 
+## Notifications Module
+
+**Package:** `com.company.learninghub.notification`  
+**Access:** Authenticated users only (`@PreAuthorize("isAuthenticated()")` on inbox APIs)  
+**Scope:** Self-service inbox — users read only their own notifications  
+**v0.6 classification:** **In-App Notification Infrastructure** (foundation) — not notification feature complete
+
+### REST API (`/api/v1/notifications`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/notifications` | Paginated inbox (`read`, `type` filters) |
+| `GET` | `/notifications/unread-count` | Unread count for header badge |
+| `PATCH` | `/notifications/{id}/read` | Mark one notification read |
+| `PATCH` | `/notifications/read-all` | Mark all notifications read |
+
+### v0.6 certificate producers (backend-only trigger today)
+
+| Type | Producer | Recipients |
+|------|----------|------------|
+| `CERTIFICATE_SUBMITTED` | `CertificateSubmissionService.submit()` | All active `ADMIN` users |
+| `CERTIFICATE_APPROVED` | `CertificateSubmissionService.approve()` | Submitting employee |
+| `CERTIFICATE_REJECTED` | `CertificateSubmissionService.reject()` | Submitting employee |
+
+**Limitation:** Producers are wired and unit-tested but not triggerable through the application UI until certificate workflow pages ship (proposed v0.6.1). E2E validation requires Submit Certificate, My Submissions, and Admin Review UI.
+
+### Deferred to future email channel (not produced in v0.6)
+
+`ACCOUNT_CREATED`, `ACCOUNT_ACTIVATED`, `ACCOUNT_DEACTIVATED`, `PASSWORD_RESET_BY_ADMIN` — enum values and schema constraint retained for historical rows; `NotificationFactory` helpers kept for a future email workstream.
+
+**Flyway:** `V9__create_notifications.sql`
+
+**Testing:** `NotificationServiceTest`, `NotificationFactoryTest`, `NotificationControllerTest`, `NotificationMethodSecurityTest`, producer tests in `CertificateSubmissionServiceTest`
+
+---
+
 ## Roadmap — Backend
 
 ### Shipped (v0.3)
@@ -161,6 +197,15 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 - [x] Email change JWT refresh via `ProfileUpdateResponse.accessToken`
 - [x] `avatarUrl` on auth user summary
 
+### Shipped (v0.6) — Notification Infrastructure
+
+- [x] Notification module — inbox APIs and read-state
+- [x] `V9__create_notifications.sql`
+- [x] Certificate-workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
+- [x] Merged PR #28
+
+**Not feature complete:** E2E producer validation deferred to v0.6.1 (certificate workflow UI).
+
 ### Future backend enhancements
 
 | Item | Description |
@@ -169,7 +214,7 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 | UM-006 | Downloadable import error report endpoint or export attachment |
 | Import audit | Optional import batch ID / audit log table |
 | Self-role guard | Backend enforcement mirroring edit UI (defense-in-depth) |
-| Notifications | Notification delivery and read-state APIs |
+| Email notifications | Account lifecycle and transactional email channel |
 | Global Search | Cross-entity search index or unified query layer |
 
 ---

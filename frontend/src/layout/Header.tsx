@@ -3,6 +3,7 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import { AppBar, Box, IconButton, Toolbar, Typography, Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { NotificationBell } from '../components/notifications/NotificationBell'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -39,7 +40,8 @@ export function Header({ onMenuClick }: HeaderProps) {
             {user?.fullName ?? 'Authenticated user'}{currentRole ? ` · ${currentRole}` : ''}
           </Typography>
         </Box>
-        <Button color="primary" onClick={handleLogout} startIcon={<LogoutIcon />}>
+        <NotificationBell />
+        <Button color="primary" onClick={handleLogout} startIcon={<LogoutIcon />} sx={{ ml: 1 }}>
           Logout
         </Button>
       </Toolbar>

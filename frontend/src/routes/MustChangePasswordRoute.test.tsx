@@ -35,6 +35,7 @@ function renderRoute(initialEntry: string, user: UserProfile) {
           <Route element={<MustChangePasswordRoute />}>
             <Route element={<div>Change password page</div>} path="/change-password" />
             <Route element={<div>Profile page</div>} path="/profile" />
+            <Route element={<div>Notifications page</div>} path="/notifications" />
           </Route>
           <Route element={<div>Dashboard</div>} path="/" />
         </Routes>
@@ -62,5 +63,12 @@ describe('MustChangePasswordRoute', () => {
     renderRoute('/profile', baseUser)
 
     expect(screen.getByText('Profile page')).toBeInTheDocument()
+  })
+
+  it('allows notifications access when password change is required', () => {
+    renderRoute('/notifications', { ...baseUser, mustChangePassword: true })
+
+    expect(screen.getByText('Notifications page')).toBeInTheDocument()
+    expect(screen.queryByText('Change password page')).not.toBeInTheDocument()
   })
 })

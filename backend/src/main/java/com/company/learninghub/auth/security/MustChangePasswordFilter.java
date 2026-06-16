@@ -55,6 +55,10 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
         if (HttpMethod.GET.matches(request.getMethod()) && "/api/v1/auth/me".equals(path)) {
             return true;
         }
+        if (path.startsWith("/api/v1/notifications")) {
+            return HttpMethod.GET.matches(request.getMethod())
+                    || HttpMethod.PATCH.matches(request.getMethod());
+        }
         return HttpMethod.POST.matches(request.getMethod()) && "/api/v1/auth/change-password".equals(path);
     }
 

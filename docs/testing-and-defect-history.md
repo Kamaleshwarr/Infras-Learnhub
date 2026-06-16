@@ -1,16 +1,79 @@
 # Testing & Defect History
 
-Last updated: 2026-06-16 (v0.5)
+Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.5) |
+| Area | Command | Baseline (v0.6) |
 |------|---------|-----------------|
-| Frontend | `cd frontend && npm test` | **132 tests** (31 files) |
+| Frontend | `cd frontend && npm test` | **140 tests** (33 files) |
 | Frontend build | `cd frontend && npm run build` | Pass |
+| Backend (notifications) | `mvn -f backend/pom.xml test -Dtest='com.company.learninghub.notification.**'` | Pass |
 | Backend (profile) | `mvn -f backend/pom.xml test -Dtest='Profile*Test'` | Pass |
 | Backend (user mgmt) | `mvn -f backend/pom.xml test -Dtest='UserManagement*Test'` | Pass |
 | Backend (full) | `mvn -f backend/pom.xml test` | Pass (10 integration tests skipped without Docker) |
+
+---
+
+## Notifications — Validation History (v0.6 Infrastructure)
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Backend startup | **Passed** | NTF-D01 — `@Autowired` on `NotificationService` constructor |
+| Notification APIs | **Passed** | List, unread-count, mark-read, mark-all-read |
+| Bell and inbox UI | **Passed** | Bell, dropdown, `/notifications`, sidebar |
+| Badge synchronization | **Passed** | NTF-D02 — `NotificationProvider` + `refresh()` |
+| Account producers removed | **Passed** | Option B — no in-app generation from user management |
+| Certificate producers (service layer) | **Passed** | Unit tests in `CertificateSubmissionServiceTest` |
+| Certificate producers (application E2E) | **Deferred v0.6.1** | Blocked — submit/review pages are placeholders |
+| Scope classification | **Approved** | v0.6 = infrastructure; E2E = v0.6.1 |
+
+---
+
+## Defects — Notifications (v0.6)
+
+| ID | Symptom | Root cause | Fix | Verified |
+|----|---------|------------|-----|----------|
+| NTF-D01 | Backend failed to start; `NotificationService` `BeanInstantiationException` | Multiple constructors without `@Autowired` on production entry point | `@Autowired` on public constructor | Backend startup |
+| NTF-D02 | Bell badge stale after mark-read on `/notifications` | Isolated unread-count state in bell hook vs page | `NotificationProvider` + `refresh()` after read mutations | Infrastructure validation |
+
+---
+
+## Notifications — Test coverage added
+
+| Component / area | Tests |
+|------------------|-------|
+| `NotificationServiceTest` | Inbox, unread count, mark read, certificate + factory helpers |
+| `NotificationFactoryTest` | Message templates |
+| `NotificationControllerTest` | API contracts |
+| `NotificationMethodSecurityTest` | `@PreAuthorize` on inbox APIs |
+| `CertificateSubmissionServiceTest` | Producer calls on submit/approve/reject |
+| `NotificationBell.test.tsx` | Badge render, dropdown, mark-all-read sync |
+| `NotificationsPage.test.tsx` | List, filters, mark-all-read, badge sync regression |
+| `MustChangePasswordFilterTest` | Notification API allowlist |
+
+---
+
+## Regression Checklist (Notifications — v0.6 Infrastructure)
+
+Validated at v0.6 merge:
+
+1. Backend starts; Flyway `V9` applied
+2. `GET /notifications/unread-count` matches bell badge
+3. Mark-read on `/notifications` updates badge immediately
+4. Mark-read / mark-all-read in dropdown updates badge immediately
+5. User create, activate, deactivate, reset-password → **no** new in-app notification
+6. Historical account-type rows (if present) still list correctly
+7. `mustChangePassword` user can access `/notifications` and bell APIs
+
+## Regression Checklist (Notifications — v0.6.1 E2E, proposed)
+
+Deferred until certificate workflow UI ships:
+
+1. Certificate submit via Submit Certificate page → all active admins notified (`CERTIFICATE_SUBMITTED`)
+2. Approve via Admin Review page → employee notified (`CERTIFICATE_APPROVED`)
+3. Reject via Admin Review page → employee notified (`CERTIFICATE_REJECTED`)
+4. Badge and inbox reflect new notifications after each workflow step
 
 ---
 
@@ -159,3 +222,5 @@ Run before each phase merge:
 | UM-006 | No downloadable import error report yet |
 | Import | Create-only; no update existing users via import |
 | Avatar storage | Local filesystem only; no cloud/S3 provider yet |
+| Notification E2E | Certificate producers backend-only; UI workflows in v0.6.1 |
+| Certificate submission UI | Submit / My Submissions / Admin Review pages are placeholders |

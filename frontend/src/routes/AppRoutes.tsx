@@ -17,6 +17,7 @@ import { MySubmissionsPage } from '../pages/submissions/MySubmissionsPage'
 import { SubmitCertificatePage } from '../pages/submissions/SubmitCertificatePage'
 import { UserListPage } from '../pages/users/UserListPage'
 import { ProfilePage } from '../pages/profile/ProfilePage'
+import { NotificationsPage } from '../pages/notifications/NotificationsPage'
 import { MustChangePasswordRoute } from './MustChangePasswordRoute'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RoleRoute } from './RoleRoute'
@@ -33,6 +34,7 @@ export function AppRoutes() {
           <Route element={<AppLayout />}>
             <Route element={<DashboardPage />} index />
             <Route element={<ProfilePage />} path="profile" />
+            <Route element={<NotificationsPage />} path="notifications" />
             <Route element={<InitiativeListPage />} path="initiatives" />
             <Route element={<InitiativeDetailPage />} path="initiatives/:initiativeId" />
             <Route element={<RoleRoute roles={['EMPLOYEE']} />}>

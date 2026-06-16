@@ -37,11 +37,20 @@
 
 ## Current Release
 
-**v0.5** — Profile Management (Phases 1–4, merged via PR #27)
+**v0.6** — In-App Notification Infrastructure (merged via PR #28)
 
-Release notes: `docs/releases/release-v0.5.md`  
-Workstream summary: `docs/releases/profile-management-final-summary.md`  
+Release notes: `docs/releases/release-v0.6.md`  
+Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
+Proposed next: `docs/releases/release-v0.6.1-proposed.md`  
 Roadmap: `docs/project-roadmap.md`
+
+### v0.6 Highlights
+
+- Notification persistence — Flyway `V9__create_notifications.sql`
+- Inbox APIs — list, unread-count, mark-read, mark-all-read
+- Frontend bell, dropdown, `/notifications` page, badge synchronization
+- Certificate backend producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
+- **Limitation:** Producers not triggerable through application UI until v0.6.1
 
 ### v0.5 Highlights
 
@@ -78,6 +87,7 @@ Roadmap: `docs/project-roadmap.md`
 - User Management
 - Password Management
 - Profile Management
+- Notifications (infrastructure — persistence, APIs, certificate backend producers)
 
 ## Completed Frontend Modules
 
@@ -87,8 +97,17 @@ Roadmap: `docs/project-roadmap.md`
 4. Password Management UI
 5. User Management UI (Phases 1–4: list, create/edit, activate/deactivate/reset, bulk import)
 6. Profile Management UI (Phases 1–4: view, edit, change-password entry, avatar)
+7. Notifications UI (bell, dropdown, inbox — consumer only)
 
 ## Completed Features
+
+### Notifications (v0.6 — Infrastructure)
+
+- Persistent notification inbox (`notifications` table)
+- Inbox APIs under `/api/v1/notifications`
+- Bell, dropdown, `/notifications` page, badge sync
+- Certificate producers wired in `CertificateSubmissionService`
+- Account lifecycle in-app generation deferred to email workstream
 
 ### Password Management (v0.2)
 
@@ -131,10 +150,12 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-2. Notifications
-3. Global Search
-4. AI Features
+1. v0.6.1 — Certificate Workflow UI & Notification E2E Validation (proposed, awaiting approval)
+2. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+3. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
+4. Global Search
+5. Email notifications (account lifecycle)
+6. AI Features
 
 ## Current Backend Package Pattern
 
@@ -179,6 +200,7 @@ frontend/src/
 - Use Flyway only when schema changes are required.
 - Password Management schema is in `V7__password_management.sql` (`must_change_password`, `password_changed_at`, `password_reset_tokens`).
 - Profile avatar metadata is in `V8__profile_avatar.sql` (nullable avatar columns on `users`).
+- Notifications schema is in `V9__create_notifications.sql` (`notifications` table).
 - Reuse `PasswordService` for all password mutations (change, admin reset, email reset).
 - Store only hashed reset tokens (SHA-256); never persist raw tokens.
 - Use `app.mail.mode=log` for local development (reset URL logged); use `smtp` in production.
