@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-12 (v0.4 — User Management UI Phase 4)
+Last updated: 2026-06-16 (v0.5 — Profile Management Phases 1–4)
 
 ## Release Overview
 
@@ -8,9 +8,43 @@ Last updated: 2026-06-12 (v0.4 — User Management UI Phase 4)
 |---------|-------|--------|
 | v0.2 | Password Management + backend foundations | Shipped (PR #17) |
 | v0.3 | User Management UI (Phases 1–3) | Shipped (PRs #18–#20) |
-| **v0.4** | **User Management UI Phase 4 (bulk import)** | **Shipped (PRs #22–#24)** |
+| v0.4 | User Management UI Phase 4 (bulk import) | Shipped (PRs #22–#24) |
+| **v0.5** | **Profile Management (Phases 1–4)** | **Shipped (PR #27)** |
 
-Release notes: `docs/releases/release-v0.4.md`
+Release notes: `docs/releases/release-v0.5.md`  
+Workstream summary: `docs/releases/profile-management-final-summary.md`
+
+---
+
+## Shipped — v0.5 Profile Management (Phases 1–4)
+
+### Phase 1 — Profile View (PR #27)
+
+- `GET /api/v1/profile` — self-service profile API
+- `ProfilePage` at `/profile` with read-only profile section
+- `ProfileAvatar` with initials fallback
+- Sidebar **My Profile** navigation
+- Flyway `V8__profile_avatar.sql` — avatar metadata on `users`
+
+### Phase 2 — Edit Profile (PR #27)
+
+- `PUT /api/v1/profile` — update full name and email
+- Email change issues new JWT via `accessToken` in response
+- `ProfileEditForm` with dirty-form guard and snackbar feedback
+- `AuthProvider.refreshProfile()` for session sync
+
+### Phase 3 — Change Password Entry (PR #27)
+
+- Change Password button on profile → `/change-password`
+- Hidden when `mustChangePassword === true`
+- `MustChangePasswordRoute` fix for voluntary change-password access
+
+### Phase 4 — Avatar Upload / Replace / Delete (PR #27)
+
+- `POST` / `DELETE` / `GET` `/api/v1/profile/avatar`
+- `AvatarStorageService` — local filesystem storage
+- `ProfileAvatarUpload` — upload, replace, delete with confirm dialog
+- `avatarUrl` on login and `/auth/me` user summary
 
 ---
 
@@ -63,11 +97,11 @@ Release notes: `docs/releases/release-v0.4.md`
 
 ## Next (awaiting approval)
 
-No implementation in progress. Recommended next feature: **Profile Management** (see status report).
+No implementation in progress. Recommended next feature: **Notifications** or **Global Search** (see status report).
 
 ---
 
-## Backlog (post Phase 4)
+## Backlog (post v0.5)
 
 | ID | Item | Notes |
 |----|------|-------|
@@ -75,9 +109,9 @@ No implementation in progress. Recommended next feature: **Profile Management** 
 | UM-003 | Unified cross-field search | Optional backend `search` param |
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
 | UM-006 | Downloadable import error report | Post-import CSV/text export |
-| — | Profile Management | v0.5+ candidate |
-| — | Notifications | v0.5+ |
-| — | Global Search | v0.5+ |
+| — | Notifications | v0.6 candidate |
+| — | Global Search | v0.6 candidate |
+| — | AI Features | Future |
 
 Backlog detail: `docs/backlog/user-management-ui.md`
 
@@ -93,6 +127,7 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 - Project Knowledge Repository
 - User Management (API + import parsers)
 - Password Management
+- **Profile Management**
 
 ## Completed Frontend Modules
 
@@ -100,4 +135,5 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 2. Authentication UI
 3. Role-aware dashboard
 4. Password Management UI
-5. **User Management UI — Phases 1–4** (list, CRUD, activate/deactivate/reset, bulk import)
+5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
+6. **Profile Management UI — Phases 1–4** (view, edit, change-password entry, avatar)

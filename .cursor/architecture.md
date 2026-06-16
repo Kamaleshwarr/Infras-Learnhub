@@ -1,6 +1,6 @@
 # Learning Hub Architecture
 
-**Current release:** v0.2 (Password Management)
+**Current release:** v0.5 (Profile Management)
 
 ## Backend Architecture
 
@@ -65,7 +65,7 @@ api -> auth -> routes -> layout -> pages -> components -> types
 - Context API owns current user state.
 - `AuthProvider` restores session using `/auth/me`.
 - `ProtectedRoute` blocks unauthenticated access.
-- `MustChangePasswordRoute` redirects users with `mustChangePassword: true` to `/change-password`.
+- `MustChangePasswordRoute` redirects users with `mustChangePassword: true` to `/change-password`; allows voluntary access when flag is false.
 - `RoleRoute` blocks role-specific routes.
 - Password pages: `ChangePasswordPage`, `ForgotPasswordPage`, `ResetPasswordPage`.
 
@@ -80,6 +80,7 @@ api -> auth -> routes -> layout -> pages -> components -> types
 - Pages should orchestrate API calls and compose reusable components.
 - Pages must implement loading, error, and empty states.
 - Material UI should be used consistently.
+- `ProfilePage` at `/profile` — self-service profile view, edit, and avatar management.
 
 ## Database Architecture
 
@@ -87,7 +88,7 @@ Database is PostgreSQL managed by Flyway.
 
 Core schemas/tables:
 
-- `users` (`must_change_password`, `password_changed_at` — added in v0.2)
+- `users` (`must_change_password`, `password_changed_at` — added in v0.2; avatar metadata — added in v0.5)
 - `roles`
 - `user_roles`
 - `password_reset_tokens` (v0.2)
@@ -310,6 +311,40 @@ After a password change, the client should obtain a new JWT (re-login or session
 | Email content | External templates; no secrets embedded in Java source |
 | Stateless JWT model | Invalidation via `password_changed_at` and `active` checks rather than a token blacklist |
 
+## Profile Management Architecture
+
+Profile management is a self-service module under `com.company.learninghub.profile`. It reuses the existing `User` entity and `UserRepository` — no duplicate identity tables. Avatar files are stored via `AvatarStorageService` (local filesystem).
+
+### Profile APIs
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/profile` | Current user profile |
+| `PUT` | `/api/v1/profile` | Update full name and email |
+| `POST` | `/api/v1/profile/avatar` | Upload or replace avatar |
+| `DELETE` | `/api/v1/profile/avatar` | Delete avatar (idempotent) |
+| `GET` | `/api/v1/profile/avatar` | Serve avatar image bytes |
+
+**Access:** `@PreAuthorize("isAuthenticated()")` — all operations scoped to the JWT principal's user ID.
+
+### Email Change Flow
+
+When a user updates their email via `PUT /api/v1/profile`:
+
+1. Service validates email uniqueness (case-insensitive).
+2. User row is updated.
+3. If email changed, `AuthenticationService.issueAccessToken()` returns a new JWT in `ProfileUpdateResponse.accessToken`.
+4. Frontend updates session storage and refreshes auth state.
+
+### Avatar Storage
+
+- Metadata on `users` row (Flyway `V8__profile_avatar.sql`).
+- Files stored at `avatars/{userId}/{uuid}.{ext}` via `AvatarStorageService`.
+- Allowed types: JPEG, PNG, WebP; max size configurable (`app.profile.avatar-max-size-bytes`, default 2 MB).
+- `UserSummaryResponse.avatarUrl` on login and `/auth/me` points to `GET /api/v1/profile/avatar`.
+
+**Frontend:** `ProfilePage`, `ProfileAvatar`, `ProfileAvatarUpload`, `ProfileEditForm`.
+
 ## Authorization Model
 
 ### Global Roles
@@ -385,6 +420,7 @@ V1__create_identity_schema.sql
 V2__seed_default_users.sql
 ...
 V7__password_management.sql
+V8__profile_avatar.sql
 ```
 
 - Add migrations only for schema changes.
@@ -415,3 +451,4 @@ Required test types:
   - Study Materials
   - Project Knowledge
   - Users
+  - Profile

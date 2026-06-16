@@ -290,4 +290,4 @@ The User Management workstream delivered a complete **admin-only** account lifec
 
 Nine defects were discovered across UI validation (Phases 2 and 4) and backend gaps exposed by the UI (employee ID casing, role update). All were fixed before the workstream closed.
 
-**Next planned release (v0.5):** Profile Management — pending approval; no implementation started.
+**Next planned release (v0.6):** Notifications or Global Search — awaiting approval; no implementation started.

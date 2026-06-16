@@ -37,10 +37,22 @@
 
 ## Current Release
 
-**v0.3** — User Management UI Phases 1–3 (merged via PRs #18–#20)
+**v0.5** — Profile Management (Phases 1–4, merged via PR #27)
 
-Release notes: `docs/releases/release-v0.3.md`  
+Release notes: `docs/releases/release-v0.5.md`  
+Workstream summary: `docs/releases/profile-management-final-summary.md`  
 Roadmap: `docs/project-roadmap.md`
+
+### v0.5 Highlights
+
+- Profile View — `GET /api/v1/profile`, `/profile` page, sidebar navigation
+- Edit Profile — `PUT /api/v1/profile`, email change JWT refresh
+- Change Password Entry — profile page link to `/change-password`
+- Avatar Upload / Replace / Delete — multipart upload, local storage, initials fallback
+
+### v0.4 Highlights
+
+- User Management UI Phase 4 — bulk import, template download, parser hardening
 
 ### v0.3 Highlights
 
@@ -65,6 +77,7 @@ Roadmap: `docs/project-roadmap.md`
 - Project Knowledge Repository
 - User Management
 - Password Management
+- Profile Management
 
 ## Completed Frontend Modules
 
@@ -72,7 +85,8 @@ Roadmap: `docs/project-roadmap.md`
 2. Authentication UI
 3. Role-aware dashboard foundation
 4. Password Management UI
-5. User Management UI (Phases 1–3: list, create/edit, activate/deactivate/reset)
+5. User Management UI (Phases 1–4: list, create/edit, activate/deactivate/reset, bulk import)
+6. Profile Management UI (Phases 1–4: view, edit, change-password entry, avatar)
 
 ## Completed Features
 
@@ -117,12 +131,10 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. User Management UI
-2. Profile Page
-3. Profile Photo Upload
-4. Notifications
-5. Global Search
-6. AI Features
+1. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+2. Notifications
+3. Global Search
+4. AI Features
 
 ## Current Backend Package Pattern
 
@@ -166,6 +178,7 @@ frontend/src/
 - Use existing `UserRepository` and `RoleRepository` for identity-related work.
 - Use Flyway only when schema changes are required.
 - Password Management schema is in `V7__password_management.sql` (`must_change_password`, `password_changed_at`, `password_reset_tokens`).
+- Profile avatar metadata is in `V8__profile_avatar.sql` (nullable avatar columns on `users`).
 - Reuse `PasswordService` for all password mutations (change, admin reset, email reset).
 - Store only hashed reset tokens (SHA-256); never persist raw tokens.
 - Use `app.mail.mode=log` for local development (reset URL logged); use `smtp` in production.

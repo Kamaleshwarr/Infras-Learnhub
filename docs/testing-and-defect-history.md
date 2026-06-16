@@ -1,15 +1,71 @@
 # Testing & Defect History
 
-Last updated: 2026-06-12 (v0.4)
+Last updated: 2026-06-16 (v0.5)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.4) |
+| Area | Command | Baseline (v0.5) |
 |------|---------|-----------------|
-| Frontend | `cd frontend && npm test` | **98 tests** (23 files) |
+| Frontend | `cd frontend && npm test` | **132 tests** (31 files) |
 | Frontend build | `cd frontend && npm run build` | Pass |
+| Backend (profile) | `mvn -f backend/pom.xml test -Dtest='Profile*Test'` | Pass |
 | Backend (user mgmt) | `mvn -f backend/pom.xml test -Dtest='UserManagement*Test'` | Pass |
-| Backend (full) | `mvn -f backend/pom.xml test` | Pass (integration tests require Docker) |
+| Backend (full) | `mvn -f backend/pom.xml test` | Pass (10 integration tests skipped without Docker) |
+
+---
+
+## Profile Management — Validation History
+
+| Phase | PR | Manual validation | Notes |
+|-------|-----|-------------------|-------|
+| Phase 1 — Profile View | #27 | **Passed** | — |
+| Phase 2 — Edit Profile | #27 | **Passed** (after fix) | PM-D01 import collision |
+| Phase 3 — Change Password Entry | #27 | **Passed** (after fix) | PM-D02 route redirect |
+| Phase 4 — Avatar | #27 | **Passed** | — |
+
+---
+
+## Defects — Profile Management
+
+| ID | Phase | Symptom | Root cause | Fix | Verified |
+|----|-------|---------|------------|-----|----------|
+| PM-D01 | 2 | App failed to load; `ProfileEditForm` import error | Case-insensitive FS collision: `profileEditForm.ts` vs `ProfileEditForm.tsx` | Renamed utility to `profileFormState.ts` | Phase 2 validation |
+| PM-D02 | 3 | Change Password redirected to `/` | `MustChangePasswordRoute` blocked voluntary `/change-password` access | Removed redirect; added route tests | Phase 3 validation |
+
+---
+
+## Profile Management — Test coverage added
+
+| Component / area | Tests |
+|------------------|-------|
+| `ProfileServiceTest` | Get/update profile, email duplicate, avatar upload/replace/delete, validation |
+| `ProfileControllerTest` | API contracts, multipart upload, avatar GET/DELETE |
+| `ProfileMethodSecurityTest` | `@PreAuthorize` on profile service |
+| `ProfilePage` | Page render, view/edit integration |
+| `ProfileEditForm` / `profileFormState` | Dirty guard, validation |
+| `ProfileAvatar` | Initials fallback, blob display |
+| `ProfileAvatarUpload` | Upload/replace/delete flows |
+| `ProfileNavigation` | Sidebar link, route access |
+| `MustChangePasswordRoute` | Voluntary change-password navigation |
+| `profileApi` | API client contracts |
+| `profileInitials` | Initials derivation |
+
+---
+
+## Regression Checklist (Profile Management)
+
+Run before profile phase merge:
+
+1. `/profile` loads for authenticated `ADMIN` and `EMPLOYEE`
+2. Profile fields match `GET /api/v1/profile` response
+3. Edit profile → dirty guard → snackbar → refresh; email change updates JWT
+4. Duplicate email rejected with error message
+5. Change Password button navigates to `/change-password` when `mustChangePassword` is false
+6. Change Password button hidden when `mustChangePassword` is true
+7. Avatar upload (valid image) → displays image; replace overwrites; delete reverts to initials
+8. Invalid avatar type or oversize file rejected with error
+9. `DELETE /avatar` when no avatar returns success (idempotent)
+10. Sidebar **My Profile** link visible and active on `/profile`
 
 ---
 
@@ -102,3 +158,4 @@ Run before each phase merge:
 | UM-002 / UM-004 | User details view not implemented |
 | UM-006 | No downloadable import error report yet |
 | Import | Create-only; no update existing users via import |
+| Avatar storage | Local filesystem only; no cloud/S3 provider yet |

@@ -1,6 +1,6 @@
 # Backend Architecture & Roadmap
 
-Last updated: 2026-06-12 (v0.4)
+Last updated: 2026-06-16 (v0.5)
 
 ## Stack
 
@@ -85,6 +85,58 @@ id, employeeId, fullName, email, role, active, mustChangePassword, createdAtUtc,
 
 ---
 
+## Profile Management Module
+
+**Package:** `com.company.learninghub.profile`  
+**Access:** Authenticated users only (`@PreAuthorize("isAuthenticated()")` on service + controller)  
+**Scope:** Self-service — users can read and update only their own profile
+
+### REST API (`/api/v1/profile`)
+
+| Method | Path | Description | UI Phase |
+|--------|------|-------------|----------|
+| `GET` | `/profile` | Get current user profile | Phase 1 |
+| `PUT` | `/profile` | Update full name and email | Phase 2 |
+| `POST` | `/profile/avatar` | Upload or replace avatar (multipart `file`) | Phase 4 |
+| `DELETE` | `/profile/avatar` | Delete avatar (idempotent `204`) | Phase 4 |
+| `GET` | `/profile/avatar` | Serve avatar image bytes | Phase 4 |
+
+### `ProfileResponse` fields
+
+```
+id, employeeId, fullName, email, role, active, mustChangePassword, avatarUrl, createdAtUtc, updatedAtUtc
+```
+
+`avatarUrl` is a relative path to `GET /api/v1/profile/avatar` when an avatar exists; `null` otherwise.
+
+### Business rules (v0.5)
+
+| Rule | Implementation |
+|------|----------------|
+| Self-only access | All operations use `AuthenticatedUser.getId()` from JWT principal |
+| Email uniqueness | Case-insensitive; rejects duplicates belonging to other users |
+| Email change JWT | `ProfileUpdateResponse.accessToken` issued when email changes |
+| Avatar file types | JPEG, PNG, WebP (content-type + extension allowlist) |
+| Avatar max size | `app.profile.avatar-max-size-bytes` (default 2 MB) |
+| Avatar delete | Idempotent `204` when no avatar exists |
+| Avatar storage | `AvatarStorageService` — local filesystem at `avatars/{userId}/{uuid}.{ext}` |
+
+### Avatar schema (v0.5 / Flyway V8)
+
+Nullable columns on `users`: `avatar_storage_provider`, `avatar_storage_key`, `avatar_content_type`, `avatar_original_filename`, `avatar_file_size_bytes`, `avatar_updated_at`.
+
+Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT NULL`).
+
+### Auth integration
+
+- `UserSummaryResponse.avatarUrl` on login and `GET /api/v1/auth/me`
+- `AuthenticationService.resolveAvatarUrl()` builds relative avatar URL
+- `AuthenticationService.issueAccessToken()` used for email-change token refresh
+
+**Testing:** `ProfileServiceTest`, `ProfileControllerTest`, `ProfileMethodSecurityTest`
+
+---
+
 ## Roadmap — Backend
 
 ### Shipped (v0.3)
@@ -100,6 +152,15 @@ id, employeeId, fullName, email, role, active, mustChangePassword, createdAtUtc,
 - [x] Import cell normalization (NBSP / zero-width space)
 - [x] Header-only import template
 
+### Shipped (v0.5)
+
+- [x] Profile module — `GET` / `PUT /api/v1/profile`
+- [x] Avatar upload, replace, delete, and serve APIs
+- [x] `V8__profile_avatar.sql` — avatar metadata on `users`
+- [x] `AvatarStorageService` — local filesystem storage
+- [x] Email change JWT refresh via `ProfileUpdateResponse.accessToken`
+- [x] `avatarUrl` on auth user summary
+
 ### Future backend enhancements
 
 | Item | Description |
@@ -108,7 +169,6 @@ id, employeeId, fullName, email, role, active, mustChangePassword, createdAtUtc,
 | UM-006 | Downloadable import error report endpoint or export attachment |
 | Import audit | Optional import batch ID / audit log table |
 | Self-role guard | Backend enforcement mirroring edit UI (defense-in-depth) |
-| Profile Management | User profile APIs (pending product scope) |
 | Notifications | Notification delivery and read-state APIs |
 | Global Search | Cross-entity search index or unified query layer |
 
@@ -119,4 +179,7 @@ id, employeeId, fullName, email, role, active, mustChangePassword, createdAtUtc,
 - Service tests: `UserManagementServiceTest` (CRUD, import parsers, blank rows, activate/deactivate/reset, self-deactivation)
 - Controller tests: `UserManagementControllerTest` (standalone MockMvc + `AuthenticationPrincipalArgumentResolver`)
 - Method security: `UserManagementMethodSecurityTest`
+- Service tests: `ProfileServiceTest` (get/update, email duplicate, avatar CRUD, validation)
+- Controller tests: `ProfileControllerTest` (API contracts, multipart upload)
+- Method security: `ProfileMethodSecurityTest`
 - Import/parser tests required for any parser changes (see `.cursor/coding-standards.md`)

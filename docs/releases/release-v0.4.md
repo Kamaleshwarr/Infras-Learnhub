@@ -83,7 +83,6 @@ See `docs/testing-and-defect-history.md` for defect log and regression checklist
 | UM-003 | Unified cross-field search |
 | UM-004 | View User Details |
 | UM-006 | Downloadable import error report |
-| — | Profile Management |
 | — | Notifications |
 | — | Global Search |
 
