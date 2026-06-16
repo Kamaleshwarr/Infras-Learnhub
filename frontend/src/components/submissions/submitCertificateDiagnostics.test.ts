@@ -59,6 +59,15 @@ describe('buildSubmitCertificateDiagnostics', () => {
     })
 
     expect(diagnostics.initiativesCount).toBe(1)
+    expect(diagnostics.employeeInitiativeRecords).toEqual([
+      {
+        id: initiative.id,
+        title: initiative.title,
+        status: initiative.status,
+        startDateUtc: initiative.startDateUtc,
+        expiryDateUtc: initiative.expiryDateUtc,
+      },
+    ])
     expect(diagnostics.submissionsCount).toBe(1)
     expect(diagnostics.submittedInitiativeIds).toEqual(['550e8400-e29b-41d4-a716-446655440001'])
     expect(diagnostics.availableInitiativesCount).toBe(0)

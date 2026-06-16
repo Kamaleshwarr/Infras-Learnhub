@@ -48,25 +48,32 @@ export async function getAdminDashboardData(): Promise<DashboardData> {
 }
 
 export async function getEmployeeDashboardData(): Promise<DashboardData> {
-  const [initiatives, submissions, leaderboard, myRank, materials, projects] = await Promise.all([
-    initiativesApi.list({ size: 5, status: 'ACTIVE', sort: 'expiryDateUtc,asc' }),
-    submissionsApi.listMine({ size: 5, sort: 'submittedAtUtc,desc' }),
-    leaderboardsApi.global({ size: 5, sort: 'rank,asc' }),
-    leaderboardsApi.me(),
-    studyMaterialsApi.search(undefined, { size: 5, sort: 'createdAtUtc,desc' }),
-    projectsApi.list(undefined, { size: 5, sort: 'updatedAtUtc,desc' }),
-  ])
+  const initiativesResult = await initiativesApi
+    .list({ size: 5, status: 'ACTIVE', sort: 'expiryDateUtc,asc' })
+    .then((value) => ({ ok: true as const, value }))
+    .catch(() => ({ ok: false as const, value: null }))
+
+  const [submissionsResult, leaderboardResult, myRankResult, materialsResult, projectsResult] =
+    await Promise.allSettled([
+      submissionsApi.listMine({ size: 5, sort: 'submittedAtUtc,desc' }),
+      leaderboardsApi.global({ size: 5, sort: 'rank,asc' }),
+      leaderboardsApi.me(),
+      studyMaterialsApi.search(undefined, { size: 5, sort: 'createdAtUtc,desc' }),
+      projectsApi.list(undefined, { size: 5, sort: 'updatedAtUtc,desc' }),
+    ])
+
+  const initiatives = initiativesResult.ok ? initiativesResult.value : null
 
   return {
-    activeInitiatives: initiatives.content,
-    activeInitiativesCount: initiatives.totalElements,
-    expiringInitiativesCount: countExpiringInitiatives(initiatives.content),
-    mySubmissions: submissions.content,
+    activeInitiatives: initiatives?.content ?? [],
+    activeInitiativesCount: initiatives?.totalElements ?? 0,
+    expiringInitiativesCount: countExpiringInitiatives(initiatives?.content ?? []),
+    mySubmissions: submissionsResult.status === 'fulfilled' ? submissionsResult.value.content : [],
     pendingReviewsCount: 0,
-    leaderboardPreview: leaderboard.content,
-    myRank,
-    recentStudyMaterials: materials.content,
-    assignedProjects: projects.content,
+    leaderboardPreview: leaderboardResult.status === 'fulfilled' ? leaderboardResult.value.content : [],
+    myRank: myRankResult.status === 'fulfilled' ? myRankResult.value : null,
+    recentStudyMaterials: materialsResult.status === 'fulfilled' ? materialsResult.value.content : [],
+    assignedProjects: projectsResult.status === 'fulfilled' ? projectsResult.value.content : [],
     recentProjectUpdates: [],
   }
 }

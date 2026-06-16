@@ -17,6 +17,8 @@ import org.hibernate.annotations.UuidGenerator;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -118,13 +120,26 @@ public class LearningInitiative extends AuditableEntity {
     }
 
     public boolean isVisibleToEmployeesAt(Instant now) {
+        return employeeExclusionReasonsAt(now).isEmpty();
+    }
+
+    public List<String> employeeExclusionReasonsAt(Instant now) {
+        List<String> reasons = new ArrayList<>();
         ZoneOffset utc = ZoneOffset.UTC;
         LocalDate today = LocalDate.ofInstant(now, utc);
         LocalDate startDate = LocalDate.ofInstant(startDateUtc, utc);
         LocalDate expiryDate = LocalDate.ofInstant(expiryDateUtc, utc);
-        return InitiativeStatus.ACTIVE.equals(status)
-                && !startDate.isAfter(today)
-                && !expiryDate.isBefore(today);
+
+        if (!InitiativeStatus.ACTIVE.equals(status)) {
+            reasons.add("status_not_active");
+        }
+        if (startDate.isAfter(today)) {
+            reasons.add("start_date_after_today_utc");
+        }
+        if (expiryDate.isBefore(today)) {
+            reasons.add("expiry_date_before_today_utc");
+        }
+        return reasons;
     }
 
     @Override

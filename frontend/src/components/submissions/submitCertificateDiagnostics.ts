@@ -42,6 +42,7 @@ export interface SubmitCertificateDiagnostics {
   submittedInitiativeIds: string[]
   availableInitiativesCount: number
   availableInitiatives: Array<Pick<InitiativeSummary, 'id' | 'title' | 'status' | 'startDateUtc' | 'expiryDateUtc'>>
+  employeeInitiativeRecords: Array<Pick<InitiativeSummary, 'id' | 'title' | 'status' | 'startDateUtc' | 'expiryDateUtc'>>
   excludedInitiatives: InitiativeExclusionDiagnostic[]
   notes: string[]
 }
@@ -98,6 +99,14 @@ export function buildSubmitCertificateDiagnostics(input: {
       title: initiative.title,
       reason: 'already_submitted' as const,
     }))
+
+  const employeeInitiativeRecords = input.initiatives.map((initiative) => ({
+    id: initiative.id,
+    title: initiative.title,
+    status: initiative.status,
+    startDateUtc: initiative.startDateUtc,
+    expiryDateUtc: initiative.expiryDateUtc,
+  }))
 
   const notes: string[] = [
     'Employee GET /initiatives is server-filtered to ACTIVE initiatives within the UTC start/expiry window.',
@@ -161,6 +170,7 @@ export function buildSubmitCertificateDiagnostics(input: {
       startDateUtc: initiative.startDateUtc,
       expiryDateUtc: initiative.expiryDateUtc,
     })),
+    employeeInitiativeRecords,
     excludedInitiatives,
     notes,
   }
@@ -170,6 +180,7 @@ export function logSubmitCertificateDiagnostics(diagnostics: SubmitCertificateDi
   const label = '[SubmitCertificateDiagnostics]'
   console.group(label)
   console.log('1. GET /api/v1/initiatives response', diagnostics.rawInitiativesResponse)
+  console.log('1b. employee initiative records from response', diagnostics.employeeInitiativeRecords)
   console.log('2. GET /api/v1/me/submissions response', diagnostics.rawSubmissionsResponse)
   console.log('3. availableInitiatives.length', diagnostics.availableInitiativesCount)
   console.log('4. submittedInitiativeIds', diagnostics.submittedInitiativeIds)

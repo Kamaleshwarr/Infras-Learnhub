@@ -131,6 +131,49 @@ class LearningInitiativeListIntegrationTest {
                 .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
     }
 
+    @Test
+    void newlyCreatedActiveInitiativeWithFutureStartAppearsForAdminButNotEmployee() throws Exception {
+        User admin = userRepository.findByEmailIgnoreCase("admin@learninghub.local")
+                .orElseThrow();
+        initiativeRepository.save(new LearningInitiative(
+                "New Cloud Certification",
+                "Newly created active initiative",
+                "Badge",
+                Instant.parse("2026-06-17T00:00:00Z"),
+                Instant.parse("2026-12-31T00:00:00Z"),
+                InitiativeStatus.ACTIVE,
+                admin
+        ));
+
+        mockMvc.perform(get("/api/v1/initiatives")
+                        .queryParam("size", "100")
+                        .queryParam("status", "ACTIVE")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[*].title", hasItem("New Cloud Certification")));
+
+        mockMvc.perform(get("/api/v1/initiatives")
+                        .queryParam("size", "100")
+                        .queryParam("status", "ACTIVE")
+                        .header("Authorization", "Bearer " + loginAsEmployee()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
+
+        mockMvc.perform(get("/api/v1/initiatives/visibility-diagnostics")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].visibleToEmployees")
+                        .value(false))
+                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].includedInAdminActiveList")
+                        .value(true))
+                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].includedInEmployeeList")
+                        .value(false))
+                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].employeeExclusionReasons[0]")
+                        .value("start_date_after_today_utc"));
+    }
+
     private String loginAsEmployee() throws Exception {
         String response = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
