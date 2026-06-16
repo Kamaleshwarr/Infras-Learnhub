@@ -76,5 +76,11 @@ describe('Sidebar role-aware navigation', () => {
 
     expect(screen.getAllByText('My Profile').length).toBeGreaterThan(0)
   })
+
+  it('shows notifications navigation to all authenticated users', () => {
+    renderSidebar(employeeUser)
+
+    expect(screen.getAllByText('Notifications').length).toBeGreaterThan(0)
+  })
 })
 

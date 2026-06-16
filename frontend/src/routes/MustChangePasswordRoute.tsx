@@ -5,7 +5,8 @@ export function MustChangePasswordRoute() {
   const { user } = useAuth()
   const location = useLocation()
 
-  if (user?.mustChangePassword && location.pathname !== '/change-password') {
+  const allowedPaths = ['/change-password', '/notifications']
+  if (user?.mustChangePassword && !allowedPaths.includes(location.pathname)) {
     return <Navigate to="/change-password" replace />
   }
 
