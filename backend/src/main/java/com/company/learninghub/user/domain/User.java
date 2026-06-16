@@ -55,6 +55,24 @@ public class User extends AuditableEntity {
     @Column(name = "external_subject", length = 255)
     private String externalSubject;
 
+    @Column(name = "avatar_storage_provider", length = 20)
+    private String avatarStorageProvider;
+
+    @Column(name = "avatar_storage_key", length = 500)
+    private String avatarStorageKey;
+
+    @Column(name = "avatar_content_type", length = 100)
+    private String avatarContentType;
+
+    @Column(name = "avatar_original_filename", length = 255)
+    private String avatarOriginalFilename;
+
+    @Column(name = "avatar_file_size_bytes")
+    private Long avatarFileSizeBytes;
+
+    @Column(name = "avatar_updated_at")
+    private Instant avatarUpdatedAt;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<UserRole> userRoles = new HashSet<>();
 
@@ -142,6 +160,54 @@ public class User extends AuditableEntity {
 
     public void setExternalSubject(String externalSubject) {
         this.externalSubject = externalSubject;
+    }
+
+    public String getAvatarStorageProvider() {
+        return avatarStorageProvider;
+    }
+
+    public void setAvatarStorageProvider(String avatarStorageProvider) {
+        this.avatarStorageProvider = avatarStorageProvider;
+    }
+
+    public String getAvatarStorageKey() {
+        return avatarStorageKey;
+    }
+
+    public void setAvatarStorageKey(String avatarStorageKey) {
+        this.avatarStorageKey = avatarStorageKey;
+    }
+
+    public String getAvatarContentType() {
+        return avatarContentType;
+    }
+
+    public void setAvatarContentType(String avatarContentType) {
+        this.avatarContentType = avatarContentType;
+    }
+
+    public String getAvatarOriginalFilename() {
+        return avatarOriginalFilename;
+    }
+
+    public void setAvatarOriginalFilename(String avatarOriginalFilename) {
+        this.avatarOriginalFilename = avatarOriginalFilename;
+    }
+
+    public Long getAvatarFileSizeBytes() {
+        return avatarFileSizeBytes;
+    }
+
+    public void setAvatarFileSizeBytes(Long avatarFileSizeBytes) {
+        this.avatarFileSizeBytes = avatarFileSizeBytes;
+    }
+
+    public Instant getAvatarUpdatedAt() {
+        return avatarUpdatedAt;
+    }
+
+    public void setAvatarUpdatedAt(Instant avatarUpdatedAt) {
+        this.avatarUpdatedAt = avatarUpdatedAt;
     }
 
     public Set<UserRole> getUserRoles() {
