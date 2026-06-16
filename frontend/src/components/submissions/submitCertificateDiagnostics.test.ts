@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { InitiativeSummary } from '../../api/initiativesApi'
 import type { CertificateSubmission } from '../../types/submissions'
-import { buildSubmitCertificateDiagnostics } from './submitCertificateDiagnostics'
+import { buildSubmitCertificateDiagnostics, parseInitiativesContent } from './submitCertificateDiagnostics'
 
 const initiative: InitiativeSummary = {
   description: 'AWS certification program',
@@ -67,6 +67,38 @@ describe('buildSubmitCertificateDiagnostics', () => {
         initiativeId: initiative.id,
         title: initiative.title,
         reason: 'already_submitted',
+      },
+    ])
+  })
+
+  it('records parse exclusions when initiative records are missing required fields', () => {
+    const diagnostics = buildSubmitCertificateDiagnostics({
+      initiativeParams: { size: 100, status: 'ACTIVE', sort: 'expiryDateUtc,asc' },
+      submissionParams: { page: 0, size: 100, sort: 'submittedAtUtc,desc' },
+      rawInitiativesResponse: {
+        content: [{ title: 'Missing id' } as InitiativeSummary],
+        first: true,
+        last: true,
+        page: 0,
+        size: 100,
+        sort: [],
+        totalElements: 1,
+        totalPages: 1,
+      },
+      rawSubmissionsResponse: [],
+      initiatives: [],
+      submissions: [],
+      parseExclusions: parseInitiativesContent([{ title: 'Missing id' } as InitiativeSummary]).exclusions,
+      rawInitiativesContentCount: 1,
+    })
+
+    expect(diagnostics.initiativesCount).toBe(0)
+    expect(diagnostics.rawInitiativesContentCount).toBe(1)
+    expect(diagnostics.parseExclusions).toEqual([
+      {
+        index: 0,
+        reason: 'missing_id',
+        record: { title: 'Missing id' },
       },
     ])
   })

@@ -12,6 +12,7 @@ import { SubmitCertificateDiagnosticsPanel } from '../../components/submissions/
 import {
   buildSubmitCertificateDiagnostics,
   logSubmitCertificateDiagnostics,
+  parseInitiativesContent,
   SUBMIT_CERTIFICATE_DIAGNOSTICS_FLAG,
 } from '../../components/submissions/submitCertificateDiagnostics'
 import {
@@ -39,15 +40,24 @@ export const SUBMIT_CERTIFICATE_SUBMISSION_PARAMS = {
   sort: 'submittedAtUtc,desc',
 }
 
-function parseInitiatives(content: InitiativeSummary[] | undefined | null) {
-  if (!Array.isArray(content)) {
-    return []
+function buildDiagnosticsInput(input: {
+  rawInitiativesResponse: Awaited<ReturnType<typeof initiativesApi.list>> | { error: string }
+  rawSubmissionsResponse: CertificateSubmission[] | { error: string }
+  loadedInitiatives: InitiativeSummary[]
+  loadedSubmissions: CertificateSubmission[]
+  parseExclusions: ReturnType<typeof parseInitiativesContent>['exclusions']
+  rawInitiativesContentCount: number
+}) {
+  return {
+    initiativeParams: SUBMIT_CERTIFICATE_INITIATIVE_PARAMS,
+    submissionParams: SUBMIT_CERTIFICATE_SUBMISSION_PARAMS,
+    rawInitiativesResponse: input.rawInitiativesResponse,
+    rawSubmissionsResponse: input.rawSubmissionsResponse,
+    initiatives: input.loadedInitiatives,
+    submissions: input.loadedSubmissions,
+    parseExclusions: input.parseExclusions,
+    rawInitiativesContentCount: input.rawInitiativesContentCount,
   }
-
-  return content.filter(
-    (initiative): initiative is InitiativeSummary =>
-      Boolean(initiative?.id) && Boolean(initiative?.title),
-  )
 }
 
 export function SubmitCertificatePage() {
@@ -70,13 +80,18 @@ export function SubmitCertificatePage() {
 
       let rawInitiativesResponse: Awaited<ReturnType<typeof initiativesApi.list>> | { error: string }
       let loadedInitiatives: InitiativeSummary[] = []
+      let parseExclusions: ReturnType<typeof parseInitiativesContent>['exclusions'] = []
+      let rawInitiativesContentCount = 0
       let rawSubmissionsResponse: CertificateSubmission[] | { error: string } = []
       let loadedSubmissions: CertificateSubmission[] = []
 
       try {
         const initiativePage = await initiativesApi.list(SUBMIT_CERTIFICATE_INITIATIVE_PARAMS)
         rawInitiativesResponse = initiativePage
-        loadedInitiatives = parseInitiatives(initiativePage.content)
+        const parsedInitiatives = parseInitiativesContent(initiativePage.content)
+        loadedInitiatives = parsedInitiatives.initiatives
+        parseExclusions = parsedInitiatives.exclusions
+        rawInitiativesContentCount = parsedInitiatives.rawContentCount
         if (!mounted) {
           return
         }
@@ -89,14 +104,16 @@ export function SubmitCertificatePage() {
           setInitiatives([])
           setMySubmissions([])
           setLoadError(rawInitiativesResponse.error)
-          const nextDiagnostics = buildSubmitCertificateDiagnostics({
-            initiativeParams: SUBMIT_CERTIFICATE_INITIATIVE_PARAMS,
-            submissionParams: SUBMIT_CERTIFICATE_SUBMISSION_PARAMS,
-            rawInitiativesResponse,
-            rawSubmissionsResponse,
-            initiatives: [],
-            submissions: [],
-          })
+          const nextDiagnostics = buildSubmitCertificateDiagnostics(
+            buildDiagnosticsInput({
+              rawInitiativesResponse,
+              rawSubmissionsResponse,
+              loadedInitiatives: [],
+              loadedSubmissions: [],
+              parseExclusions: [],
+              rawInitiativesContentCount: 0,
+            }),
+          )
           setDiagnostics(nextDiagnostics)
           logSubmitCertificateDiagnostics(nextDiagnostics)
           setLoadingInitiatives(false)
@@ -120,14 +137,16 @@ export function SubmitCertificatePage() {
       }
 
       if (mounted) {
-        const nextDiagnostics = buildSubmitCertificateDiagnostics({
-          initiativeParams: SUBMIT_CERTIFICATE_INITIATIVE_PARAMS,
-          submissionParams: SUBMIT_CERTIFICATE_SUBMISSION_PARAMS,
-          rawInitiativesResponse,
-          rawSubmissionsResponse,
-          initiatives: loadedInitiatives,
-          submissions: loadedSubmissions,
-        })
+        const nextDiagnostics = buildSubmitCertificateDiagnostics(
+          buildDiagnosticsInput({
+            rawInitiativesResponse,
+            rawSubmissionsResponse,
+            loadedInitiatives,
+            loadedSubmissions,
+            parseExclusions,
+            rawInitiativesContentCount,
+          }),
+        )
         setDiagnostics(nextDiagnostics)
         logSubmitCertificateDiagnostics(nextDiagnostics)
         setLoadingInitiatives(false)

@@ -122,6 +122,32 @@ class LearningInitiativeListIntegrationTest {
                 .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
     }
 
+    @Test
+    void listInitiativesAsEmployeeReturnsOnlyActiveVisibleInitiatives() throws Exception {
+        mockMvc.perform(get("/api/v1/initiatives")
+                        .header("Authorization", "Bearer " + loginAsEmployee()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
+    }
+
+    private String loginAsEmployee() throws Exception {
+        String response = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "employee@learninghub.local",
+                                  "password": "Employee@12345"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        JsonNode jsonNode = objectMapper.readTree(response);
+        return jsonNode.get("accessToken").asText();
+    }
+
     private String loginAsAdmin() throws Exception {
         String response = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
