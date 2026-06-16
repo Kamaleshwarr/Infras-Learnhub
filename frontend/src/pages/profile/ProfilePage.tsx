@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Alert, Box, CircularProgress } from '@mui/material'
 import { profileApi } from '../../api/profileApi'
 import { tokenStorage } from '../../api/httpClient'
@@ -13,6 +14,7 @@ import type { Profile } from '../../types/profile'
 import { resolveApiError } from '../../utils/apiErrors'
 
 export function ProfilePage() {
+  const navigate = useNavigate()
   const { refreshProfile } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -68,7 +70,12 @@ export function ProfilePage() {
       {!loading && error ? <Alert severity="error">{error}</Alert> : null}
 
       {!loading && !error && profile && !isEditing ? (
-        <ProfileViewSection onEdit={() => setIsEditing(true)} profile={profile} />
+        <ProfileViewSection
+          onChangePassword={() => navigate('/change-password')}
+          onEdit={() => setIsEditing(true)}
+          profile={profile}
+          showChangePassword={!profile.mustChangePassword}
+        />
       ) : null}
 
       {!loading && !error && profile && isEditing ? (

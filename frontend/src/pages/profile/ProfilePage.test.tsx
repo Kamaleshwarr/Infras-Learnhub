@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProfilePage } from './ProfilePage'
 import { profileApi } from '../../api/profileApi'
@@ -44,8 +45,19 @@ describe('ProfilePage', () => {
     vi.mocked(profileApi.get).mockResolvedValue(profile)
   })
 
+  function renderProfilePage(initialEntry = '/profile') {
+    return render(
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <Routes>
+          <Route element={<ProfilePage />} path="/profile" />
+          <Route element={<div>Change password page</div>} path="/change-password" />
+        </Routes>
+      </MemoryRouter>,
+    )
+  }
+
   it('renders profile details after loading', async () => {
-    render(<ProfilePage />)
+    renderProfilePage()
 
     expect(screen.getByRole('heading', { name: 'My Profile' })).toBeInTheDocument()
     await waitFor(() => expect(screen.getByDisplayValue('Jane Doe')).toBeInTheDocument())
@@ -59,7 +71,7 @@ describe('ProfilePage', () => {
   it('renders loading state while fetching profile', () => {
     vi.mocked(profileApi.get).mockReturnValue(new Promise(() => undefined))
 
-    render(<ProfilePage />)
+    renderProfilePage()
 
     expect(screen.getByLabelText('Loading profile')).toBeInTheDocument()
   })
@@ -67,7 +79,7 @@ describe('ProfilePage', () => {
   it('renders error state when profile loading fails', async () => {
     vi.mocked(profileApi.get).mockRejectedValue(new Error('network'))
 
-    render(<ProfilePage />)
+    renderProfilePage()
 
     expect(
       await screen.findByText('Unable to load profile. Please try again.'),
@@ -87,7 +99,7 @@ describe('ProfilePage', () => {
     })
     refreshProfile.mockResolvedValue(undefined)
 
-    render(<ProfilePage />)
+    renderProfilePage()
     await screen.findByRole('button', { name: 'Edit Profile' })
     await user.click(screen.getByRole('button', { name: 'Edit Profile' }))
 
@@ -115,7 +127,7 @@ describe('ProfilePage', () => {
   it('keeps save disabled until profile form is dirty', async () => {
     const user = userEvent.setup()
 
-    render(<ProfilePage />)
+    renderProfilePage()
     await user.click(await screen.findByRole('button', { name: 'Edit Profile' }))
 
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
@@ -130,7 +142,7 @@ describe('ProfilePage', () => {
   it('cancels edit mode without saving', async () => {
     const user = userEvent.setup()
 
-    render(<ProfilePage />)
+    renderProfilePage()
     await user.click(await screen.findByRole('button', { name: 'Edit Profile' }))
     const fullNameInput = screen.getByRole('textbox', { name: 'Full Name' })
     await user.clear(fullNameInput)
@@ -139,5 +151,32 @@ describe('ProfilePage', () => {
 
     expect(screen.getByRole('button', { name: 'Edit Profile' })).toBeInTheDocument()
     expect(profileApi.update).not.toHaveBeenCalled()
+  })
+
+  it('shows change password action when password change is not required', async () => {
+    renderProfilePage()
+
+    expect(await screen.findByRole('button', { name: 'Change Password' })).toBeInTheDocument()
+  })
+
+  it('hides change password action when must change password is required', async () => {
+    vi.mocked(profileApi.get).mockResolvedValue({
+      ...profile,
+      mustChangePassword: true,
+    })
+
+    renderProfilePage()
+
+    await screen.findByRole('button', { name: 'Edit Profile' })
+    expect(screen.queryByRole('button', { name: 'Change Password' })).not.toBeInTheDocument()
+  })
+
+  it('navigates to the existing change password page', async () => {
+    const user = userEvent.setup()
+
+    renderProfilePage()
+    await user.click(await screen.findByRole('button', { name: 'Change Password' }))
+
+    expect(screen.getByText('Change password page')).toBeInTheDocument()
   })
 })

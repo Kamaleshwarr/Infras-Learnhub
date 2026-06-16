@@ -1,5 +1,6 @@
 import { Box, Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { UserStatusChip } from '../users/UserStatusChip'
 import { ProfileAvatar } from './ProfileAvatar'
 import type { Profile } from '../../types/profile'
@@ -7,9 +8,16 @@ import type { Profile } from '../../types/profile'
 interface ProfileViewSectionProps {
   profile: Profile
   onEdit?: () => void
+  onChangePassword?: () => void
+  showChangePassword?: boolean
 }
 
-export function ProfileViewSection({ profile, onEdit }: ProfileViewSectionProps) {
+export function ProfileViewSection({
+  profile,
+  onEdit,
+  onChangePassword,
+  showChangePassword = false,
+}: ProfileViewSectionProps) {
   return (
     <Card>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
@@ -73,11 +81,18 @@ export function ProfileViewSection({ profile, onEdit }: ProfileViewSectionProps)
             Created {formatTimestamp(profile.createdAtUtc)} · Updated {formatTimestamp(profile.updatedAtUtc)}
           </Typography>
 
-          {onEdit ? (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button onClick={onEdit} startIcon={<EditOutlinedIcon />} variant="outlined">
-                Edit Profile
-              </Button>
+          {onEdit || showChangePassword ? (
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              {showChangePassword && onChangePassword ? (
+                <Button onClick={onChangePassword} startIcon={<LockOutlinedIcon />} variant="outlined">
+                  Change Password
+                </Button>
+              ) : null}
+              {onEdit ? (
+                <Button onClick={onEdit} startIcon={<EditOutlinedIcon />} variant="outlined">
+                  Edit Profile
+                </Button>
+              ) : null}
             </Box>
           ) : null}
         </Stack>
