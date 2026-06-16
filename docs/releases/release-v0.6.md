@@ -1,51 +1,31 @@
 # Engineering Learning Hub v0.6
 
-**Theme:** In-App Notifications (certificate workflow)  
-**Status:** In validation (draft PR #28)  
-**Branch:** `cursor/v0.6-notifications-dd41`
+**Theme:** In-App Notification Infrastructure  
+**Classification:** Foundation release — **not** notification feature complete  
+**Merged:** 2026-06-16  
+**PR:** #28 (`cursor/v0.6-notifications-dd41`)
+
+Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
+Proposed follow-on: `docs/releases/release-v0.6.1-proposed.md`
 
 ---
 
-## Scope
+## Release intent
 
-v0.6 delivers a persistent **in-app notification inbox** for **certificate workflow events only**.
+v0.6 delivers the **persistent in-app notification platform** (persistence, APIs, consumer UI, and backend producers). It does **not** deliver end-to-end notification validation through the application UI, because certificate submit and admin review workflows remain placeholder pages in the frontend.
 
-### In-app notification types (actively produced)
-
-| Type | Recipient | Trigger |
-|------|-----------|---------|
-| `CERTIFICATE_SUBMITTED` | All active `ADMIN` users | Employee submits a certificate |
-| `CERTIFICATE_APPROVED` | Submitting employee | Admin approves submission |
-| `CERTIFICATE_REJECTED` | Submitting employee | Admin rejects submission |
-
-### Deferred from in-app (future email workstream)
-
-Account lifecycle types remain in the schema and API for **historical rows** but are **not generated** in v0.6:
-
-- `ACCOUNT_CREATED`
-- `ACCOUNT_ACTIVATED`
-- `ACCOUNT_DEACTIVATED`
-- `PASSWORD_RESET_BY_ADMIN`
-
-**Rationale:** These events are either unreachable in the inbox (deactivated users), redundant with enforced login/password flows, or better delivered via email at the time of the event.
+**Feature-complete notifications** require at least one producer to be triggerable and verifiable end-to-end through the application. That milestone is targeted for **v0.6.1** (Certificate Workflow UI & Notification E2E Validation).
 
 ---
 
-## Backend
+## Delivered
 
-### Flyway
+### Notification persistence
 
-- `V9__create_notifications.sql` — `notifications` table, indexes, type check constraint
+- Flyway `V9__create_notifications.sql` — `notifications` table, indexes, type check constraint
+- `Notification` entity, `NotificationType`, `NotificationEntityType`
 
-### Module
-
-`com.company.learninghub.notification`
-
-- `Notification` entity, `NotificationType`, `NotificationFactory`, `NotificationService`
-- REST APIs under `/api/v1/notifications`
-- Producers wired in `CertificateSubmissionService` only
-
-### APIs
+### Notification APIs
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -54,20 +34,55 @@ Account lifecycle types remain in the schema and API for **historical rows** but
 | `PATCH` | `/api/v1/notifications/{id}/read` | Mark one notification read |
 | `PATCH` | `/api/v1/notifications/read-all` | Mark all read |
 
-### Must-change-password access
+- `com.company.learninghub.notification` module — `NotificationService`, `NotificationFactory`, `NotificationMapper`, `NotificationController`
+- `MustChangePasswordFilter` allowlists `/api/v1/notifications/**` for inbox access during forced password change
 
-`MustChangePasswordFilter` allowlists notification API paths so users with `mustChangePassword = true` can read the inbox (certificate notifications only in practice).
-
----
-
-## Frontend
+### Bell and inbox UI
 
 - Header notification bell with unread badge
 - Dropdown preview (latest 10) with mark-all-read
 - `/notifications` page with All/Unread tabs and pagination
 - Sidebar **Notifications** navigation item
-- `NotificationProvider` shared context — badge syncs immediately after mark-read on page or dropdown
 - `MustChangePasswordRoute` allows `/notifications`
+
+### Badge synchronization
+
+- `NotificationProvider` shared context
+- `refresh()` after mark-read and mark-all-read on page and dropdown (NTF-D02)
+
+### Certificate notification producers (backend)
+
+Producers wired in `CertificateSubmissionService` only:
+
+| Type | Recipient | Trigger |
+|------|-----------|---------|
+| `CERTIFICATE_SUBMITTED` | All active `ADMIN` users | Employee submits a certificate |
+| `CERTIFICATE_APPROVED` | Submitting employee | Admin approves submission |
+| `CERTIFICATE_REJECTED` | Submitting employee | Admin rejects submission |
+
+Covered by unit and integration tests (`NotificationServiceTest`, `NotificationFactoryTest`, `CertificateSubmissionServiceTest`).
+
+### Deferred from in-app (future email workstream)
+
+Account lifecycle types remain in schema/enum for historical rows but are **not generated** in v0.6:
+
+- `ACCOUNT_CREATED`
+- `ACCOUNT_ACTIVATED`
+- `ACCOUNT_DEACTIVATED`
+- `PASSWORD_RESET_BY_ADMIN`
+
+---
+
+## Known limitation
+
+| Limitation | Impact |
+|------------|--------|
+| Certificate producer workflows are **backend-only** today | Submit, approve, and reject trigger notifications via API/Swagger only |
+| `SubmitCertificatePage` and `MySubmissionsPage` are placeholders | Employees cannot submit certificates through the UI |
+| No admin certificate review UI | Admins cannot approve/reject through the UI |
+| **End-to-end notification validation is blocked** | Cannot verify generation → delivery → inbox through the application until certificate workflow UI ships (v0.6.1) |
+
+Swagger/API validation of producers is useful for backend confidence but does **not** satisfy the application E2E bar.
 
 ---
 
@@ -80,6 +95,23 @@ Account lifecycle types remain in the schema and API for **historical rows** but
 
 ---
 
+## Validated at merge (infrastructure)
+
+1. Backend starts; Flyway V9 applied
+2. Notification APIs — list, unread-count, mark-read, mark-all-read
+3. Bell, dropdown, `/notifications` page render and interact correctly
+4. Mark-read on page and dropdown updates badge immediately
+5. `mustChangePassword` user can access `/notifications` and notification APIs
+6. User create / activate / deactivate / reset-password → **no** new in-app notification (Option B scope)
+
+## Deferred to v0.6.1 (E2E producer validation)
+
+1. Certificate submit → admin badge increments (`CERTIFICATE_SUBMITTED`)
+2. Approve / reject → employee notification (`CERTIFICATE_APPROVED` / `CERTIFICATE_REJECTED`)
+3. Full submit → review → notify → inbox path through the application UI
+
+---
+
 ## Explicitly out of scope (v0.6)
 
 - Initiative, project, and study-material in-app notifications
@@ -87,15 +119,4 @@ Account lifecycle types remain in the schema and API for **historical rows** but
 - Email notifications
 - Notification preferences
 - WebSockets / SSE / push
-- Admin certificate review UI (approve/reject via Swagger)
-
----
-
-## Suggested validation
-
-1. Backend starts; Flyway V9 applied
-2. Certificate submit → admin badge increments
-3. Approve/reject → employee notification
-4. User create / activate / deactivate / reset-password → **no** new in-app notification
-5. Mark-read on page and dropdown updates badge immediately
-6. Historical account-type rows (if any) still readable in inbox
+- Certificate workflow UI (submit, my submissions, admin review)

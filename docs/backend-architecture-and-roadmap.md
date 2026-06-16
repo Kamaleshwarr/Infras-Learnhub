@@ -1,6 +1,6 @@
 # Backend Architecture & Roadmap
 
-Last updated: 2026-06-16 (v0.6 — Notifications in validation)
+Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
 
 ## Stack
 
@@ -141,7 +141,8 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 
 **Package:** `com.company.learninghub.notification`  
 **Access:** Authenticated users only (`@PreAuthorize("isAuthenticated()")` on inbox APIs)  
-**Scope:** Self-service inbox — users read only their own notifications
+**Scope:** Self-service inbox — users read only their own notifications  
+**v0.6 classification:** **In-App Notification Infrastructure** (foundation) — not notification feature complete
 
 ### REST API (`/api/v1/notifications`)
 
@@ -152,13 +153,15 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 | `PATCH` | `/notifications/{id}/read` | Mark one notification read |
 | `PATCH` | `/notifications/read-all` | Mark all notifications read |
 
-### v0.6 in-app producers (certificate workflow only)
+### v0.6 certificate producers (backend-only trigger today)
 
 | Type | Producer | Recipients |
 |------|----------|------------|
 | `CERTIFICATE_SUBMITTED` | `CertificateSubmissionService.submit()` | All active `ADMIN` users |
 | `CERTIFICATE_APPROVED` | `CertificateSubmissionService.approve()` | Submitting employee |
 | `CERTIFICATE_REJECTED` | `CertificateSubmissionService.reject()` | Submitting employee |
+
+**Limitation:** Producers are wired and unit-tested but not triggerable through the application UI until certificate workflow pages ship (proposed v0.6.1). E2E validation requires Submit Certificate, My Submissions, and Admin Review UI.
 
 ### Deferred to future email channel (not produced in v0.6)
 
@@ -194,12 +197,14 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 - [x] Email change JWT refresh via `ProfileUpdateResponse.accessToken`
 - [x] `avatarUrl` on auth user summary
 
-### In validation (v0.6)
+### Shipped (v0.6) — Notification Infrastructure
 
 - [x] Notification module — inbox APIs and read-state
 - [x] `V9__create_notifications.sql`
-- [x] Certificate-workflow producers only (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
-- [ ] Merge after manual validation (PR #28)
+- [x] Certificate-workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
+- [x] Merged PR #28
+
+**Not feature complete:** E2E producer validation deferred to v0.6.1 (certificate workflow UI).
 
 ### Future backend enhancements
 
