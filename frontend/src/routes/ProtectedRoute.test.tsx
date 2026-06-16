@@ -30,6 +30,7 @@ function authValue(user: UserProfile | null, isLoading = false) {
     isLoading,
     login: vi.fn(),
     logout: vi.fn(),
+    refreshProfile: vi.fn(),
     user,
   }
 }

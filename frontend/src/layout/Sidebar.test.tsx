@@ -31,6 +31,7 @@ function renderSidebar(user: UserProfile) {
         isLoading: false,
         login: vi.fn(),
         logout: vi.fn(),
+        refreshProfile: vi.fn(),
         user,
       }}
     >

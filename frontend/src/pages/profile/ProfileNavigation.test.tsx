@@ -55,6 +55,7 @@ function renderApp(initialEntry: string) {
         isLoading: false,
         login: vi.fn(),
         logout: vi.fn(),
+        refreshProfile: vi.fn(),
         user: employeeUser,
       }}
     >

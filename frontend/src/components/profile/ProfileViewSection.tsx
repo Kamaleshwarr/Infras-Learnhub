@@ -1,13 +1,15 @@
-import { Box, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { UserStatusChip } from '../users/UserStatusChip'
 import { ProfileAvatar } from './ProfileAvatar'
 import type { Profile } from '../../types/profile'
 
 interface ProfileViewSectionProps {
   profile: Profile
+  onEdit?: () => void
 }
 
-export function ProfileViewSection({ profile }: ProfileViewSectionProps) {
+export function ProfileViewSection({ profile, onEdit }: ProfileViewSectionProps) {
   return (
     <Card>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
@@ -70,6 +72,14 @@ export function ProfileViewSection({ profile }: ProfileViewSectionProps) {
           <Typography color="text.secondary" variant="caption">
             Created {formatTimestamp(profile.createdAtUtc)} · Updated {formatTimestamp(profile.updatedAtUtc)}
           </Typography>
+
+          {onEdit ? (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button onClick={onEdit} startIcon={<EditOutlinedIcon />} variant="outlined">
+                Edit Profile
+              </Button>
+            </Box>
+          ) : null}
         </Stack>
       </CardContent>
     </Card>

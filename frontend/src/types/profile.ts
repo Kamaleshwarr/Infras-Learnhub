@@ -13,3 +13,13 @@ export interface Profile {
   createdAtUtc: string
   updatedAtUtc: string
 }
+
+export interface UpdateProfileRequest {
+  fullName: string
+  email: string
+}
+
+export interface ProfileUpdateResponse {
+  profile: Profile
+  accessToken?: string | null
+}

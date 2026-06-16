@@ -27,6 +27,7 @@ function renderLogin(login = vi.fn(), initialPath = '/login') {
         isLoading: false,
         login,
         logout: vi.fn(),
+        refreshProfile: vi.fn(),
         user: null,
       }}
     >

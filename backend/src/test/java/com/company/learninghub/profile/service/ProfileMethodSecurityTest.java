@@ -1,6 +1,7 @@
 package com.company.learninghub.profile.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import com.company.learninghub.auth.service.AuthenticationService;
 import com.company.learninghub.profile.mapper.ProfileMapper;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
@@ -71,8 +72,17 @@ class ProfileMethodSecurityTest {
     static class TestConfig {
 
         @Bean
-        ProfileService profileService(UserRepository userRepository, ProfileMapper profileMapper) {
-            return new ProfileService(userRepository, profileMapper);
+        ProfileService profileService(
+                UserRepository userRepository,
+                ProfileMapper profileMapper,
+                AuthenticationService authenticationService
+        ) {
+            return new ProfileService(userRepository, profileMapper, authenticationService);
+        }
+
+        @Bean
+        AuthenticationService authenticationService() {
+            return mock(AuthenticationService.class);
         }
 
         @Bean

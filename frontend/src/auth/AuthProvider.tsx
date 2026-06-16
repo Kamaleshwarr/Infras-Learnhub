@@ -15,6 +15,7 @@ interface AuthContextValue {
   hasRole: (role: UserRole) => boolean
   login: (email: string, password: string) => Promise<LoginResponse>
   logout: () => void
+  refreshProfile: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -75,6 +76,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null)
   }, [])
 
+  const refreshProfile = useCallback(async () => {
+    if (!tokenStorage.get()) {
+      setUser(null)
+      return
+    }
+    const profile = await authApi.me()
+    setUser(profile)
+  }, [])
+
   const hasRole = useCallback(
     (role: UserRole) => Boolean(user?.roles.includes(role)),
     [user],
@@ -92,8 +102,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       hasRole,
       login,
       logout,
+      refreshProfile,
     }),
-    [user, currentRole, isLoading, hasRole, login, logout],
+    [user, currentRole, isLoading, hasRole, login, logout, refreshProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

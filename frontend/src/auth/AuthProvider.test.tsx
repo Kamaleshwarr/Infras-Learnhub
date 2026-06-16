@@ -30,7 +30,8 @@ const adminUser: UserProfile = {
 }
 
 function AuthProbe() {
-  const { currentRole, hasRole, isAdmin, isAuthenticated, isEmployee, login, logout, user } = useAuth()
+  const { currentRole, hasRole, isAdmin, isAuthenticated, isEmployee, login, logout, refreshProfile, user } =
+    useAuth()
   return (
     <div>
       <div data-testid="auth-state">{isAuthenticated ? 'authenticated' : 'anonymous'}</div>
@@ -41,6 +42,7 @@ function AuthProbe() {
       <div data-testid="has-admin">{String(hasRole('ADMIN'))}</div>
       <button onClick={() => login('admin@example.com', 'Password123')}>login</button>
       <button onClick={logout}>logout</button>
+      <button onClick={() => refreshProfile()}>refresh</button>
     </div>
   )
 }
@@ -115,6 +117,27 @@ describe('AuthProvider', () => {
     })
 
     await waitFor(() => expect(screen.getByTestId('auth-state')).toHaveTextContent('anonymous'))
+  })
+
+  it('refreshProfile updates auth user from /auth/me', async () => {
+    tokenStorage.set('stored-token')
+    vi.mocked(authApi.me)
+      .mockResolvedValueOnce(employeeUser)
+      .mockResolvedValueOnce({ ...employeeUser, email: 'updated@example.com', fullName: 'Updated Name' })
+    const user = userEvent.setup()
+
+    render(
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>,
+    )
+
+    await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('employee@example.com'))
+
+    await user.click(screen.getByRole('button', { name: 'refresh' }))
+
+    await waitFor(() => expect(screen.getByTestId('email')).toHaveTextContent('updated@example.com'))
+    expect(authApi.me).toHaveBeenCalledTimes(2)
   })
 })
 

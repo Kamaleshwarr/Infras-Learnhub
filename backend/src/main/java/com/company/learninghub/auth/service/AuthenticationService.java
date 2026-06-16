@@ -53,6 +53,10 @@ public class AuthenticationService {
         );
     }
 
+    public String issueAccessToken(User user) {
+        return jwtService.generateToken(AuthenticatedUser.from(user));
+    }
+
     public UserSummaryResponse toUserSummary(AuthenticatedUser user) {
         Set<String> roles = user.getRoleNames().stream()
                 .map(RoleName::name)
