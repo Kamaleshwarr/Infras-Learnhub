@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { hasProfileFormValidationErrors, isProfileFormDirty } from './profileEditForm'
+import { hasProfileFormValidationErrors, isProfileFormDirty } from './profileFormState'
 
-describe('profileEditForm', () => {
+describe('profileFormState', () => {
   const baseline = {
     fullName: 'Jane Doe',
     email: 'jane.doe@company.com',

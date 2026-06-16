@@ -18,8 +18,8 @@ import { ProfileAvatar } from './ProfileAvatar'
 import type { Profile } from '../../types/profile'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { normalizeEmail } from '../../utils/email'
-import type { ProfileFormBaseline, ProfileFormState } from './profileEditForm'
-import { hasProfileFormValidationErrors, isProfileFormDirty } from './profileEditForm'
+import type { ProfileFormBaseline, ProfileFormState } from './profileFormState'
+import { hasProfileFormValidationErrors, isProfileFormDirty } from './profileFormState'
 
 interface ProfileEditFormProps {
   profile: Profile
