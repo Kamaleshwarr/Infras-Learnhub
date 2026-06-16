@@ -4,6 +4,7 @@ import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
+import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.storage.CertificateFileStorageService;
 import com.company.learninghub.storage.StorageProperties;
 import com.company.learninghub.storage.StoredFile;
@@ -51,6 +52,7 @@ public class CertificateSubmissionService {
     private final CertificateFileStorageService fileStorageService;
     private final StorageProperties storageProperties;
     private final CertificateSubmissionMapper submissionMapper;
+    private final NotificationService notificationService;
     private final Clock clock;
 
     @Autowired
@@ -61,7 +63,8 @@ public class CertificateSubmissionService {
             UserRepository userRepository,
             CertificateFileStorageService fileStorageService,
             StorageProperties storageProperties,
-            CertificateSubmissionMapper submissionMapper
+            CertificateSubmissionMapper submissionMapper,
+            NotificationService notificationService
     ) {
         this(
                 submissionRepository,
@@ -71,6 +74,7 @@ public class CertificateSubmissionService {
                 fileStorageService,
                 storageProperties,
                 submissionMapper,
+                notificationService,
                 Clock.systemUTC()
         );
     }
@@ -83,6 +87,7 @@ public class CertificateSubmissionService {
             CertificateFileStorageService fileStorageService,
             StorageProperties storageProperties,
             CertificateSubmissionMapper submissionMapper,
+            NotificationService notificationService,
             Clock clock
     ) {
         this.submissionRepository = submissionRepository;
@@ -92,6 +97,7 @@ public class CertificateSubmissionService {
         this.fileStorageService = fileStorageService;
         this.storageProperties = storageProperties;
         this.submissionMapper = submissionMapper;
+        this.notificationService = notificationService;
         this.clock = clock;
     }
 
@@ -133,7 +139,9 @@ public class CertificateSubmissionService {
                     normalizedComments,
                     Instant.now(clock)
             );
-            return submissionMapper.toResponse(submissionRepository.save(submission));
+            CertificateSubmission savedSubmission = submissionRepository.save(submission);
+            notificationService.notifyCertificateSubmitted(savedSubmission);
+            return submissionMapper.toResponse(savedSubmission);
         } catch (RuntimeException ex) {
             fileStorageService.deleteQuietly(storedFile.storageKey());
             throw ex;
@@ -185,6 +193,7 @@ public class CertificateSubmissionService {
         CertificateSubmission submission = findSubmissionOrThrow(submissionId);
         ensureSubmitted(submission);
         submission.approve(findUserOrThrow(authenticatedUser.getId()), Instant.now(clock));
+        notificationService.notifyCertificateApproved(submission);
         return submissionMapper.toResponse(submission);
     }
 
@@ -199,6 +208,7 @@ public class CertificateSubmissionService {
         CertificateSubmission submission = findSubmissionOrThrow(submissionId);
         ensureSubmitted(submission);
         submission.reject(findUserOrThrow(authenticatedUser.getId()), Instant.now(clock), normalizedReason);
+        notificationService.notifyCertificateRejected(submission);
         return submissionMapper.toResponse(submission);
     }
 

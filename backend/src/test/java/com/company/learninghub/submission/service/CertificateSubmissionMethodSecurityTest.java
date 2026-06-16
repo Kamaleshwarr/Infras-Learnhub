@@ -2,6 +2,7 @@ package com.company.learninghub.submission.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
+import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.storage.CertificateFileStorageService;
 import com.company.learninghub.storage.StorageProperties;
 import com.company.learninghub.submission.mapper.CertificateSubmissionMapper;
@@ -106,7 +107,8 @@ class CertificateSubmissionMethodSecurityTest {
                 UserRepository userRepository,
                 CertificateFileStorageService fileStorageService,
                 StorageProperties storageProperties,
-                CertificateSubmissionMapper submissionMapper
+                CertificateSubmissionMapper submissionMapper,
+                NotificationService notificationService
         ) {
             return new CertificateSubmissionService(
                     submissionRepository,
@@ -116,6 +118,7 @@ class CertificateSubmissionMethodSecurityTest {
                     fileStorageService,
                     storageProperties,
                     submissionMapper,
+                    notificationService,
                     Clock.fixed(NOW, ZoneOffset.UTC)
             );
         }
@@ -155,6 +158,11 @@ class CertificateSubmissionMethodSecurityTest {
         @Bean
         CertificateSubmissionMapper certificateSubmissionMapper() {
             return new CertificateSubmissionMapper();
+        }
+
+        @Bean
+        NotificationService notificationService() {
+            return mock(NotificationService.class);
         }
     }
 }

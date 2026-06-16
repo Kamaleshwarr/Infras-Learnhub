@@ -2,6 +2,7 @@ package com.company.learninghub.user.service;
 
 import com.company.learninghub.auth.service.PasswordService;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
+import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -59,13 +60,16 @@ class UserManagementServiceTest {
     @Mock
     private PasswordService passwordService;
 
+    @Mock
+    private NotificationService notificationService;
+
     private UserManagementService service;
     private Role employeeRole;
     private Role adminRole;
 
     @BeforeEach
     void setUp() {
-        service = new UserManagementService(userRepository, roleRepository, passwordEncoder, passwordService);
+        service = new UserManagementService(userRepository, roleRepository, passwordEncoder, passwordService, notificationService);
         employeeRole = role(RoleName.EMPLOYEE);
         adminRole = role(RoleName.ADMIN);
     }
@@ -97,6 +101,7 @@ class UserManagementServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getPasswordHash()).isEqualTo("hashed-password");
         assertThat(userCaptor.getValue().roleNames()).containsExactly(RoleName.EMPLOYEE);
+        verify(notificationService).notifyAccountCreated(userCaptor.getValue());
     }
 
     @Test
@@ -213,12 +218,15 @@ class UserManagementServiceTest {
 
         service.deactivateUser(user.getId(), null);
         assertThat(user.isActive()).isFalse();
+        verify(notificationService).notifyAccountDeactivated(user);
 
         service.activateUser(user.getId());
         assertThat(user.isActive()).isTrue();
+        verify(notificationService).notifyAccountActivated(user);
 
         service.resetPassword(user.getId(), "NewTemp@123!");
         verify(passwordService).updatePassword(user, "NewTemp@123!", true);
+        verify(notificationService).notifyPasswordResetByAdmin(user);
     }
 
     @Test
@@ -302,6 +310,7 @@ class UserManagementServiceTest {
                 "Row 4 - Duplicate email john.doe@company.com",
                 "Row 5 - Invalid role MANAGER"
         );
+        verify(notificationService, org.mockito.Mockito.times(2)).notifyAccountCreated(any(User.class));
     }
 
     @Test

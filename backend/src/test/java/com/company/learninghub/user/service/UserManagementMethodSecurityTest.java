@@ -1,6 +1,7 @@
 package com.company.learninghub.user.service;
 
 import com.company.learninghub.auth.service.PasswordService;
+import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.user.repository.RoleRepository;
 import com.company.learninghub.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -62,9 +63,10 @@ class UserManagementMethodSecurityTest {
                 UserRepository userRepository,
                 RoleRepository roleRepository,
                 PasswordEncoder passwordEncoder,
-                PasswordService passwordService
+                PasswordService passwordService,
+                NotificationService notificationService
         ) {
-            return new UserManagementService(userRepository, roleRepository, passwordEncoder, passwordService);
+            return new UserManagementService(userRepository, roleRepository, passwordEncoder, passwordService, notificationService);
         }
 
         @Bean

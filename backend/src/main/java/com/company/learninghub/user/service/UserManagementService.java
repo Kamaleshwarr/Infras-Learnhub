@@ -3,6 +3,7 @@ package com.company.learninghub.user.service;
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.auth.service.PasswordService;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
+import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -54,17 +55,20 @@ public class UserManagementService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordService passwordService;
+    private final NotificationService notificationService;
 
     public UserManagementService(
             UserRepository userRepository,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
-            PasswordService passwordService
+            PasswordService passwordService,
+            NotificationService notificationService
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordService = passwordService;
+        this.notificationService = notificationService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -112,7 +116,9 @@ public class UserManagementService {
                 passwordEncoder.encode(request.password())
         );
         user.replaceRole(findRole(request.role()));
-        return toResponse(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        notificationService.notifyAccountCreated(savedUser);
+        return toResponse(savedUser);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -140,7 +146,9 @@ public class UserManagementService {
     public UserResponse activateUser(UUID id) {
         User user = findUser(id);
         user.setActive(true);
-        return toResponse(user);
+        User savedUser = userRepository.save(user);
+        notificationService.notifyAccountActivated(savedUser);
+        return toResponse(savedUser);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -151,7 +159,9 @@ public class UserManagementService {
         }
         User user = findUser(id);
         user.setActive(false);
-        return toResponse(user);
+        User savedUser = userRepository.save(user);
+        notificationService.notifyAccountDeactivated(savedUser);
+        return toResponse(savedUser);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -159,6 +169,7 @@ public class UserManagementService {
     public void resetPassword(UUID id, String password) {
         User user = findUser(id);
         passwordService.updatePassword(user, password, true);
+        notificationService.notifyPasswordResetByAdmin(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -218,7 +229,8 @@ public class UserManagementService {
             );
             user.setMustChangePassword(true);
             user.replaceRole(role);
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+            notificationService.notifyAccountCreated(savedUser);
             imported++;
         }
 

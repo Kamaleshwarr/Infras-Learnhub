@@ -5,6 +5,7 @@ import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
+import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.storage.CertificateFileStorageService;
 import com.company.learninghub.storage.StorageProperties;
 import com.company.learninghub.storage.StoredFile;
@@ -67,6 +68,9 @@ class CertificateSubmissionServiceTest {
     @Mock
     private CertificateFileStorageService fileStorageService;
 
+    @Mock
+    private NotificationService notificationService;
+
     private StorageProperties storageProperties;
     private CertificateSubmissionService submissionService;
     private User employee;
@@ -88,6 +92,7 @@ class CertificateSubmissionServiceTest {
                 fileStorageService,
                 storageProperties,
                 new CertificateSubmissionMapper(),
+                notificationService,
                 Clock.fixed(NOW, ZoneOffset.UTC)
         );
         employee = user("EMP001", "employee@learninghub.local", RoleName.EMPLOYEE);
@@ -118,6 +123,7 @@ class CertificateSubmissionServiceTest {
         assertThat(response.submittedAtUtc()).isEqualTo(NOW);
         assertThat(response.comments()).isEqualTo("passed exam");
         assertThat(response.employee().id()).isEqualTo(employee.getId());
+        verify(notificationService).notifyCertificateSubmitted(any(CertificateSubmission.class));
         assertThat(response.initiative().id()).isEqualTo(initiativeId);
         assertThat(response.certificateDocument().originalFilename()).isEqualTo("certificate.pdf");
 
@@ -322,6 +328,7 @@ class CertificateSubmissionServiceTest {
         assertThat(response.reviewedAtUtc()).isEqualTo(NOW);
         assertThat(response.reviewedBy().id()).isEqualTo(admin.getId());
         assertThat(response.rejectionReason()).isNull();
+        verify(notificationService).notifyCertificateApproved(submission);
     }
 
     @Test
@@ -339,6 +346,7 @@ class CertificateSubmissionServiceTest {
         assertThat(response.rejectionReason()).isEqualTo("Name mismatch");
         assertThat(response.certificateDocumentId()).isEqualTo(certificateDocumentId);
         assertThat(response.certificateDocument().id()).isEqualTo(certificateDocumentId);
+        verify(notificationService).notifyCertificateRejected(submission);
 
         CertificateSubmission anotherSubmission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
         assertThatThrownBy(() -> submissionService.reject(anotherSubmission.getId(), " ", adminPrincipal))
