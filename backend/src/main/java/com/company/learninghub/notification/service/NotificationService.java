@@ -12,6 +12,7 @@ import com.company.learninghub.submission.domain.CertificateSubmission;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,7 @@ public class NotificationService {
     private final NotificationMapper notificationMapper;
     private final Clock clock;
 
+    @Autowired
     public NotificationService(
             NotificationRepository notificationRepository,
             UserRepository userRepository,
