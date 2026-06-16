@@ -3,8 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { initiativesApi } from '../../api/initiativesApi'
+import { loadAllMySubmissions } from '../../api/loadAllMySubmissions'
 import { submissionsApi } from '../../api/submissionsApi'
 import { SUBMISSION_MESSAGES } from '../../components/submissions/submissionMessages'
+import type { CertificateSubmission } from '../../types/submissions'
 import { SubmitCertificatePage } from './SubmitCertificatePage'
 import { MySubmissionsPage } from './MySubmissionsPage'
 
@@ -14,9 +16,12 @@ vi.mock('../../api/initiativesApi', () => ({
   },
 }))
 
+vi.mock('../../api/loadAllMySubmissions', () => ({
+  loadAllMySubmissions: vi.fn(),
+}))
+
 vi.mock('../../api/submissionsApi', () => ({
   submissionsApi: {
-    listMine: vi.fn(),
     submit: vi.fn(),
   },
 }))
@@ -24,7 +29,7 @@ vi.mock('../../api/submissionsApi', () => ({
 const initiative = {
   description: 'AWS certification program',
   expiryDateUtc: '2026-12-31T00:00:00Z',
-  id: 'initiative-1',
+  id: '550E8400-E29B-41D4-A716-446655440001',
   startDateUtc: '2026-01-01T00:00:00Z',
   status: 'ACTIVE' as const,
   title: 'AWS Certification',
@@ -32,7 +37,7 @@ const initiative = {
 
 const secondInitiative = {
   ...initiative,
-  id: 'initiative-2',
+  id: '550e8400-e29b-41d4-a716-446655440002',
   title: 'Azure Certification',
 }
 
@@ -54,7 +59,7 @@ const existingSubmission = {
   },
   id: 'submission-1',
   initiative: {
-    id: 'initiative-1',
+    id: '550E8400-E29B-41D4-A716-446655440001',
     status: 'ACTIVE' as const,
     title: 'AWS Certification',
   },
@@ -86,16 +91,7 @@ describe('SubmitCertificatePage', () => {
       totalElements: 2,
       totalPages: 1,
     })
-    vi.mocked(submissionsApi.listMine).mockResolvedValue({
-      content: [existingSubmission],
-      first: true,
-      last: true,
-      page: 0,
-      size: 100,
-      sort: [],
-      totalElements: 1,
-      totalPages: 1,
-    })
+    vi.mocked(loadAllMySubmissions).mockResolvedValue([existingSubmission])
   })
 
   it('loads initiatives and hides initiatives that already have submissions', async () => {
@@ -106,6 +102,35 @@ describe('SubmitCertificatePage', () => {
 
     await userEvent.click(screen.getByRole('combobox', { name: /Initiative/i }))
     expect(screen.queryByRole('option', { name: 'AWS Certification' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Azure Certification' })).toBeInTheDocument()
+  })
+
+  it('still shows initiatives when submission history cannot be loaded', async () => {
+    vi.mocked(loadAllMySubmissions).mockRejectedValue(new Error('forbidden'))
+
+    renderSubmitPage()
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('combobox', { name: /Initiative/i }))
+
+    expect(screen.getByRole('option', { name: 'AWS Certification' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Azure Certification' })).toBeInTheDocument()
+  })
+
+  it('keeps initiatives visible when a submission record is missing initiative metadata', async () => {
+    vi.mocked(loadAllMySubmissions).mockResolvedValue([
+      {
+        ...existingSubmission,
+        initiative: undefined,
+      } as unknown as CertificateSubmission,
+    ])
+
+    renderSubmitPage()
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('combobox', { name: /Initiative/i }))
+
+    expect(screen.getByRole('option', { name: 'AWS Certification' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Azure Certification' })).toBeInTheDocument()
   })
 
@@ -126,7 +151,7 @@ describe('SubmitCertificatePage', () => {
 
     await waitFor(() => expect(submissionsApi.submit).toHaveBeenCalled())
     const [initiativeId, formData] = vi.mocked(submissionsApi.submit).mock.calls[0]
-    expect(initiativeId).toBe('initiative-2')
+    expect(initiativeId).toBe('550e8400-e29b-41d4-a716-446655440002')
     expect(formData.get('certificateFile')).toBe(certificateFile)
 
     await waitFor(() =>
@@ -145,27 +170,18 @@ describe('SubmitCertificatePage', () => {
   })
 
   it('shows an info message when every initiative has already been submitted', async () => {
-    vi.mocked(submissionsApi.listMine).mockResolvedValue({
-      content: [
-        existingSubmission,
-        {
-          ...existingSubmission,
-          id: 'submission-2',
-          initiative: {
-            id: 'initiative-2',
-            status: 'ACTIVE',
-            title: 'Azure Certification',
-          },
+    vi.mocked(loadAllMySubmissions).mockResolvedValue([
+      existingSubmission,
+      {
+        ...existingSubmission,
+        id: 'submission-2',
+        initiative: {
+          id: '550e8400-e29b-41d4-a716-446655440002',
+          status: 'ACTIVE',
+          title: 'Azure Certification',
         },
-      ],
-      first: true,
-      last: true,
-      page: 0,
-      size: 100,
-      sort: [],
-      totalElements: 2,
-      totalPages: 1,
-    })
+      },
+    ])
 
     renderSubmitPage()
 
