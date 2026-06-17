@@ -258,8 +258,8 @@ class LearningInitiativeServiceTest {
         LearningInitiative initiative = initiative(
                 "Expired active",
                 InitiativeStatus.ACTIVE,
-                NOW.minusSeconds(7200),
-                NOW.minusSeconds(1),
+                NOW.minusSeconds(72_000),
+                NOW.minusSeconds(86_400),
                 adminUser
         );
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));

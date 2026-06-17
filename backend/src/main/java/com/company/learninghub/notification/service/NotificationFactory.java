@@ -23,7 +23,7 @@ public class NotificationFactory {
                 employeeName + " submitted a certificate for \"" + initiativeTitle + "\".",
                 NotificationEntityType.CERTIFICATE_SUBMISSION,
                 submission.getId(),
-                "/",
+                "/submissions/review",
                 createdAt
         );
     }

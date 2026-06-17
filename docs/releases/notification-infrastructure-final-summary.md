@@ -6,7 +6,7 @@
 **Scope:** Persistent inbox platform, consumer UI, and certificate-workflow backend producers
 
 Per-release detail: `docs/releases/release-v0.6.md`  
-Proposed follow-on: `docs/releases/release-v0.6.1-proposed.md`
+Proposed follow-on: `docs/releases/release-v0.6.1.md` (completed)
 
 ---
 
@@ -72,7 +72,7 @@ Certificate notification producers are **wired and tested at the service layer**
 - `MySubmissionsPage` — placeholder
 - Admin approve/reject — API only (`POST /submissions/{id}/approve`, `POST /submissions/{id}/reject`)
 
-**End-to-end notification behavior** (generate → deliver → display in bell/inbox via user workflows) is **blocked until v0.6.1**.
+**End-to-end notification behavior** (generate → deliver → display in bell/inbox via user workflows) — **completed in v0.6.1** (PR #29).
 
 ---
 
@@ -80,15 +80,16 @@ Certificate notification producers are **wired and tested at the service layer**
 
 | Decision | Outcome |
 |----------|---------|
-| v0.6 classification | **Notification Infrastructure** (foundation), not feature complete |
+| v0.6 classification | **Notification Infrastructure** (foundation) |
+| v0.6.1 classification | **Certificate workflow + notification E2E complete** |
 | In-app producers (v0.6) | Certificate workflow only |
 | Account lifecycle notifications | Deferred to future **email** channel; enum retained for historical rows |
-| E2E producer validation | Deferred to **v0.6.1** |
+| E2E producer validation | **Completed v0.6.1** — Phase 4 validated |
 
 ---
 
-## Recommended next release
+## Follow-on release (completed)
 
 **v0.6.1 — Certificate Workflow UI & Notification E2E Validation**
 
-See `docs/releases/release-v0.6.1-proposed.md` for proposed scope. **Awaiting approval before implementation.**
+See `docs/releases/release-v0.6.1.md` for release notes. **Validated and ready for merge (PR #29).**

@@ -59,6 +59,18 @@ describe('Sidebar role-aware navigation', () => {
     expect(screen.getAllByText('Projects').length).toBeGreaterThan(0)
   })
 
+  it('shows admin-only certificate review navigation to admins', () => {
+    renderSidebar(adminUser)
+
+    expect(screen.getAllByText('Certificate Review').length).toBeGreaterThan(0)
+  })
+
+  it('hides admin-only certificate review navigation from employees', () => {
+    renderSidebar(employeeUser)
+
+    expect(screen.queryAllByText('Certificate Review')).toHaveLength(0)
+  })
+
   it('shows admin-only users navigation to admins', () => {
     renderSidebar(adminUser)
 

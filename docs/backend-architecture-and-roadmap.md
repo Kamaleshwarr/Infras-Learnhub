@@ -1,6 +1,6 @@
 # Backend Architecture & Roadmap
 
-Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
+Last updated: 2026-06-16 (v0.6.1 — ready for release)
 
 ## Stack
 
@@ -161,9 +161,41 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 | `CERTIFICATE_APPROVED` | `CertificateSubmissionService.approve()` | Submitting employee |
 | `CERTIFICATE_REJECTED` | `CertificateSubmissionService.reject()` | Submitting employee |
 
-**Limitation:** Producers are wired and unit-tested but not triggerable through the application UI until certificate workflow pages ship (proposed v0.6.1). E2E validation requires Submit Certificate, My Submissions, and Admin Review UI.
+**Limitation (v0.6):** Producers were wired and unit-tested but not triggerable through the application UI until certificate workflow pages shipped.
 
-### Deferred to future email channel (not produced in v0.6)
+**v0.6.1 (PR #29):** Certificate workflow UI complete; notification E2E validated. `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`.
+
+---
+
+## Certificate Submissions Module
+
+**Package:** `com.company.learninghub.submission`  
+**Access:** Employees submit; admins list/review all submissions
+
+### REST API (`/api/v1`)
+
+| Method | Path | Description | UI Phase |
+|--------|------|-------------|----------|
+| `POST` | `/initiatives/{initiativeId}/submissions` | Submit certificate (multipart) | Phase 1 |
+| `GET` | `/me/submissions` | List own submissions | Phase 2 |
+| `GET` | `/submissions` | List all submissions (admin) | Phase 3 — **shipped** |
+| `GET` | `/submissions/{submissionId}` | View submission detail | Phase 3 (optional) |
+| `POST` | `/submissions/{submissionId}/approve` | Approve submission | Phase 3 — **shipped** |
+| `POST` | `/submissions/{submissionId}/reject` | Reject with reason | Phase 3 — **shipped** |
+
+### Business rules
+
+| Rule | Implementation |
+|------|----------------|
+| One submission per employee per initiative | `existsByEmployeeIdAndInitiativeId` on submit |
+| Initiative visibility | Employee submit only when initiative is `ACTIVE` and within UTC start/expiry window |
+| Review state | Only `SUBMITTED` submissions can be approved or rejected |
+| Rejection reason | Required, max 2000 characters |
+| Certificate file types | PDF, JPEG, PNG; max size from `StorageProperties` |
+
+**Testing:** `CertificateSubmissionServiceTest` (submit, approve, reject, notification producers)
+
+---
 
 `ACCOUNT_CREATED`, `ACCOUNT_ACTIVATED`, `ACCOUNT_DEACTIVATED`, `PASSWORD_RESET_BY_ADMIN` — enum values and schema constraint retained for historical rows; `NotificationFactory` helpers kept for a future email workstream.
 
@@ -204,7 +236,17 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 - [x] Certificate-workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
 - [x] Merged PR #28
 
-**Not feature complete:** E2E producer validation deferred to v0.6.1 (certificate workflow UI).
+**Not feature complete (v0.6):** E2E producer validation deferred to v0.6.1 — **completed in v0.6.1**.
+
+### Shipped (v0.6.1) — Certificate Workflow UI
+
+- [x] Submit Certificate page — validated
+- [x] My Submissions page — validated
+- [x] Submit Certificate dropdown UX — available initiatives first
+- [x] Admin Review page — approve/reject UI
+- [x] `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
+- [x] Notification E2E validation (Phase 4)
+- [x] Dashboard fault isolation — CW-D01 (employee), CW-D02 (admin)
 
 ### Future backend enhancements
 

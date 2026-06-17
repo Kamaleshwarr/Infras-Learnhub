@@ -122,6 +122,63 @@ class LearningInitiativeListIntegrationTest {
                 .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
     }
 
+    @Test
+    void listInitiativesAsEmployeeReturnsOnlyActiveVisibleInitiatives() throws Exception {
+        mockMvc.perform(get("/api/v1/initiatives")
+                        .header("Authorization", "Bearer " + loginAsEmployee()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
+    }
+
+    @Test
+    void newlyCreatedActiveInitiativeWithFutureStartAppearsForAdminButNotEmployee() throws Exception {
+        User admin = userRepository.findByEmailIgnoreCase("admin@learninghub.local")
+                .orElseThrow();
+        initiativeRepository.save(new LearningInitiative(
+                "New Cloud Certification",
+                "Newly created active initiative",
+                "Badge",
+                Instant.parse("2026-06-17T00:00:00Z"),
+                Instant.parse("2026-12-31T00:00:00Z"),
+                InitiativeStatus.ACTIVE,
+                admin
+        ));
+
+        mockMvc.perform(get("/api/v1/initiatives")
+                        .queryParam("size", "100")
+                        .queryParam("status", "ACTIVE")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[*].title", hasItem("New Cloud Certification")));
+
+        mockMvc.perform(get("/api/v1/initiatives")
+                        .queryParam("size", "100")
+                        .queryParam("status", "ACTIVE")
+                        .header("Authorization", "Bearer " + loginAsEmployee()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
+    }
+
+    private String loginAsEmployee() throws Exception {
+        String response = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "employee@learninghub.local",
+                                  "password": "Employee@12345"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        JsonNode jsonNode = objectMapper.readTree(response);
+        return jsonNode.get("accessToken").asText();
+    }
+
     private String loginAsAdmin() throws Exception {
         String response = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

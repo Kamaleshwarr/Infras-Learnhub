@@ -13,6 +13,7 @@ import { InitiativeLeaderboardPage } from '../pages/leaderboards/InitiativeLeade
 import { ProjectKnowledgePage } from '../pages/projects/ProjectKnowledgePage'
 import { ProjectsPage } from '../pages/projects/ProjectsPage'
 import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
+import { AdminReviewPage } from '../pages/submissions/AdminReviewPage'
 import { MySubmissionsPage } from '../pages/submissions/MySubmissionsPage'
 import { SubmitCertificatePage } from '../pages/submissions/SubmitCertificatePage'
 import { UserListPage } from '../pages/users/UserListPage'
@@ -43,6 +44,7 @@ export function AppRoutes() {
             </Route>
             <Route element={<RoleRoute roles={['ADMIN']} />}>
               <Route element={<UserListPage />} path="users" />
+              <Route element={<AdminReviewPage />} path="submissions/review" />
             </Route>
             <Route element={<GlobalLeaderboardPage />} path="leaderboards/global" />
             <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives" />
