@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
+Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 
 ## Release Overview
 
@@ -11,11 +11,11 @@ Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
 | v0.4 | User Management UI Phase 4 (bulk import) | Shipped (PRs #22–#24) |
 | v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
 | **v0.6** | **In-App Notification Infrastructure** | **Shipped (PR #28)** |
-| v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Proposed (awaiting approval) |
+| **v0.6.1** | **Certificate Workflow UI & Notification E2E Validation** | **In progress (PR #29)** |
 
 Release notes: `docs/releases/release-v0.6.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
-Proposed next: `docs/releases/release-v0.6.1-proposed.md`
+v0.6.1 progress: `docs/releases/release-v0.6.1-proposed.md`
 
 ---
 
@@ -118,14 +118,18 @@ Proposed next: `docs/releases/release-v0.6.1-proposed.md`
 
 ---
 
-## Next (proposed — awaiting approval)
+## In progress — v0.6.1 Certificate Workflow UI (PR #29)
 
-**v0.6.1 — Certificate Workflow UI & Notification E2E Validation**
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| Phase 0 | API/types/shared route prep | **Shipped** |
+| Phase 1 | Submit Certificate page | **Validated** |
+| Phase 2 | My Submissions page | **Validated** |
+| Dropdown UX | Available-first initiative ordering | **Validated** |
+| Phase 3 | Admin Review page (approve/reject) | Planned — awaiting approval |
+| Phase 4 | Notification E2E validation + docs | Not started |
 
-- Submit Certificate page
-- My Submissions page
-- Admin Review page with approve/reject
-- Application E2E validation of notification producers
+**Deferred:** Employee dashboard status chips, filtering, and other dashboard UX refinements.
 
 Plan: `docs/releases/release-v0.6.1-proposed.md`
 
@@ -140,6 +144,7 @@ Plan: `docs/releases/release-v0.6.1-proposed.md`
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
 | UM-006 | Downloadable import error report | Post-import CSV/text export |
 | — | Global Search | v0.7 candidate |
+| — | Dashboard status chips / filtering | Deferred from v0.6.1 |
 | — | Email notifications (account lifecycle) | Post v0.6.1 |
 | — | AI Features | Future |
 
@@ -169,3 +174,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
 6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
 7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)
+8. **Certificate Workflow UI (v0.6.1)** — Submit Certificate, My Submissions (validated); Admin Review (planned)

@@ -1,7 +1,7 @@
-# Engineering Learning Hub v0.6.1 (Proposed)
+# Engineering Learning Hub v0.6.1
 
 **Theme:** Certificate Workflow UI & Notification E2E Validation  
-**Status:** Proposed — **awaiting approval** (no implementation started)  
+**Status:** In progress (PR #29)  
 **Depends on:** v0.6 In-App Notification Infrastructure (merged PR #28)
 
 ---
@@ -10,68 +10,80 @@
 
 Close the gap between notification **infrastructure** (v0.6) and notification **feature completeness** by delivering the minimum certificate workflow UI required to trigger and validate producers end-to-end through the application.
 
-**Success criterion:** At least one full path verified in the app — e.g. employee submits certificate → admin receives `CERTIFICATE_SUBMITTED` in bell/inbox → admin approves → employee receives `CERTIFICATE_APPROVED`.
+**Success criterion:** At least one full path verified in the app — employee submits certificate → admin receives `CERTIFICATE_SUBMITTED` in bell/inbox → admin approves → employee receives `CERTIFICATE_APPROVED`.
 
 ---
 
-## Proposed scope
+## Progress
 
-### 1. Submit Certificate page (`/submissions/new`)
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| Phase 0 | API/types/shared route prep | **Shipped** |
+| Phase 1 | Submit Certificate page | **Validated** |
+| Phase 2 | My Submissions page | **Validated** |
+| Dropdown UX | Available-first initiative ordering | **Validated** |
+| Phase 3 | Admin Review page + approve/reject UI | Planned — awaiting approval |
+| Phase 4 | Notification E2E validation + docs | Not started |
 
-**Route:** Employee-only (existing `RoleRoute`)
+**Deferred from v0.6.1:** Employee dashboard status chips, filtering, and other dashboard UX refinements.
 
-- Select active initiative (dropdown from initiatives API)
-- Upload certificate file (PDF, JPEG, PNG — match backend allowlist)
+---
+
+## Shipped — Phase 0
+
+- `submissionsApi` — list, submit, approve, reject
+- `SubmissionStatusChip`, `submissionMessages`
+- Route `/submissions/review` with placeholder `AdminReviewPage`
+- Tests for API client and shared components
+
+---
+
+## Shipped & validated — Phase 1 (Submit Certificate)
+
+**Route:** `/submissions/new` (employee-only)
+
+- Select active initiative from `GET /initiatives?status=ACTIVE`
+- Upload certificate file (PDF, JPEG, PNG)
 - Optional comments
 - Submit via `POST /initiatives/{initiativeId}/submissions` (multipart)
-- Success feedback and navigation to My Submissions
+- Success redirect to My Submissions with snackbar
+- Initiative dropdown: available initiatives first, already-submitted last (disabled), sorted by `expiryDateUtc ASC` within each group
 
-**Backend:** No changes expected — `CertificateSubmissionService.submit()` and `CERTIFICATE_SUBMITTED` producer already exist.
+**Backend:** Employee UTC calendar-day visibility fix for initiatives; no new submission APIs.
 
----
-
-### 2. My Submissions page (`/submissions`)
-
-**Route:** Employee-only
-
-- List current user's submissions via `GET /me/submissions`
-- Display status (`SUBMITTED`, `APPROVED`, `REJECTED`), submitted date, rejection reason when present
-- Pagination and optional status filter
-- Link to Submit Certificate
-
-**Backend:** No changes expected.
+**Investigation note:** Phase 1 initiative visibility issue was traced to test data (`DRAFT` status), not a code defect. Temporary diagnostics used during investigation were removed before release.
 
 ---
 
-### 3. Admin Review page (new route, e.g. `/submissions/review`)
+## Shipped & validated — Phase 2 (My Submissions)
 
-**Route:** Admin-only
+**Route:** `/submissions` (employee-only)
+
+- List via `GET /me/submissions` with pagination
+- Status filter tabs: All, Submitted, Approved, Rejected
+- URL query sync for page, size, status
+- Refresh button and link to Submit Certificate
+- Redirect snackbar from successful submit
+
+---
+
+## Planned — Phase 3 (Admin Review)
+
+**Route:** `/submissions/review` (admin-only)
 
 - List pending submissions via `GET /submissions?status=SUBMITTED`
-- Show employee, initiative, submitted date, comments
-- Row actions: **Approve**, **Reject** (with required rejection reason dialog)
+- Show employee, initiative, submitted date, comments, certificate filename
+- Row actions: Approve (confirm dialog), Reject (reason dialog, required)
+- Refresh list after action; snackbar feedback
+- Optional: update `CERTIFICATE_SUBMITTED` notification `actionPath` from `/` to `/submissions/review`
 
-**Backend:** No changes expected — approve/reject endpoints exist.
-
-**Frontend API additions:**
-
-- `submissionsApi.approve(submissionId)`
-- `submissionsApi.reject(submissionId, { rejectionReason })`
+**Backend:** No changes expected — approve/reject endpoints and producers already exist.
 
 ---
 
-### 4. Approve / Reject actions
+## Planned — Phase 4 (Notification E2E)
 
-- Confirm dialog for approve
-- Reject dialog with validated reason (required, max length per backend)
-- Refresh list and surface errors from API
-- Optional: link from admin dashboard pending-reviews widget to review page
-
----
-
-### 5. Notification end-to-end validation
-
-Manual validation script (application UI only — not Swagger):
+Manual validation script (application UI only):
 
 | Step | Actor | Expected |
 |------|-------|----------|
@@ -82,55 +94,38 @@ Manual validation script (application UI only — not Swagger):
 | 5 | (Optional) | Reject path → `CERTIFICATE_REJECTED` with reason in copy |
 | 6 | Both | Mark-read / mark-all-read keeps badge in sync |
 
-Document results in `docs/testing-and-defect-history.md` under v0.6.1.
+---
+
+## Defects resolved
+
+| ID | Summary | Status |
+|----|---------|--------|
+| CW-D01 | Employee dashboard failed when secondary APIs errored | **Pass** — `Promise.allSettled` fix in `dashboardApi.ts` |
 
 ---
 
 ## Out of scope (v0.6.1)
 
-- Initiative list/detail full UI (initiative select may use existing API; full initiative pages remain separate backlog)
+- Initiative list/detail full UI
 - Leaderboards, study materials, projects UI
 - Email notifications
 - Notification preferences
 - WebSockets / real-time push
 - Bulk certificate operations
-- Certificate file preview/download in review UI (optional stretch — not required for E2E)
+- Certificate file preview/download in review UI (optional stretch)
+- Dashboard status chips and filtering
 
 ---
 
-## Implementation phases (proposed)
+## Test baseline
 
-| Phase | Deliverable | Enables |
-|-------|-------------|---------|
-| **1** | `submissionsApi` approve/reject + Submit Certificate page | `CERTIFICATE_SUBMITTED` E2E |
-| **2** | My Submissions page | Employee visibility of status |
-| **3** | Admin Review page + approve/reject UI | `CERTIFICATE_APPROVED` / `CERTIFICATE_REJECTED` E2E |
-| **4** | E2E validation + docs update | Feature-complete notification milestone |
+| Area | Baseline |
+|------|----------|
+| Frontend | **192 tests** (`cd frontend && npm test`) |
+| Backend | Existing `CertificateSubmissionServiceTest` producer coverage |
 
 ---
 
-## Testing expectations
+## Approval gate — Phase 3
 
-### Frontend
-
-- Submit form validation (initiative required, file required, content type)
-- My Submissions list render and pagination
-- Admin review approve/reject flows (dialogs, API error handling)
-- Regression: notification bell/badge still syncs after certificate actions
-
-### Backend
-
-- No new modules expected; existing `CertificateSubmissionServiceTest` producer coverage remains sufficient unless API contracts change
-
----
-
-## Approval gate
-
-**Do not start implementation until this plan is approved.**
-
-After approval:
-
-1. Create branch `cursor/v0.6.1-certificate-workflow-dd41` (or agreed naming)
-2. Implement phases 1–3
-3. Run E2E validation script
-4. Update release docs and merge when validation passes
+**Do not start Phase 3 implementation until the plan is approved.**

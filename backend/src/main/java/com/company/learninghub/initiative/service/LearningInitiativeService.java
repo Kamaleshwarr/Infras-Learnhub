@@ -6,8 +6,6 @@ import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.dto.CreateInitiativeRequest;
 import com.company.learninghub.initiative.dto.InitiativeResponse;
-import com.company.learninghub.initiative.dto.InitiativeVisibilityDiagnosticResponse;
-import com.company.learninghub.initiative.dto.InitiativeVisibilityDiagnosticsResponse;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.mapper.LearningInitiativeMapper;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
@@ -29,11 +27,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class LearningInitiativeService {
@@ -131,86 +126,6 @@ public class LearningInitiativeService {
         Page<LearningInitiative> initiatives = initiativeRepository.findAll(specification, repositoryPageable);
 
         return initiatives.map(initiativeMapper::toResponse);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @Transactional(readOnly = true)
-    public InitiativeVisibilityDiagnosticsResponse employeeVisibilityDiagnostics(AuthenticatedUser authenticatedUser) {
-        Instant now = Instant.now(clock);
-        ZoneOffset utc = ZoneOffset.UTC;
-        LocalDate today = LocalDate.ofInstant(now, utc);
-
-        Page<InitiativeResponse> adminActivePage = list(
-                InitiativeStatus.ACTIVE,
-                null,
-                PageRequest.of(0, 100, Sort.by("expiryDateUtc").ascending()),
-                authenticatedUser
-        );
-        Page<InitiativeResponse> employeePage = list(
-                InitiativeStatus.ACTIVE,
-                null,
-                PageRequest.of(0, 100, Sort.by("expiryDateUtc").ascending()),
-                employeePrincipalForDiagnostics(authenticatedUser)
-        );
-
-        Set<UUID> adminActiveIds = adminActivePage.getContent().stream()
-                .map(InitiativeResponse::id)
-                .collect(Collectors.toSet());
-        Set<UUID> employeeIds = employeePage.getContent().stream()
-                .map(InitiativeResponse::id)
-                .collect(Collectors.toSet());
-
-        List<InitiativeVisibilityDiagnosticResponse> diagnostics = initiativeRepository.findAll(
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        ).stream()
-                .map(initiative -> toVisibilityDiagnostic(
-                        initiative,
-                        now,
-                        today,
-                        adminActiveIds.contains(initiative.getId()),
-                        employeeIds.contains(initiative.getId())
-                ))
-                .toList();
-
-        return new InitiativeVisibilityDiagnosticsResponse(
-                now,
-                "GET /api/v1/initiatives?size=100&status=ACTIVE",
-                "GET /api/v1/initiatives?size=100&status=ACTIVE",
-                diagnostics
-        );
-    }
-
-    private AuthenticatedUser employeePrincipalForDiagnostics(AuthenticatedUser authenticatedUser) {
-        if (!isAdmin(authenticatedUser)) {
-            throw new ResourceNotFoundException("Learning initiative was not found");
-        }
-        User employee = userRepository.findByEmailIgnoreCase("employee@learninghub.local")
-                .orElseThrow(() -> new ResourceNotFoundException("Default employee user was not found"));
-        return AuthenticatedUser.from(employee);
-    }
-
-    private InitiativeVisibilityDiagnosticResponse toVisibilityDiagnostic(
-            LearningInitiative initiative,
-            Instant now,
-            LocalDate today,
-            boolean includedInAdminActiveList,
-            boolean includedInEmployeeList
-    ) {
-        ZoneOffset utc = ZoneOffset.UTC;
-        return new InitiativeVisibilityDiagnosticResponse(
-                initiative.getId(),
-                initiative.getTitle(),
-                initiative.getStatus(),
-                initiative.getStartDateUtc(),
-                initiative.getExpiryDateUtc(),
-                LocalDate.ofInstant(initiative.getStartDateUtc(), utc),
-                LocalDate.ofInstant(initiative.getExpiryDateUtc(), utc),
-                today,
-                initiative.isVisibleToEmployeesAt(now),
-                initiative.employeeExclusionReasonsAt(now),
-                includedInAdminActiveList,
-                includedInEmployeeList
-        );
     }
 
     private LearningInitiative findInitiativeOrThrow(UUID initiativeId) {

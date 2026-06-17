@@ -29,6 +29,17 @@ export function filterAvailableInitiatives(
   )
 }
 
+export function parseInitiativeSummaries(content: InitiativeSummary[] | undefined | null) {
+  if (!Array.isArray(content)) {
+    return []
+  }
+
+  return content.filter(
+    (initiative): initiative is InitiativeSummary =>
+      Boolean(initiative?.id) && Boolean(initiative?.title),
+  )
+}
+
 function compareByExpiryDateUtcAsc(left: InitiativeSummary, right: InitiativeSummary) {
   const leftExpiry = Date.parse(left.expiryDateUtc)
   const rightExpiry = Date.parse(right.expiryDateUtc)

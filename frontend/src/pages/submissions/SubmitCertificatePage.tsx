@@ -2,25 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 import { initiativesApi } from '../../api/initiativesApi'
-import type { InitiativeSummary } from '../../api/initiativesApi'
 import { loadAllMySubmissions } from '../../api/loadAllMySubmissions'
 import { submissionsApi } from '../../api/submissionsApi'
 import { PageHeader } from '../../components/common/PageHeader'
 import type { SubmitCertificateValues } from '../../components/submissions/SubmitCertificateForm'
 import { SubmitCertificateForm } from '../../components/submissions/SubmitCertificateForm'
-import { SubmitCertificateDiagnosticsPanel } from '../../components/submissions/SubmitCertificateDiagnosticsPanel'
-import {
-  buildSubmitCertificateDiagnostics,
-  logSubmitCertificateDiagnostics,
-  parseInitiativesContent,
-  SUBMIT_CERTIFICATE_DIAGNOSTICS_FLAG,
-} from '../../components/submissions/submitCertificateDiagnostics'
 import {
   extractSubmittedInitiativeIds,
   filterAvailableInitiatives,
+  parseInitiativeSummaries,
 } from '../../components/submissions/submissionInitiativeFilter'
 import { SUBMISSION_MESSAGES } from '../../components/submissions/submissionMessages'
-import type { CertificateSubmission } from '../../types/submissions'
 import { resolveApiError } from '../../utils/apiErrors'
 
 export interface SubmissionRouteNotification {
@@ -34,42 +26,13 @@ export const SUBMIT_CERTIFICATE_INITIATIVE_PARAMS = {
   sort: 'expiryDateUtc,asc',
 }
 
-export const SUBMIT_CERTIFICATE_SUBMISSION_PARAMS = {
-  page: 0,
-  size: 100,
-  sort: 'submittedAtUtc,desc',
-}
-
-function buildDiagnosticsInput(input: {
-  rawInitiativesResponse: Awaited<ReturnType<typeof initiativesApi.list>> | { error: string }
-  rawSubmissionsResponse: CertificateSubmission[] | { error: string }
-  loadedInitiatives: InitiativeSummary[]
-  loadedSubmissions: CertificateSubmission[]
-  parseExclusions: ReturnType<typeof parseInitiativesContent>['exclusions']
-  rawInitiativesContentCount: number
-}) {
-  return {
-    initiativeParams: SUBMIT_CERTIFICATE_INITIATIVE_PARAMS,
-    submissionParams: SUBMIT_CERTIFICATE_SUBMISSION_PARAMS,
-    rawInitiativesResponse: input.rawInitiativesResponse,
-    rawSubmissionsResponse: input.rawSubmissionsResponse,
-    initiatives: input.loadedInitiatives,
-    submissions: input.loadedSubmissions,
-    parseExclusions: input.parseExclusions,
-    rawInitiativesContentCount: input.rawInitiativesContentCount,
-  }
-}
-
 export function SubmitCertificatePage() {
   const navigate = useNavigate()
-  const [initiatives, setInitiatives] = useState<InitiativeSummary[]>([])
-  const [mySubmissions, setMySubmissions] = useState<CertificateSubmission[]>([])
+  const [initiatives, setInitiatives] = useState<ReturnType<typeof parseInitiativeSummaries>>([])
+  const [mySubmissions, setMySubmissions] = useState<Awaited<ReturnType<typeof loadAllMySubmissions>>>([])
   const [loadingInitiatives, setLoadingInitiatives] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [diagnostics, setDiagnostics] = useState<ReturnType<typeof buildSubmitCertificateDiagnostics> | null>(
-    null,
-  )
 
   useEffect(() => {
     let mounted = true
@@ -78,77 +41,34 @@ export function SubmitCertificatePage() {
       setLoadingInitiatives(true)
       setLoadError(null)
 
-      let rawInitiativesResponse: Awaited<ReturnType<typeof initiativesApi.list>> | { error: string }
-      let loadedInitiatives: InitiativeSummary[] = []
-      let parseExclusions: ReturnType<typeof parseInitiativesContent>['exclusions'] = []
-      let rawInitiativesContentCount = 0
-      let rawSubmissionsResponse: CertificateSubmission[] | { error: string } = []
-      let loadedSubmissions: CertificateSubmission[] = []
-
       try {
         const initiativePage = await initiativesApi.list(SUBMIT_CERTIFICATE_INITIATIVE_PARAMS)
-        rawInitiativesResponse = initiativePage
-        const parsedInitiatives = parseInitiativesContent(initiativePage.content)
-        loadedInitiatives = parsedInitiatives.initiatives
-        parseExclusions = parsedInitiatives.exclusions
-        rawInitiativesContentCount = parsedInitiatives.rawContentCount
         if (!mounted) {
           return
         }
-        setInitiatives(loadedInitiatives)
+        setInitiatives(parseInitiativeSummaries(initiativePage.content))
       } catch (error) {
-        rawInitiativesResponse = {
-          error: resolveApiError(error, SUBMISSION_MESSAGES.initiativesLoadError),
-        }
         if (mounted) {
           setInitiatives([])
           setMySubmissions([])
-          setLoadError(rawInitiativesResponse.error)
-          const nextDiagnostics = buildSubmitCertificateDiagnostics(
-            buildDiagnosticsInput({
-              rawInitiativesResponse,
-              rawSubmissionsResponse,
-              loadedInitiatives: [],
-              loadedSubmissions: [],
-              parseExclusions: [],
-              rawInitiativesContentCount: 0,
-            }),
-          )
-          setDiagnostics(nextDiagnostics)
-          logSubmitCertificateDiagnostics(nextDiagnostics)
+          setLoadError(resolveApiError(error, SUBMISSION_MESSAGES.initiativesLoadError))
           setLoadingInitiatives(false)
         }
         return
       }
 
       try {
-        loadedSubmissions = await loadAllMySubmissions()
-        rawSubmissionsResponse = loadedSubmissions
+        const loadedSubmissions = await loadAllMySubmissions()
         if (mounted) {
           setMySubmissions(loadedSubmissions)
         }
-      } catch (error) {
-        rawSubmissionsResponse = {
-          error: resolveApiError(error, SUBMISSION_MESSAGES.loadError),
-        }
+      } catch {
         if (mounted) {
           setMySubmissions([])
         }
       }
 
       if (mounted) {
-        const nextDiagnostics = buildSubmitCertificateDiagnostics(
-          buildDiagnosticsInput({
-            rawInitiativesResponse,
-            rawSubmissionsResponse,
-            loadedInitiatives,
-            loadedSubmissions,
-            parseExclusions,
-            rawInitiativesContentCount,
-          }),
-        )
-        setDiagnostics(nextDiagnostics)
-        logSubmitCertificateDiagnostics(nextDiagnostics)
         setLoadingInitiatives(false)
       }
     }
@@ -225,9 +145,6 @@ export function SubmitCertificatePage() {
         description="Upload a certificate file and comments for an active initiative."
         title="Submit Certificate"
       />
-      {SUBMIT_CERTIFICATE_DIAGNOSTICS_FLAG && diagnostics ? (
-        <SubmitCertificateDiagnosticsPanel diagnostics={diagnostics} />
-      ) : null}
       {loadingInitiatives ? (
         <Box aria-label="Loading initiatives" sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />

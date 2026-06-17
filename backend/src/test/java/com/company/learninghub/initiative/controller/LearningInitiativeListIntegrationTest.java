@@ -160,18 +160,6 @@ class LearningInitiativeListIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[*].title", hasItem("Java Certification")));
-
-        mockMvc.perform(get("/api/v1/initiatives/visibility-diagnostics")
-                        .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].visibleToEmployees")
-                        .value(false))
-                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].includedInAdminActiveList")
-                        .value(true))
-                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].includedInEmployeeList")
-                        .value(false))
-                .andExpect(jsonPath("$.initiatives[?(@.title == 'New Cloud Certification')].employeeExclusionReasons[0]")
-                        .value("start_date_after_today_utc"));
     }
 
     private String loginAsEmployee() throws Exception {

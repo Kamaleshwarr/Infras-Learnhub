@@ -5,7 +5,6 @@ import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.dto.CreateInitiativeRequest;
 import com.company.learninghub.initiative.dto.InitiativeResponse;
-import com.company.learninghub.initiative.dto.InitiativeVisibilityDiagnosticsResponse;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.service.LearningInitiativeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -109,22 +108,6 @@ public class LearningInitiativeController {
         return ResponseEntity.ok(PageResponse.from(
                 initiativeService.list(status, search, pageable, authenticatedUser)
         ));
-    }
-
-    @GetMapping("/visibility-diagnostics")
-    @Operation(
-            summary = "Temporary employee visibility diagnostics",
-            description = """
-                    Admin-only Phase 1 investigation endpoint.
-                    Returns every initiative with UTC calendar-day visibility evaluation and whether it appears
-                    in the admin ACTIVE list and the employee list using size=100&status=ACTIVE.
-                    Remove before release.
-                    """
-    )
-    public ResponseEntity<InitiativeVisibilityDiagnosticsResponse> visibilityDiagnostics(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
-    ) {
-        return ResponseEntity.ok(initiativeService.employeeVisibilityDiagnostics(authenticatedUser));
     }
 }
 

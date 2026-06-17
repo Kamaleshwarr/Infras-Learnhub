@@ -93,16 +93,6 @@ describe('SubmitCertificatePage', () => {
     vi.mocked(loadAllMySubmissions).mockResolvedValue([existingSubmission])
   })
 
-  it('renders temporary diagnostics with filtering evidence', async () => {
-    renderSubmitPage()
-
-    await waitFor(() =>
-      expect(screen.getByText('Submit Certificate diagnostics')).toBeInTheDocument(),
-    )
-    expect(screen.getByText(/"availableInitiativesCount": 1/)).toBeInTheDocument()
-    expect(screen.getByText(/"submittedInitiativeIds": \[/)).toBeInTheDocument()
-  })
-
   it('shows unsubmitted initiatives and disables already-submitted options', async () => {
     renderSubmitPage()
 

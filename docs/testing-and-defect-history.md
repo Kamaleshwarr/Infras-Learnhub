@@ -6,7 +6,7 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 
 | Area | Command | Baseline (v0.6.1 in progress) |
 |------|---------|----------------------------------|
-| Frontend | `cd frontend && npm test` | **180+ tests** |
+| Frontend | `cd frontend && npm test` | **192 tests** |
 | Frontend build | `cd frontend && npm run build` | Pass |
 | Backend (full) | `mvn -f backend/pom.xml test` | Pass (integration tests skipped without Docker) |
 
@@ -17,10 +17,13 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | Phase | Deliverable | Status | Notes |
 |-------|-------------|--------|-------|
 | Phase 0 | API/types/shared route prep | **Passed** | PR #29 |
-| Phase 1 | Submit Certificate page | **Passed** | Employee submit E2E validated; initiative visibility was test data (`DRAFT`), not code defect |
-| Phase 2 | My Submissions page | **In progress** | Employee list, status filter, pagination |
-| Phase 3 | Admin Review page | Not started | Placeholder only |
+| Phase 1 | Submit Certificate page | **Passed** | Employee submit E2E validated; initiative visibility was test data (`DRAFT`), not code defect; temporary diagnostics removed before release |
+| Phase 2 | My Submissions page | **Passed** | Employee list, status filter, pagination, refresh |
+| Dropdown UX | Submit Certificate initiative ordering | **Passed** | Available initiatives first, already-submitted last (disabled); within each group `expiryDateUtc ASC` |
+| Phase 3 | Admin Review page | Not started | Placeholder only — plan awaiting approval |
 | Phase 4 | Notification E2E + docs | Not started | Depends on Phase 3 |
+
+**Deferred (not in v0.6.1):** Employee dashboard status chips, filtering, and other dashboard UX refinements.
 
 ---
 
@@ -28,7 +31,7 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 
 | ID | Symptom | Root cause | Fix | Verified |
 |----|---------|------------|-----|----------|
-| CW-D01 | Employee dashboard shows **"Unable to load dashboard data"**; active initiatives and submissions widgets empty | `getEmployeeDashboardData()` used `Promise.all` across six APIs. Any single failure (e.g. leaderboard, projects, study materials) rejected the entire load; `DashboardPage` catch block set `error` and `data = null`, hiding initiatives/submissions even when `GET /initiatives` and `GET /me/submissions` succeeded | Partial fix in `dashboardApi.ts`: load initiatives separately and use `Promise.allSettled` for secondary widgets so one failure does not blank the page. **Open** — verify after redeploy; consider widget-level error states | Pending |
+| CW-D01 | Employee dashboard shows **"Unable to load dashboard data"**; active initiatives and submissions widgets empty | `getEmployeeDashboardData()` used `Promise.all` across six APIs. Any single failure (e.g. leaderboard, projects, study materials) rejected the entire load; `DashboardPage` catch block set `error` and `data = null`, hiding initiatives/submissions even when `GET /initiatives` and `GET /me/submissions` succeeded | Fix in `dashboardApi.ts`: load initiatives separately and use `Promise.allSettled` for secondary widgets so one failure does not blank the page | **Pass** — revalidated 2026-06-16 |
 
 ### CW-D01 — APIs involved
 
@@ -44,8 +47,8 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 ### CW-D01 — Fix summary
 
 1. **Before:** `Promise.all([initiatives, submissions, leaderboard, myRank, materials, projects])` — one HTTP 4xx/5xx or network error failed the whole dashboard.
-2. **After (partial):** Initiatives fetched with isolated `catch`; remaining calls use `Promise.allSettled`; successful sections render with empty fallbacks for failed sections.
-3. **Follow-up (optional):** Per-widget error hints instead of top-level banner when only secondary APIs fail; apply same pattern to `getAdminDashboardData()` if needed.
+2. **After:** Initiatives fetched with isolated `catch`; remaining calls use `Promise.allSettled`; successful sections render with empty fallbacks for failed sections.
+3. **Follow-up (deferred):** Per-widget error hints instead of top-level banner when only secondary APIs fail; apply same pattern to `getAdminDashboardData()` if needed.
 
 ### CW-D01 — Validation steps
 
@@ -270,4 +273,5 @@ Run before each phase merge:
 | Avatar storage | Local filesystem only; no cloud/S3 provider yet |
 | Notification E2E | Certificate producers backend-only; full UI E2E in v0.6.1 Phase 4 |
 | Admin Review UI | Placeholder until v0.6.1 Phase 3 |
-| Employee dashboard (CW-D01) | Partial load fix merged; validation pending |
+| Dashboard UX enhancements | Status chips, filtering deferred to future release |
+| `CERTIFICATE_SUBMITTED` actionPath | Currently `/` (dashboard); optional polish to `/submissions/review` in Phase 3 or 4 |

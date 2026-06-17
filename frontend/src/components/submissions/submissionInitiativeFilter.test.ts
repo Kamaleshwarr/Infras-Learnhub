@@ -5,6 +5,7 @@ import {
   extractSubmittedInitiativeIds,
   filterAvailableInitiatives,
   normalizeInitiativeId,
+  parseInitiativeSummaries,
   sortInitiativesForSubmitDropdown,
 } from './submissionInitiativeFilter'
 
@@ -143,6 +144,31 @@ describe('submissionInitiativeFilter', () => {
       'Test Engineering',
       'Java Spring Boot Certification - Updated',
       'AWS Solutions Architect',
+    ])
+  })
+
+  it('drops malformed initiative records missing id or title', () => {
+    expect(
+      parseInitiativeSummaries([
+        { title: 'Missing id' } as InitiativeSummary,
+        {
+          description: 'Valid',
+          expiryDateUtc: '2026-12-31T00:00:00Z',
+          id: 'initiative-1',
+          startDateUtc: '2026-01-01T00:00:00Z',
+          status: 'ACTIVE',
+          title: 'Valid Initiative',
+        },
+      ]),
+    ).toEqual([
+      {
+        description: 'Valid',
+        expiryDateUtc: '2026-12-31T00:00:00Z',
+        id: 'initiative-1',
+        startDateUtc: '2026-01-01T00:00:00Z',
+        status: 'ACTIVE',
+        title: 'Valid Initiative',
+      },
     ])
   })
 })
