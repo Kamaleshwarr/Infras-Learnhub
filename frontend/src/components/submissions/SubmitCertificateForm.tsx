@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined'
 import {
@@ -16,7 +16,7 @@ import {
 import type { InitiativeSummary } from '../../api/initiativesApi'
 import { resolveApiError } from '../../utils/apiErrors'
 import { getCertificateAcceptAttribute, isAllowedCertificateFile } from './certificateFileValidation'
-import { normalizeInitiativeId } from './submissionInitiativeFilter'
+import { normalizeInitiativeId, sortInitiativesForSubmitDropdown } from './submissionInitiativeFilter'
 import { MAX_SUBMISSION_COMMENTS_LENGTH, SUBMISSION_MESSAGES } from './submissionMessages'
 
 export interface SubmitCertificateValues {
@@ -67,6 +67,10 @@ export function SubmitCertificateForm({
   const formDisabled = loadingInitiatives || submitting || Boolean(loadError) || Boolean(emptyMessage)
   const selectableInitiatives = initiatives.filter(
     (initiative) => !submittedInitiativeIds.has(normalizeInitiativeId(initiative.id)),
+  )
+  const dropdownInitiatives = useMemo(
+    () => sortInitiativesForSubmitDropdown(initiatives, submittedInitiativeIds),
+    [initiatives, submittedInitiativeIds],
   )
 
   function updateField<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
@@ -165,7 +169,7 @@ export function SubmitCertificateForm({
             select
             value={form.initiativeId}
           >
-            {initiatives.map((initiative) => {
+            {dropdownInitiatives.map((initiative) => {
               const alreadySubmitted = submittedInitiativeIds.has(normalizeInitiativeId(initiative.id))
               return (
                 <MenuItem key={initiative.id} disabled={alreadySubmitted} value={initiative.id}>

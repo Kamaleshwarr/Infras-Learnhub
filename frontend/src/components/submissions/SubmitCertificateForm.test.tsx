@@ -145,6 +145,48 @@ describe('SubmitCertificateForm', () => {
     expect(screen.getByRole('option', { name: 'Azure Certification' })).not.toHaveAttribute('aria-disabled', 'true')
   })
 
+  it('lists available initiatives before already-submitted initiatives', async () => {
+    const user = userEvent.setup()
+    renderForm({
+      initiatives: [
+        {
+          description: 'Submitted later expiry',
+          expiryDateUtc: '2026-12-31T00:00:00Z',
+          id: 'initiative-aws',
+          startDateUtc: '2026-01-01T00:00:00Z',
+          status: 'ACTIVE',
+          title: 'AWS Solutions Architect',
+        },
+        {
+          description: 'Available',
+          expiryDateUtc: '2026-09-30T00:00:00Z',
+          id: 'initiative-test',
+          startDateUtc: '2026-01-01T00:00:00Z',
+          status: 'ACTIVE',
+          title: 'Test Engineering',
+        },
+        {
+          description: 'Submitted sooner expiry',
+          expiryDateUtc: '2026-06-30T00:00:00Z',
+          id: 'initiative-java',
+          startDateUtc: '2026-01-01T00:00:00Z',
+          status: 'ACTIVE',
+          title: 'Java Spring Boot Certification - Updated',
+        },
+      ],
+      submittedInitiativeIds: new Set(['initiative-aws', 'initiative-java']),
+    })
+
+    await user.click(screen.getByRole('combobox', { name: /Initiative/i }))
+
+    const options = screen.getAllByRole('option').map((option) => option.textContent)
+    expect(options).toEqual([
+      'Test Engineering',
+      'Java Spring Boot Certification - Updated (already submitted)',
+      'AWS Solutions Architect (already submitted)',
+    ])
+  })
+
   it('shows empty-state messaging when no initiatives are available', () => {
     renderForm({
       emptyMessage: SUBMISSION_MESSAGES.noInitiativesAvailable,

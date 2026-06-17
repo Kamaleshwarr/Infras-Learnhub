@@ -28,3 +28,35 @@ export function filterAvailableInitiatives(
     (initiative) => !submittedInitiativeIds.has(normalizeInitiativeId(initiative.id)),
   )
 }
+
+function compareByExpiryDateUtcAsc(left: InitiativeSummary, right: InitiativeSummary) {
+  const leftExpiry = Date.parse(left.expiryDateUtc)
+  const rightExpiry = Date.parse(right.expiryDateUtc)
+
+  if (Number.isFinite(leftExpiry) && Number.isFinite(rightExpiry) && leftExpiry !== rightExpiry) {
+    return leftExpiry - rightExpiry
+  }
+
+  return left.title.localeCompare(right.title)
+}
+
+export function sortInitiativesForSubmitDropdown(
+  initiatives: InitiativeSummary[],
+  submittedInitiativeIds: Set<string>,
+) {
+  const available: InitiativeSummary[] = []
+  const submitted: InitiativeSummary[] = []
+
+  for (const initiative of initiatives) {
+    if (submittedInitiativeIds.has(normalizeInitiativeId(initiative.id))) {
+      submitted.push(initiative)
+    } else {
+      available.push(initiative)
+    }
+  }
+
+  available.sort(compareByExpiryDateUtcAsc)
+  submitted.sort(compareByExpiryDateUtcAsc)
+
+  return [...available, ...submitted]
+}

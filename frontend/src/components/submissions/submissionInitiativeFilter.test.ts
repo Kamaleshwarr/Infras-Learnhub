@@ -5,6 +5,7 @@ import {
   extractSubmittedInitiativeIds,
   filterAvailableInitiatives,
   normalizeInitiativeId,
+  sortInitiativesForSubmitDropdown,
 } from './submissionInitiativeFilter'
 
 const initiatives: InitiativeSummary[] = [
@@ -103,5 +104,45 @@ describe('submissionInitiativeFilter', () => {
     ])
 
     expect(available).toEqual(initiatives)
+  })
+
+  it('sorts available initiatives before submitted ones, each by expiryDateUtc asc', () => {
+    const testInitiatives: InitiativeSummary[] = [
+      {
+        description: 'Submitted later expiry',
+        expiryDateUtc: '2026-12-31T00:00:00Z',
+        id: 'initiative-aws',
+        startDateUtc: '2026-01-01T00:00:00Z',
+        status: 'ACTIVE',
+        title: 'AWS Solutions Architect',
+      },
+      {
+        description: 'Available sooner expiry',
+        expiryDateUtc: '2026-09-30T00:00:00Z',
+        id: 'initiative-test',
+        startDateUtc: '2026-01-01T00:00:00Z',
+        status: 'ACTIVE',
+        title: 'Test Engineering',
+      },
+      {
+        description: 'Submitted sooner expiry',
+        expiryDateUtc: '2026-06-30T00:00:00Z',
+        id: 'initiative-java',
+        startDateUtc: '2026-01-01T00:00:00Z',
+        status: 'ACTIVE',
+        title: 'Java Spring Boot Certification - Updated',
+      },
+    ]
+
+    const sorted = sortInitiativesForSubmitDropdown(
+      testInitiatives,
+      new Set(['initiative-aws', 'initiative-java']),
+    )
+
+    expect(sorted.map((initiative) => initiative.title)).toEqual([
+      'Test Engineering',
+      'Java Spring Boot Certification - Updated',
+      'AWS Solutions Architect',
+    ])
   })
 })
