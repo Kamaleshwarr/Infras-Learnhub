@@ -1,26 +1,25 @@
 # Engineering Learning Hub
 
-Enterprise-grade internal web application for managing learning initiatives, certification programs,
-study materials, project knowledge, KT documents, and leaderboards.
+Enterprise-grade internal web application for managing learning initiatives, certification
+programs, study materials, project knowledge, KT documents, leaderboards, user administration,
+and in-app notifications.
 
-This repository currently contains backend features through Phase 4.
+**Current release:** [v0.6.1](docs/releases/release-v0.6.1.md) — Certificate Workflow UI & Notification E2E Validation (shipped)
 
-## Backend
+## Quick start
 
-Technology stack:
-
-- Java 21
-- Spring Boot 3
-- Maven
-- PostgreSQL
-- Flyway
-- Spring Security with JWT
-- OpenAPI / Swagger
-
-### Run locally with Docker Compose
+Run the backend and PostgreSQL with Docker Compose:
 
 ```bash
 docker compose up --build
+```
+
+Run the frontend dev server (separate terminal):
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 Backend health check:
@@ -64,70 +63,96 @@ curl -s http://localhost:8080/api/v1/auth/me \
   -H "Authorization: Bearer ${TOKEN}"
 ```
 
-### Run backend tests
+## Technology stack
+
+### Backend
+
+- Java 21
+- Spring Boot 3
+- Maven
+- PostgreSQL
+- Flyway
+- Spring Security with JWT
+- OpenAPI / Swagger
+
+### Frontend
+
+- React 18
+- TypeScript
+- Material UI
+- React Router
+- Axios
+- Vitest / Testing Library
+
+## Run tests
+
+Backend:
 
 ```bash
 mvn -f backend/pom.xml test
 ```
 
-### Important configuration
+Frontend:
+
+```bash
+cd frontend && npm test
+```
+
+## Important configuration
 
 The default JWT secret is only for local development. Set `JWT_SECRET` to a strong Base64-encoded
 secret in shared or production environments.
 
-## Project Status
+## Project status (v0.6.1)
 
-### Version 0.4.0
+High-level snapshot. Detailed release notes, validation history, and backlog live under `docs/`.
 
-Completed Features
+### Shipped platform modules (backend)
 
-#### Phase 1 - Backend Foundation ✅
+- Authentication & password management
+- Learning initiatives
+- Certificate submissions (submit, approve, reject)
+- Leaderboards
+- Study materials repository
+- Project knowledge repository
+- User management (API + bulk import)
+- Profile management (including avatar storage)
+- In-app notifications (persistence, inbox APIs, certificate producers)
 
-* Spring Boot 3
-* Java 21
-* PostgreSQL
-* Flyway
-* JWT Authentication
-* Spring Security
-* Swagger/OpenAPI
-* Docker & Docker Compose
-* Health Endpoint
+### Shipped frontend modules
 
-#### Phase 2 - Learning Initiatives ✅
+- Authentication, role-aware dashboard, password management
+- User management UI — list, CRUD, activate/deactivate, reset password, bulk import (v0.3–v0.4)
+- Profile management UI — view, edit, change-password entry, avatar upload (v0.5)
+- Notifications UI — bell, dropdown, inbox page, badge sync (v0.6)
+- **Certificate workflow UI** — Submit Certificate (`/submissions/new`), My Submissions
+  (`/submissions`), Admin Review (`/submissions/review`) with notification E2E validation (v0.6.1)
 
-* Create Initiative
-* Update Initiative
-* Delete Initiative
-* Search Initiatives
-* Pagination & Sorting
-* Role-based Access Control
+### Recent release highlights (v0.6.1)
 
-#### Phase 3 - Certificate Submission ✅
+- Employee submit → admin `CERTIFICATE_SUBMITTED` notification → approve on Certificate Review →
+  employee `CERTIFICATE_APPROVED` notification
+- Dashboard fault isolation for employee (CW-D01) and admin (CW-D02) widgets
+- Submit Certificate dropdown UX — available initiatives first
 
-* Certificate Upload
-* Submission Workflow
-* Approval/Rejection Workflow
-* File Storage
-* Validation
-* Security Controls
+### Post-v0.6.1 backlog (summary)
 
-#### Phase 4 - Leaderboard ✅
+- Global search
+- Dashboard status chips, filtering, and Pending Reviews deep link
+- Email notification channel (account lifecycle)
+- Initiative / study materials / projects full UI surfaces
+- AI features
 
-* Initiative Leaderboard
-* Global Leaderboard
-* Personal Ranking
-* Approved Submission Ranking
-* Deterministic Tie Breakers
-* Personal Ranking Summary
+## Documentation
 
-### Upcoming Roadmap
+| Topic | Location |
+| --- | --- |
+| **Roadmap & release overview** | [`docs/project-roadmap.md`](docs/project-roadmap.md) |
+| **v0.6.1 release notes** | [`docs/releases/release-v0.6.1.md`](docs/releases/release-v0.6.1.md) |
+| **Testing & defect history** | [`docs/testing-and-defect-history.md`](docs/testing-and-defect-history.md) |
+| **Backend architecture** | [`docs/backend-architecture-and-roadmap.md`](docs/backend-architecture-and-roadmap.md) |
+| **Prior releases** | [`docs/releases/`](docs/releases/) |
 
-#### Phase 5 - Study Material Repository 🚀
-
-#### Phase 6 - Project Knowledge Repository
-
-#### Phase 7 - Notifications
-
-#### Phase 8 - Global Search
-
-#### Phase 9 - AI Features
+The README is an entry point for setup and orientation. Authoritative project status, roadmap
+detail, validation results, and per-release scope are maintained in `docs/` and updated with each
+release.
