@@ -1,14 +1,14 @@
 # Testing & Defect History
 
-Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
+Last updated: 2026-06-16 (v0.6.1 — ready for release, PR #29)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.6.1 in progress) |
-|------|---------|----------------------------------|
+| Area | Command | Baseline (v0.6.1) |
+|------|---------|-------------------|
 | Frontend | `cd frontend && npm test` | **220 tests** |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend (full) | `mvn -f backend/pom.xml test` | Pass (integration tests skipped without Docker) |
+| Backend | `mvn -f backend/pom.xml test` | **211 tests** run; **12 skipped** (Testcontainers/Docker) |
 
 ---
 
@@ -20,10 +20,21 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | Phase 1 | Submit Certificate page | **Passed** | Employee submit E2E validated; initiative visibility was test data (`DRAFT`), not code defect; temporary diagnostics removed before release |
 | Phase 2 | My Submissions page | **Passed** | Employee list, status filter, pagination, refresh |
 | Dropdown UX | Submit Certificate initiative ordering | **Passed** | Available initiatives first, already-submitted last (disabled); within each group `expiryDateUtc ASC` |
-| Phase 3 | Admin Review page | **Shipped** | Approve/reject UI; `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review` |
-| Phase 4 | Notification E2E + docs | Not started | Depends on Phase 3 manual validation |
+| Phase 3 | Admin Review page | **Passed** | Approve/reject UI; `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review` |
+| Phase 4 | Notification E2E + docs | **Passed** | Submit → admin notify → approve → employee notify; badge sync; CW-D01/CW-D02 regression |
 
 **Deferred (not in v0.6.1):** Employee dashboard status chips, filtering, and other dashboard UX refinements.
+
+### v0.6.1 — Test coverage added
+
+| Component / area | Tests |
+|------------------|-------|
+| `submissionsApi`, `loadAllMySubmissions` | API contracts |
+| `SubmitCertificatePage`, `SubmitCertificateForm`, `submissionInitiativeFilter` | Submit flow, dropdown ordering |
+| `MySubmissionsPage`, `MySubmissionsTable`, `mySubmissionsListParams` | List, filter, pagination |
+| `AdminReviewPage`, `AdminReviewTable`, approve/reject dialogs | Admin review workflow |
+| `dashboardApi` | CW-D01/CW-D02 fault isolation |
+| `AppRoutes` | Certificate workflow routes and role guards |
 
 ---
 
@@ -32,7 +43,7 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | ID | Symptom | Root cause | Fix | Verified |
 |----|---------|------------|-----|----------|
 | CW-D01 | Employee dashboard shows **"Unable to load dashboard data"**; active initiatives and submissions widgets empty | `getEmployeeDashboardData()` used `Promise.all` across six APIs. Any single failure (e.g. leaderboard, projects, study materials) rejected the entire load; `DashboardPage` catch block set `error` and `data = null`, hiding initiatives/submissions even when `GET /initiatives` and `GET /me/submissions` succeeded | Fix in `dashboardApi.ts`: load initiatives separately and use `Promise.allSettled` for secondary widgets so one failure does not blank the page | **Pass** — revalidated 2026-06-16 |
-| CW-D02 | Admin dashboard shows **"Unable to load dashboard data"**; all metric cards `--`; widgets empty while employee dashboard works | `getAdminDashboardData()` still used `Promise.all` across five APIs. Any secondary failure (leaderboard, study materials, projects) rejected the entire admin load even when `GET /initiatives` and `GET /submissions?status=SUBMITTED` succeeded — same fault-isolation gap as CW-D01 on the admin path | Fix in `dashboardApi.ts`: load initiatives and pending submissions as isolated primary sources; use `Promise.allSettled` for secondary widgets; throw only when both primary APIs fail | Pending |
+| CW-D02 | Admin dashboard shows **"Unable to load dashboard data"**; all metric cards `--`; widgets empty while employee dashboard works | `getAdminDashboardData()` still used `Promise.all` across five APIs. Any secondary failure (leaderboard, study materials, projects) rejected the entire admin load even when `GET /initiatives` and `GET /submissions?status=SUBMITTED` succeeded — same fault-isolation gap as CW-D01 on the admin path | Fix in `dashboardApi.ts`: load initiatives and pending submissions as isolated primary sources; use `Promise.allSettled` for secondary widgets; throw only when both primary APIs fail | **Pass** — validated 2026-06-16 |
 
 ### CW-D01 — APIs involved
 
@@ -101,8 +112,8 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | Badge synchronization | **Passed** | NTF-D02 — `NotificationProvider` + `refresh()` |
 | Account producers removed | **Passed** | Option B — no in-app generation from user management |
 | Certificate producers (service layer) | **Passed** | Unit tests in `CertificateSubmissionServiceTest` |
-| Certificate producers (application E2E) | **Deferred v0.6.1** | Blocked — submit/review pages are placeholders |
-| Scope classification | **Approved** | v0.6 = infrastructure; E2E = v0.6.1 |
+| Certificate producers (application E2E) | **Passed** | v0.6.1 Phase 4 — submit/approve path validated in application UI |
+| Scope classification | **Approved** | v0.6 = infrastructure; E2E = v0.6.1 **complete** |
 
 ---
 
@@ -159,14 +170,22 @@ Run before Phase 3 merge:
 
 ---
 
-## Regression Checklist (Notifications — v0.6.1 E2E, proposed)
+## Regression Checklist (Notifications — v0.6.1 E2E)
 
-Deferred until certificate workflow UI ships:
+Validated 2026-06-16 (Phase 4):
 
 1. Certificate submit via Submit Certificate page → all active admins notified (`CERTIFICATE_SUBMITTED`)
-2. Approve via Admin Review page → employee notified (`CERTIFICATE_APPROVED`)
-3. Reject via Admin Review page → employee notified (`CERTIFICATE_REJECTED`)
-4. Badge and inbox reflect new notifications after each workflow step
+2. Admin notification `actionPath` navigates to `/submissions/review`
+3. Approve via Admin Review page → employee notified (`CERTIFICATE_APPROVED`)
+4. Employee notification `actionPath` navigates to `/submissions`
+5. Status transition `SUBMITTED` → `APPROVED` on My Submissions
+6. Badge and inbox reflect new notifications; mark-read / mark-all-read keeps badge in sync
+7. Employee dashboard regression (CW-D01) — pass
+8. Admin dashboard regression (CW-D02) — pass
+
+Optional (not required for v0.6.1 sign-off):
+
+9. Reject via Admin Review page → employee notified (`CERTIFICATE_REJECTED`) with reason in message
 
 ---
 
@@ -315,7 +334,7 @@ Run before each phase merge:
 | UM-006 | No downloadable import error report yet |
 | Import | Create-only; no update existing users via import |
 | Avatar storage | Local filesystem only; no cloud/S3 provider yet |
-| Notification E2E | Certificate producers backend-only; full UI E2E in v0.6.1 Phase 4 |
-| Admin Review UI | Shipped in v0.6.1 Phase 3 |
-| Dashboard UX enhancements | Status chips, filtering deferred to future release |
+| Notification E2E | **Passed** — v0.6.1 Phase 4 |
+| Admin Review UI | Shipped v0.6.1 |
+| Dashboard fault isolation | CW-D01 (employee) and CW-D02 (admin) — **Pass** |
 | `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |

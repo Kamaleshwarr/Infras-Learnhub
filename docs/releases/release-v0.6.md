@@ -6,7 +6,7 @@
 **PR:** #28 (`cursor/v0.6-notifications-dd41`)
 
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
-Proposed follow-on: `docs/releases/release-v0.6.1-proposed.md`
+Proposed follow-on: `docs/releases/release-v0.6.1.md` (released with PR #29)
 
 ---
 

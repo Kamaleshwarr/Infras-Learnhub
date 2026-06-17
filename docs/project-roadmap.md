@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
+Last updated: 2026-06-16 (v0.6.1 — ready for release)
 
 ## Release Overview
 
@@ -10,12 +10,12 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | v0.3 | User Management UI (Phases 1–3) | Shipped (PRs #18–#20) |
 | v0.4 | User Management UI Phase 4 (bulk import) | Shipped (PRs #22–#24) |
 | v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
-| **v0.6** | **In-App Notification Infrastructure** | **Shipped (PR #28)** |
-| **v0.6.1** | **Certificate Workflow UI & Notification E2E Validation** | **In progress (PR #29)** |
+| v0.6 | In-App Notification Infrastructure | Shipped (PR #28) |
+| **v0.6.1** | **Certificate Workflow UI & Notification E2E Validation** | **Ready for release (PR #29)** |
 
-Release notes: `docs/releases/release-v0.6.md`  
-Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
-v0.6.1 progress: `docs/releases/release-v0.6.1-proposed.md`
+Release notes: `docs/releases/release-v0.6.1.md`  
+Prior: `docs/releases/release-v0.6.md`  
+Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ---
 
@@ -111,14 +111,13 @@ v0.6.1 progress: `docs/releases/release-v0.6.1-proposed.md`
 - Badge synchronization via `NotificationProvider`
 - Account lifecycle types deferred to future email channel (not produced in-app)
 
-### Known limitation
+### Known limitation (resolved in v0.6.1)
 
-- Certificate submit / approve / reject workflows are **backend-only** (placeholder submission pages; no admin review UI)
-- End-to-end notification validation blocked until **v0.6.1**
+- Certificate submit / approve / reject workflows and notification E2E validation — **completed in v0.6.1** (PR #29)
 
 ---
 
-## In progress — v0.6.1 Certificate Workflow UI (PR #29)
+## Shipped — v0.6.1 Certificate Workflow UI (PR #29)
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
@@ -126,12 +125,14 @@ v0.6.1 progress: `docs/releases/release-v0.6.1-proposed.md`
 | Phase 1 | Submit Certificate page | **Validated** |
 | Phase 2 | My Submissions page | **Validated** |
 | Dropdown UX | Available-first initiative ordering | **Validated** |
-| Phase 3 | Admin Review page (approve/reject) | **Shipped** |
-| Phase 4 | Notification E2E validation + docs | Not started |
+| Phase 3 | Admin Review page (approve/reject) | **Validated** |
+| Phase 4 | Notification E2E validation | **Validated** |
 
-**Deferred:** Employee dashboard status chips, filtering, Pending Reviews metric link, and other dashboard UX refinements.
+**Also delivered:** CW-D01/CW-D02 dashboard fault isolation; `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
 
-Plan: `docs/releases/release-v0.6.1-proposed.md`
+**Deferred:** Dashboard status chips, filtering, Pending Reviews metric link
+
+Release notes: `docs/releases/release-v0.6.1.md`
 
 ---
 
@@ -174,4 +175,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
 6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
 7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)
-8. **Certificate Workflow UI (v0.6.1)** — Submit Certificate, My Submissions, Admin Review (validated/planned Phase 4 E2E)
+8. **Certificate Workflow UI** — Submit Certificate, My Submissions, Admin Review (v0.6.1)

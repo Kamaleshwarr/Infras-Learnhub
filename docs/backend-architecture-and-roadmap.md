@@ -1,6 +1,6 @@
 # Backend Architecture & Roadmap
 
-Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
+Last updated: 2026-06-16 (v0.6.1 — ready for release)
 
 ## Stack
 
@@ -163,7 +163,7 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 
 **Limitation (v0.6):** Producers were wired and unit-tested but not triggerable through the application UI until certificate workflow pages shipped.
 
-**v0.6.1 progress:** Submit Certificate, My Submissions, and Admin Review UI shipped; `CERTIFICATE_SUBMITTED` actionPath points to `/submissions/review`. Full notification E2E validation pending Phase 4.
+**v0.6.1 (PR #29):** Certificate workflow UI complete; notification E2E validated. `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`.
 
 ---
 
@@ -236,16 +236,17 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 - [x] Certificate-workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
 - [x] Merged PR #28
 
-**Not feature complete:** E2E producer validation in progress via v0.6.1 certificate workflow UI (PR #29).
+**Not feature complete (v0.6):** E2E producer validation deferred to v0.6.1 — **completed in v0.6.1**.
 
-### In progress (v0.6.1) — Certificate Workflow UI
+### Shipped (v0.6.1) — Certificate Workflow UI
 
 - [x] Submit Certificate page — validated
 - [x] My Submissions page — validated
 - [x] Submit Certificate dropdown UX — available initiatives first
-- [x] Admin Review page — approve/reject UI (Phase 3)
+- [x] Admin Review page — approve/reject UI
 - [x] `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
-- [ ] Notification E2E validation (Phase 4)
+- [x] Notification E2E validation (Phase 4)
+- [x] Dashboard fault isolation — CW-D01 (employee), CW-D02 (admin)
 
 ### Future backend enhancements
 

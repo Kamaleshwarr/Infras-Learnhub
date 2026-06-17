@@ -37,31 +37,29 @@
 
 ## Current Release
 
-**v0.6.1** — Certificate Workflow UI & Notification E2E Validation (in progress, PR #29)
+**v0.6.1** — Certificate Workflow UI & Notification E2E Validation (ready for release, PR #29)
 
-Release notes: `docs/releases/release-v0.6.1-proposed.md`  
+Release notes: `docs/releases/release-v0.6.1.md`  
 Prior release: `docs/releases/release-v0.6.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
 Roadmap: `docs/project-roadmap.md`
 
-### v0.6.1 Highlights (in progress)
+### v0.6.1 Highlights
 
-- Submit Certificate page — `/submissions/new` (validated)
-- My Submissions page — `/submissions` (validated)
-- Submit Certificate dropdown UX — available initiatives first (validated)
-- Admin Review page — `/submissions/review` (Phase 3 shipped)
+- Submit Certificate — `/submissions/new`
+- My Submissions — `/submissions`
+- Admin Certificate Review — `/submissions/review` (approve/reject)
+- Notification E2E validated — `CERTIFICATE_SUBMITTED` → approve → `CERTIFICATE_APPROVED`
 - `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
-- Notification E2E validation — Phase 4
-- CW-D01 dashboard loading fix — validated
-- Temporary Phase 1 diagnostics removed before release
+- Dashboard fault isolation — CW-D01 (employee), CW-D02 (admin)
+- Dropdown UX — available initiatives first in Submit Certificate
 
 ### v0.6 Highlights
 
 - Notification persistence — Flyway `V9__create_notifications.sql`
 - Inbox APIs — list, unread-count, mark-read, mark-all-read
 - Frontend bell, dropdown, `/notifications` page, badge synchronization
-- Certificate backend producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
-- **v0.6.1:** Certificate workflow UI shipped (submit, my submissions, admin review); notification E2E validation pending Phase 4
+- Certificate backend producers — **E2E validated via application UI in v0.6.1**
 
 ### v0.5 Highlights
 
@@ -109,7 +107,7 @@ Roadmap: `docs/project-roadmap.md`
 5. User Management UI (Phases 1–4: list, create/edit, activate/deactivate/reset, bulk import)
 6. Profile Management UI (Phases 1–4: view, edit, change-password entry, avatar)
 7. Notifications UI (bell, dropdown, inbox — consumer only)
-8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (Phase 4 E2E pending)
+8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 
 ## Completed Features
 
@@ -118,8 +116,7 @@ Roadmap: `docs/project-roadmap.md`
 - Persistent notification inbox (`notifications` table)
 - Inbox APIs under `/api/v1/notifications`
 - Bell, dropdown, `/notifications` page, badge sync
-- Certificate producers wired in `CertificateSubmissionService`
-- Account lifecycle in-app generation deferred to email workstream
+- Certificate producers wired in `CertificateSubmissionService` — E2E validated v0.6.1
 
 ### Password Management (v0.2)
 
@@ -162,13 +159,12 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. v0.6.1 Phase 4 — Notification E2E validation
-2. Dashboard status chips / filtering / Pending Reviews link (deferred from v0.6.1)
-3. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-4. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
-5. Global Search
-6. Email notifications (account lifecycle)
-7. AI Features
+1. Dashboard status chips / filtering / Pending Reviews link (deferred from v0.6.1)
+2. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+3. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
+4. Global Search
+5. Email notifications (account lifecycle)
+6. AI Features
 
 ## Current Backend Package Pattern
 
