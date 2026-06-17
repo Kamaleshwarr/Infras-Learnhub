@@ -126,10 +126,10 @@ v0.6.1 progress: `docs/releases/release-v0.6.1-proposed.md`
 | Phase 1 | Submit Certificate page | **Validated** |
 | Phase 2 | My Submissions page | **Validated** |
 | Dropdown UX | Available-first initiative ordering | **Validated** |
-| Phase 3 | Admin Review page (approve/reject) | Planned — awaiting approval |
+| Phase 3 | Admin Review page (approve/reject) | **Shipped** |
 | Phase 4 | Notification E2E validation + docs | Not started |
 
-**Deferred:** Employee dashboard status chips, filtering, and other dashboard UX refinements.
+**Deferred:** Employee dashboard status chips, filtering, Pending Reviews metric link, and other dashboard UX refinements.
 
 Plan: `docs/releases/release-v0.6.1-proposed.md`
 
@@ -174,4 +174,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
 6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
 7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)
-8. **Certificate Workflow UI (v0.6.1)** — Submit Certificate, My Submissions (validated); Admin Review (planned)
+8. **Certificate Workflow UI (v0.6.1)** — Submit Certificate, My Submissions, Admin Review (validated/planned Phase 4 E2E)

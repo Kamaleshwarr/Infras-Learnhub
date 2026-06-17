@@ -49,7 +49,8 @@ Roadmap: `docs/project-roadmap.md`
 - Submit Certificate page — `/submissions/new` (validated)
 - My Submissions page — `/submissions` (validated)
 - Submit Certificate dropdown UX — available initiatives first (validated)
-- Admin Review page — `/submissions/review` (planned, Phase 3)
+- Admin Review page — `/submissions/review` (Phase 3 shipped)
+- `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
 - Notification E2E validation — Phase 4
 - CW-D01 dashboard loading fix — validated
 - Temporary Phase 1 diagnostics removed before release
@@ -60,7 +61,7 @@ Roadmap: `docs/project-roadmap.md`
 - Inbox APIs — list, unread-count, mark-read, mark-all-read
 - Frontend bell, dropdown, `/notifications` page, badge synchronization
 - Certificate backend producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, `CERTIFICATE_REJECTED`)
-- **v0.6.1:** `CERTIFICATE_SUBMITTED` now triggerable via Submit Certificate UI; approve/reject E2E pending Admin Review page
+- **v0.6.1:** Certificate workflow UI shipped (submit, my submissions, admin review); notification E2E validation pending Phase 4
 
 ### v0.5 Highlights
 
@@ -108,7 +109,7 @@ Roadmap: `docs/project-roadmap.md`
 5. User Management UI (Phases 1–4: list, create/edit, activate/deactivate/reset, bulk import)
 6. Profile Management UI (Phases 1–4: view, edit, change-password entry, avatar)
 7. Notifications UI (bell, dropdown, inbox — consumer only)
-8. Certificate Workflow UI — Submit Certificate, My Submissions (validated); Admin Review (planned)
+8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (Phase 4 E2E pending)
 
 ## Completed Features
 
@@ -161,14 +162,13 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. v0.6.1 Phase 3 — Admin Review page (plan awaiting approval)
-2. v0.6.1 Phase 4 — Notification E2E validation
-3. Dashboard status chips / filtering (deferred from v0.6.1)
-4. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-5. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
-6. Global Search
-7. Email notifications (account lifecycle)
-8. AI Features
+1. v0.6.1 Phase 4 — Notification E2E validation
+2. Dashboard status chips / filtering / Pending Reviews link (deferred from v0.6.1)
+3. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+4. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
+5. Global Search
+6. Email notifications (account lifecycle)
+7. AI Features
 
 ## Current Backend Package Pattern
 

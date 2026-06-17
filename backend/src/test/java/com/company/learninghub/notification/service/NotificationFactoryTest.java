@@ -42,7 +42,7 @@ class NotificationFactoryTest {
         assertThat(notification.getMessage()).contains("Jane Doe");
         assertThat(notification.getMessage()).contains("Cloud Fundamentals");
         assertThat(notification.getEntityType()).isEqualTo(NotificationEntityType.CERTIFICATE_SUBMISSION);
-        assertThat(notification.getActionPath()).isEqualTo("/");
+        assertThat(notification.getActionPath()).isEqualTo("/submissions/review");
     }
 
     @Test

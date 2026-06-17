@@ -6,7 +6,7 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 
 | Area | Command | Baseline (v0.6.1 in progress) |
 |------|---------|----------------------------------|
-| Frontend | `cd frontend && npm test` | **192 tests** |
+| Frontend | `cd frontend && npm test` | **213 tests** |
 | Frontend build | `cd frontend && npm run build` | Pass |
 | Backend (full) | `mvn -f backend/pom.xml test` | Pass (integration tests skipped without Docker) |
 
@@ -20,8 +20,8 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | Phase 1 | Submit Certificate page | **Passed** | Employee submit E2E validated; initiative visibility was test data (`DRAFT`), not code defect; temporary diagnostics removed before release |
 | Phase 2 | My Submissions page | **Passed** | Employee list, status filter, pagination, refresh |
 | Dropdown UX | Submit Certificate initiative ordering | **Passed** | Available initiatives first, already-submitted last (disabled); within each group `expiryDateUtc ASC` |
-| Phase 3 | Admin Review page | Not started | Placeholder only — plan awaiting approval |
-| Phase 4 | Notification E2E + docs | Not started | Depends on Phase 3 |
+| Phase 3 | Admin Review page | **Shipped** | Approve/reject UI; `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review` |
+| Phase 4 | Notification E2E + docs | Not started | Depends on Phase 3 manual validation |
 
 **Deferred (not in v0.6.1):** Employee dashboard status chips, filtering, and other dashboard UX refinements.
 
@@ -114,6 +114,23 @@ Validated at v0.6 merge:
 5. User create, activate, deactivate, reset-password → **no** new in-app notification
 6. Historical account-type rows (if present) still list correctly
 7. `mustChangePassword` user can access `/notifications` and bell APIs
+
+## Regression Checklist (Certificate Workflow — v0.6.1 Phase 3)
+
+Run before Phase 3 merge:
+
+1. `/submissions/review` loads for `ADMIN`; blocked for `EMPLOYEE`
+2. Pending submissions list shows employee, initiative, submitted date, comments, filename
+3. Empty state when no `SUBMITTED` submissions
+4. Approve → confirm dialog → success snackbar → row removed from list
+5. Reject → reason required → success snackbar → row removed from list
+6. Approve/reject API `400` on stale row shows error and refreshes list
+7. Employee My Submissions reflects approved/rejected status after admin action
+8. Employee receives `CERTIFICATE_APPROVED` / `CERTIFICATE_REJECTED` notification
+9. Admin `CERTIFICATE_SUBMITTED` notification `actionPath` navigates to `/submissions/review`
+10. Phase 1 Submit Certificate and Phase 2 My Submissions regression pass
+
+---
 
 ## Regression Checklist (Notifications — v0.6.1 E2E, proposed)
 
@@ -272,6 +289,6 @@ Run before each phase merge:
 | Import | Create-only; no update existing users via import |
 | Avatar storage | Local filesystem only; no cloud/S3 provider yet |
 | Notification E2E | Certificate producers backend-only; full UI E2E in v0.6.1 Phase 4 |
-| Admin Review UI | Placeholder until v0.6.1 Phase 3 |
+| Admin Review UI | Shipped in v0.6.1 Phase 3 |
 | Dashboard UX enhancements | Status chips, filtering deferred to future release |
-| `CERTIFICATE_SUBMITTED` actionPath | Currently `/` (dashboard); optional polish to `/submissions/review` in Phase 3 or 4 |
+| `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |

@@ -163,7 +163,7 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 
 **Limitation (v0.6):** Producers were wired and unit-tested but not triggerable through the application UI until certificate workflow pages shipped.
 
-**v0.6.1 progress:** Submit Certificate and My Submissions UI validated; `CERTIFICATE_SUBMITTED` producer now triggerable via application. Admin Review UI (Phase 3) pending — `CERTIFICATE_APPROVED` / `CERTIFICATE_REJECTED` E2E blocked until review page ships.
+**v0.6.1 progress:** Submit Certificate, My Submissions, and Admin Review UI shipped; `CERTIFICATE_SUBMITTED` actionPath points to `/submissions/review`. Full notification E2E validation pending Phase 4.
 
 ---
 
@@ -178,10 +178,10 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 |--------|------|-------------|----------|
 | `POST` | `/initiatives/{initiativeId}/submissions` | Submit certificate (multipart) | Phase 1 |
 | `GET` | `/me/submissions` | List own submissions | Phase 2 |
-| `GET` | `/submissions` | List all submissions (admin) | Phase 3 |
+| `GET` | `/submissions` | List all submissions (admin) | Phase 3 — **shipped** |
 | `GET` | `/submissions/{submissionId}` | View submission detail | Phase 3 (optional) |
-| `POST` | `/submissions/{submissionId}/approve` | Approve submission | Phase 3 |
-| `POST` | `/submissions/{submissionId}/reject` | Reject with reason | Phase 3 |
+| `POST` | `/submissions/{submissionId}/approve` | Approve submission | Phase 3 — **shipped** |
+| `POST` | `/submissions/{submissionId}/reject` | Reject with reason | Phase 3 — **shipped** |
 
 ### Business rules
 
@@ -243,7 +243,8 @@ Partial index: `idx_users_avatar_updated_at` (where `avatar_storage_key IS NOT N
 - [x] Submit Certificate page — validated
 - [x] My Submissions page — validated
 - [x] Submit Certificate dropdown UX — available initiatives first
-- [ ] Admin Review page — approve/reject UI (Phase 3, planned)
+- [x] Admin Review page — approve/reject UI (Phase 3)
+- [x] `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
 - [ ] Notification E2E validation (Phase 4)
 
 ### Future backend enhancements

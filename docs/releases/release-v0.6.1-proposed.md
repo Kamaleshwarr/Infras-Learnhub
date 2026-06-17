@@ -22,10 +22,10 @@ Close the gap between notification **infrastructure** (v0.6) and notification **
 | Phase 1 | Submit Certificate page | **Validated** |
 | Phase 2 | My Submissions page | **Validated** |
 | Dropdown UX | Available-first initiative ordering | **Validated** |
-| Phase 3 | Admin Review page + approve/reject UI | Planned — awaiting approval |
+| Phase 3 | Admin Review page + approve/reject UI | **Shipped** |
 | Phase 4 | Notification E2E validation + docs | Not started |
 
-**Deferred from v0.6.1:** Employee dashboard status chips, filtering, and other dashboard UX refinements.
+**Deferred from v0.6.1:** Employee dashboard status chips, filtering, Pending Reviews metric link, and other dashboard UX refinements.
 
 ---
 
@@ -67,17 +67,26 @@ Close the gap between notification **infrastructure** (v0.6) and notification **
 
 ---
 
-## Planned — Phase 3 (Admin Review)
+## Shipped — Phase 3 (Admin Review)
 
 **Route:** `/submissions/review` (admin-only)
 
-- List pending submissions via `GET /submissions?status=SUBMITTED`
-- Show employee, initiative, submitted date, comments, certificate filename
-- Row actions: Approve (confirm dialog), Reject (reason dialog, required)
-- Refresh list after action; snackbar feedback
-- Optional: update `CERTIFICATE_SUBMITTED` notification `actionPath` from `/` to `/submissions/review`
+- List pending submissions via `GET /submissions?status=SUBMITTED` with pagination
+- Table: employee, initiative, submitted date, comments, certificate filename
+- **Approve** — confirm dialog with submission summary; `POST /submissions/{id}/approve`
+- **Reject** — reason dialog (required, max 2000 chars); `POST /submissions/{id}/reject`
+- Success snackbars; list refresh after action; error handling for stale rows
+- Refresh button
 
-**Backend:** No changes expected — approve/reject endpoints and producers already exist.
+**Backend change:** `NotificationFactory.certificateSubmitted()` `actionPath` updated from `/` to `/submissions/review`.
+
+**New frontend components:**
+
+- `AdminReviewPage`, `AdminReviewTable`
+- `ApproveSubmissionDialog`, `RejectSubmissionDialog`, `SubmissionReviewSummary`
+- `adminReviewListParams`
+
+**Deferred:** Admin dashboard Pending Reviews metric link to review page.
 
 ---
 
@@ -89,10 +98,11 @@ Manual validation script (application UI only):
 |------|-------|----------|
 | 1 | Employee | Submit certificate on Submit Certificate page |
 | 2 | Admin | Bell badge increments; `CERTIFICATE_SUBMITTED` in dropdown and `/notifications` |
-| 3 | Admin | Approve submission on Admin Review page |
-| 4 | Employee | `CERTIFICATE_APPROVED` in bell and inbox |
-| 5 | (Optional) | Reject path → `CERTIFICATE_REJECTED` with reason in copy |
-| 6 | Both | Mark-read / mark-all-read keeps badge in sync |
+| 3 | Admin | Notification click navigates to `/submissions/review` |
+| 4 | Admin | Approve submission on Admin Review page |
+| 5 | Employee | `CERTIFICATE_APPROVED` in bell and inbox |
+| 6 | (Optional) | Reject path → `CERTIFICATE_REJECTED` with reason in copy |
+| 7 | Both | Mark-read / mark-all-read keeps badge in sync |
 
 ---
 
@@ -112,8 +122,8 @@ Manual validation script (application UI only):
 - Notification preferences
 - WebSockets / real-time push
 - Bulk certificate operations
-- Certificate file preview/download in review UI (optional stretch)
-- Dashboard status chips and filtering
+- Certificate file preview/download in review UI
+- Dashboard status chips, filtering, and Pending Reviews link
 
 ---
 
@@ -121,11 +131,11 @@ Manual validation script (application UI only):
 
 | Area | Baseline |
 |------|----------|
-| Frontend | **192 tests** (`cd frontend && npm test`) |
-| Backend | Existing `CertificateSubmissionServiceTest` producer coverage |
+| Frontend | **213 tests** (`cd frontend && npm test`) |
+| Backend | `NotificationFactoryTest`, `CertificateSubmissionServiceTest` |
 
 ---
 
-## Approval gate — Phase 3
+## Next gate — Phase 4
 
-**Do not start Phase 3 implementation until the plan is approved.**
+Run notification E2E validation script and document results in `docs/testing-and-defect-history.md`.
