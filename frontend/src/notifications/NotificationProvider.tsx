@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { notificationsApi } from '../api/notificationsApi'
 
@@ -21,20 +21,30 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const mountedRef = useRef(true)
 
   const refresh = useCallback(async () => {
     try {
       const response = await notificationsApi.unreadCount()
+      if (!mountedRef.current) {
+        return
+      }
       setUnreadCount(response.count)
       setError(null)
     } catch {
+      if (!mountedRef.current) {
+        return
+      }
       setError('Unable to load notification count.')
     } finally {
-      setLoading(false)
+      if (mountedRef.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
   useEffect(() => {
+    mountedRef.current = true
     void refresh()
 
     const intervalId = window.setInterval(() => {
@@ -48,6 +58,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     window.addEventListener('focus', handleFocus)
 
     return () => {
+      mountedRef.current = false
       window.clearInterval(intervalId)
       window.removeEventListener('focus', handleFocus)
     }

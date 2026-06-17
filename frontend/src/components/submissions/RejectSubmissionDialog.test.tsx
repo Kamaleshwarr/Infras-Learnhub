@@ -32,7 +32,7 @@ const submission: CertificateSubmission = {
 
 describe('RejectSubmissionDialog', () => {
   it('requires a rejection reason before submit', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     const onSubmit = vi.fn()
 
     render(<RejectSubmissionDialog onClose={vi.fn()} onSubmit={onSubmit} open submission={submission} />)
@@ -46,7 +46,7 @@ describe('RejectSubmissionDialog', () => {
   })
 
   it('keeps reject disabled for whitespace-only reason', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
 
     render(<RejectSubmissionDialog onClose={vi.fn()} onSubmit={vi.fn()} open submission={submission} />)
 

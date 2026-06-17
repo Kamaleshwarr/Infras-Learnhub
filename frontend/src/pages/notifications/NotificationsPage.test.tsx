@@ -72,6 +72,7 @@ describe('NotificationsPage', () => {
   })
 
   it('shows empty unread state', async () => {
+    const user = userEvent.setup()
     vi.mocked(notificationsApi.list).mockResolvedValue({
       ...pageResponse,
       content: [],
@@ -81,7 +82,7 @@ describe('NotificationsPage', () => {
     renderWithProvider(<NotificationsPage />)
 
     const unreadTab = await screen.findByRole('tab', { name: 'Unread' })
-    unreadTab.click()
+    await user.click(unreadTab)
 
     expect(await screen.findByText('No unread notifications.')).toBeInTheDocument()
   })

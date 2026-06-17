@@ -105,12 +105,14 @@ describe('MySubmissionsPage', () => {
     } as never)
 
     expect(await screen.findByText(SUBMISSION_MESSAGES.submitSuccess)).toBeInTheDocument()
+    await waitFor(() => expect(submissionsApi.listMine).toHaveBeenCalled())
   })
 
   it('links to Submit Certificate page', async () => {
     renderPage()
 
     expect(screen.getByRole('link', { name: 'Submit certificate' })).toHaveAttribute('href', '/submissions/new')
+    await waitFor(() => expect(submissionsApi.listMine).toHaveBeenCalled())
   })
 
   it('shows an error when loading fails', async () => {
