@@ -25,25 +25,40 @@ export interface DashboardData {
 }
 
 export async function getAdminDashboardData(): Promise<DashboardData> {
-  const [initiatives, pendingSubmissions, leaderboard, materials, projects] = await Promise.all([
-    initiativesApi.list({ size: 50, status: 'ACTIVE', sort: 'expiryDateUtc,asc' }),
-    submissionsApi.listAll({ size: 1, status: 'SUBMITTED' }),
+  const initiativesResult = await initiativesApi
+    .list({ size: 50, status: 'ACTIVE', sort: 'expiryDateUtc,asc' })
+    .then((value) => ({ ok: true as const, value }))
+    .catch(() => ({ ok: false as const, value: null }))
+
+  const pendingSubmissionsResult = await submissionsApi
+    .listAll({ size: 1, status: 'SUBMITTED' })
+    .then((value) => ({ ok: true as const, value }))
+    .catch(() => ({ ok: false as const, value: null }))
+
+  if (!initiativesResult.ok && !pendingSubmissionsResult.ok) {
+    throw new Error('Unable to load admin dashboard primary data')
+  }
+
+  const [leaderboardResult, materialsResult, projectsResult] = await Promise.allSettled([
     leaderboardsApi.global({ size: 5, sort: 'rank,asc' }),
     studyMaterialsApi.search(undefined, { size: 5, sort: 'createdAtUtc,desc' }),
     projectsApi.list(undefined, { size: 5, sort: 'updatedAtUtc,desc' }),
   ])
 
+  const initiatives = initiativesResult.ok ? initiativesResult.value : null
+  const pendingSubmissions = pendingSubmissionsResult.ok ? pendingSubmissionsResult.value : null
+
   return {
-    activeInitiatives: initiatives.content.slice(0, 5),
-    activeInitiativesCount: initiatives.totalElements,
-    expiringInitiativesCount: countExpiringInitiatives(initiatives.content),
+    activeInitiatives: initiatives?.content.slice(0, 5) ?? [],
+    activeInitiativesCount: initiatives?.totalElements ?? 0,
+    expiringInitiativesCount: countExpiringInitiatives(initiatives?.content ?? []),
     mySubmissions: [],
-    pendingReviewsCount: pendingSubmissions.totalElements,
-    leaderboardPreview: leaderboard.content,
+    pendingReviewsCount: pendingSubmissions?.totalElements ?? 0,
+    leaderboardPreview: leaderboardResult.status === 'fulfilled' ? leaderboardResult.value.content : [],
     myRank: null,
-    recentStudyMaterials: materials.content,
+    recentStudyMaterials: materialsResult.status === 'fulfilled' ? materialsResult.value.content : [],
     assignedProjects: [],
-    recentProjectUpdates: projects.content,
+    recentProjectUpdates: projectsResult.status === 'fulfilled' ? projectsResult.value.content : [],
   }
 }
 

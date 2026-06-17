@@ -111,6 +111,7 @@ Manual validation script (application UI only):
 | ID | Summary | Status |
 |----|---------|--------|
 | CW-D01 | Employee dashboard failed when secondary APIs errored | **Pass** — `Promise.allSettled` fix in `dashboardApi.ts` |
+| CW-D02 | Admin dashboard failed when secondary APIs errored | **Fixed** — same fault-isolation pattern applied to `getAdminDashboardData()` |
 
 ---
 
@@ -131,7 +132,7 @@ Manual validation script (application UI only):
 
 | Area | Baseline |
 |------|----------|
-| Frontend | **213 tests** (`cd frontend && npm test`) |
+| Frontend | **220 tests** (`cd frontend && npm test`) |
 | Backend | `NotificationFactoryTest`, `CertificateSubmissionServiceTest` |
 
 ---

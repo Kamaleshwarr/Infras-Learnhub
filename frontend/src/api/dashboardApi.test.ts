@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getEmployeeDashboardData } from './dashboardApi'
+import { getAdminDashboardData, getEmployeeDashboardData } from './dashboardApi'
 import { initiativesApi } from './initiativesApi'
 import { leaderboardsApi } from './leaderboardsApi'
 import { projectsApi } from './projectsApi'
@@ -11,7 +11,7 @@ vi.mock('./initiativesApi', () => ({
 }))
 
 vi.mock('./submissionsApi', () => ({
-  submissionsApi: { listMine: vi.fn() },
+  submissionsApi: { listMine: vi.fn(), listAll: vi.fn() },
 }))
 
 vi.mock('./leaderboardsApi', () => ({
@@ -35,64 +35,193 @@ const initiative = {
   title: 'AWS Certification',
 }
 
+const leaderboardEntry = {
+  employee: {
+    email: 'learner@example.com',
+    fullName: 'Top Learner',
+    id: 'user-1',
+  },
+  rank: 1,
+  totalApprovedCertifications: 4,
+}
+
+const studyMaterial = {
+  downloadCount: 3,
+  id: 'material-1',
+  materialType: 'PDF' as const,
+  sourceType: 'FILE' as const,
+  title: 'AWS Guide',
+}
+
+const project = {
+  accessType: 'PUBLIC' as const,
+  archived: false,
+  id: 'project-1',
+  name: 'Observability',
+}
+
+const emptyPage = {
+  content: [],
+  first: true,
+  last: true,
+  page: 0,
+  size: 5,
+  sort: [],
+  totalElements: 0,
+  totalPages: 0,
+}
+
+function mockAdminDefaults() {
+  vi.mocked(initiativesApi.list).mockResolvedValue({
+    content: [initiative],
+    first: true,
+    last: true,
+    page: 0,
+    size: 50,
+    sort: [],
+    totalElements: 3,
+    totalPages: 1,
+  })
+  vi.mocked(submissionsApi.listAll).mockResolvedValue({
+    ...emptyPage,
+    totalElements: 7,
+  })
+  vi.mocked(leaderboardsApi.global).mockResolvedValue({
+    content: [leaderboardEntry],
+    first: true,
+    last: true,
+    page: 0,
+    size: 5,
+    sort: [],
+    totalElements: 1,
+    totalPages: 1,
+  })
+  vi.mocked(studyMaterialsApi.search).mockResolvedValue({
+    content: [studyMaterial],
+    first: true,
+    last: true,
+    page: 0,
+    size: 5,
+    sort: [],
+    totalElements: 1,
+    totalPages: 1,
+  })
+  vi.mocked(projectsApi.list).mockResolvedValue({
+    content: [project],
+    first: true,
+    last: true,
+    page: 0,
+    size: 5,
+    sort: [],
+    totalElements: 1,
+    totalPages: 1,
+  })
+}
+
+function mockEmployeeDefaults() {
+  vi.mocked(initiativesApi.list).mockResolvedValue({
+    content: [initiative],
+    first: true,
+    last: true,
+    page: 0,
+    size: 5,
+    sort: [],
+    totalElements: 1,
+    totalPages: 1,
+  })
+  vi.mocked(submissionsApi.listMine).mockResolvedValue(emptyPage)
+  vi.mocked(leaderboardsApi.global).mockResolvedValue(emptyPage)
+  vi.mocked(leaderboardsApi.me).mockResolvedValue({
+    globalRank: null,
+    recentApprovals: [],
+    totalApprovedCertifications: 0,
+  })
+  vi.mocked(studyMaterialsApi.search).mockResolvedValue(emptyPage)
+  vi.mocked(projectsApi.list).mockResolvedValue(emptyPage)
+}
+
+describe('getAdminDashboardData', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockAdminDefaults()
+  })
+
+  it('returns primary metrics when secondary dashboard APIs fail', async () => {
+    vi.mocked(leaderboardsApi.global).mockRejectedValue(new Error('leaderboard unavailable'))
+    vi.mocked(studyMaterialsApi.search).mockRejectedValue(new Error('study materials unavailable'))
+    vi.mocked(projectsApi.list).mockRejectedValue(new Error('projects unavailable'))
+
+    const data = await getAdminDashboardData()
+
+    expect(data.activeInitiativesCount).toBe(3)
+    expect(data.pendingReviewsCount).toBe(7)
+    expect(data.leaderboardPreview).toEqual([])
+    expect(data.recentStudyMaterials).toEqual([])
+    expect(data.recentProjectUpdates).toEqual([])
+  })
+
+  it('still returns initiatives when leaderboard API fails', async () => {
+    vi.mocked(leaderboardsApi.global).mockRejectedValue(new Error('leaderboard unavailable'))
+
+    const data = await getAdminDashboardData()
+
+    expect(data.activeInitiatives).toEqual([initiative])
+    expect(data.activeInitiativesCount).toBe(3)
+    expect(data.leaderboardPreview).toEqual([])
+    expect(data.pendingReviewsCount).toBe(7)
+  })
+
+  it('still returns pending reviews when study materials API fails', async () => {
+    vi.mocked(studyMaterialsApi.search).mockRejectedValue(new Error('study materials unavailable'))
+
+    const data = await getAdminDashboardData()
+
+    expect(data.pendingReviewsCount).toBe(7)
+    expect(data.recentStudyMaterials).toEqual([])
+    expect(data.activeInitiativesCount).toBe(3)
+  })
+
+  it('still returns primary metrics when projects API fails', async () => {
+    vi.mocked(projectsApi.list).mockRejectedValue(new Error('projects unavailable'))
+
+    const data = await getAdminDashboardData()
+
+    expect(data.activeInitiativesCount).toBe(3)
+    expect(data.pendingReviewsCount).toBe(7)
+    expect(data.recentProjectUpdates).toEqual([])
+  })
+
+  it('returns initiatives when submissions API fails without throwing', async () => {
+    vi.mocked(submissionsApi.listAll).mockRejectedValue(new Error('submissions unavailable'))
+
+    const data = await getAdminDashboardData()
+
+    expect(data.activeInitiativesCount).toBe(3)
+    expect(data.pendingReviewsCount).toBe(0)
+  })
+
+  it('returns pending reviews when initiatives API fails without throwing', async () => {
+    vi.mocked(initiativesApi.list).mockRejectedValue(new Error('initiatives unavailable'))
+
+    const data = await getAdminDashboardData()
+
+    expect(data.activeInitiatives).toEqual([])
+    expect(data.activeInitiativesCount).toBe(0)
+    expect(data.pendingReviewsCount).toBe(7)
+  })
+
+  it('throws only when both primary dashboard APIs fail', async () => {
+    vi.mocked(initiativesApi.list).mockRejectedValue(new Error('initiatives unavailable'))
+    vi.mocked(submissionsApi.listAll).mockRejectedValue(new Error('submissions unavailable'))
+
+    await expect(getAdminDashboardData()).rejects.toThrow('Unable to load admin dashboard primary data')
+  })
+})
+
 describe('getEmployeeDashboardData', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(initiativesApi.list).mockResolvedValue({
-      content: [initiative],
-      first: true,
-      last: true,
-      page: 0,
-      size: 5,
-      sort: [],
-      totalElements: 1,
-      totalPages: 1,
-    })
-    vi.mocked(submissionsApi.listMine).mockResolvedValue({
-      content: [],
-      first: true,
-      last: true,
-      page: 0,
-      size: 5,
-      sort: [],
-      totalElements: 0,
-      totalPages: 0,
-    })
-    vi.mocked(leaderboardsApi.global).mockResolvedValue({
-      content: [],
-      first: true,
-      last: true,
-      page: 0,
-      size: 5,
-      sort: [],
-      totalElements: 0,
-      totalPages: 0,
-    })
-    vi.mocked(leaderboardsApi.me).mockResolvedValue({
-      globalRank: null,
-      recentApprovals: [],
-      totalApprovedCertifications: 0,
-    })
-    vi.mocked(studyMaterialsApi.search).mockResolvedValue({
-      content: [],
-      first: true,
-      last: true,
-      page: 0,
-      size: 5,
-      sort: [],
-      totalElements: 0,
-      totalPages: 0,
-    })
-    vi.mocked(projectsApi.list).mockResolvedValue({
-      content: [],
-      first: true,
-      last: true,
-      page: 0,
-      size: 5,
-      sort: [],
-      totalElements: 0,
-      totalPages: 0,
-    })
+    mockEmployeeDefaults()
   })
 
   it('still returns initiatives when other dashboard APIs fail', async () => {

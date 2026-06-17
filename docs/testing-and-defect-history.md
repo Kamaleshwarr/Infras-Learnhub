@@ -6,7 +6,7 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 
 | Area | Command | Baseline (v0.6.1 in progress) |
 |------|---------|----------------------------------|
-| Frontend | `cd frontend && npm test` | **213 tests** |
+| Frontend | `cd frontend && npm test` | **220 tests** |
 | Frontend build | `cd frontend && npm run build` | Pass |
 | Backend (full) | `mvn -f backend/pom.xml test` | Pass (integration tests skipped without Docker) |
 
@@ -32,6 +32,7 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | ID | Symptom | Root cause | Fix | Verified |
 |----|---------|------------|-----|----------|
 | CW-D01 | Employee dashboard shows **"Unable to load dashboard data"**; active initiatives and submissions widgets empty | `getEmployeeDashboardData()` used `Promise.all` across six APIs. Any single failure (e.g. leaderboard, projects, study materials) rejected the entire load; `DashboardPage` catch block set `error` and `data = null`, hiding initiatives/submissions even when `GET /initiatives` and `GET /me/submissions` succeeded | Fix in `dashboardApi.ts`: load initiatives separately and use `Promise.allSettled` for secondary widgets so one failure does not blank the page | **Pass** — revalidated 2026-06-16 |
+| CW-D02 | Admin dashboard shows **"Unable to load dashboard data"**; all metric cards `--`; widgets empty while employee dashboard works | `getAdminDashboardData()` still used `Promise.all` across five APIs. Any secondary failure (leaderboard, study materials, projects) rejected the entire admin load even when `GET /initiatives` and `GET /submissions?status=SUBMITTED` succeeded — same fault-isolation gap as CW-D01 on the admin path | Fix in `dashboardApi.ts`: load initiatives and pending submissions as isolated primary sources; use `Promise.allSettled` for secondary widgets; throw only when both primary APIs fail | Pending |
 
 ### CW-D01 — APIs involved
 
@@ -41,14 +42,40 @@ Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 | `GET /api/v1/me/submissions?size=5&sort=submittedAtUtc,desc` | My submissions count + list | Primary |
 | `GET /api/v1/leaderboards/global?size=5&sort=rank,asc` | Leaderboard preview | Secondary |
 | `GET /api/v1/leaderboards/me` | My rank metrics | Secondary |
-| `GET /api/v1/study-materials?size=5&sort=createdAtUtc,desc` | Recent study materials | Secondary |
+| `GET /api/v1/study-materials/materials?size=5&sort=createdAtUtc,desc` | Recent study materials | Secondary |
 | `GET /api/v1/projects?size=5&sort=updatedAtUtc,desc` | Assigned projects | Secondary |
 
 ### CW-D01 — Fix summary
 
 1. **Before:** `Promise.all([initiatives, submissions, leaderboard, myRank, materials, projects])` — one HTTP 4xx/5xx or network error failed the whole dashboard.
 2. **After:** Initiatives fetched with isolated `catch`; remaining calls use `Promise.allSettled`; successful sections render with empty fallbacks for failed sections.
-3. **Follow-up (deferred):** Per-widget error hints instead of top-level banner when only secondary APIs fail; apply same pattern to `getAdminDashboardData()` if needed.
+3. **Follow-up:** Admin dashboard fault isolation addressed in **CW-D02**.
+
+### CW-D02 — APIs involved (admin dashboard)
+
+| API | Role in dashboard | Admin dashboard usage |
+|-----|-------------------|----------------------|
+| `GET /api/v1/initiatives?size=50&status=ACTIVE&sort=expiryDateUtc,asc` | Active + expiring initiative metrics | Primary |
+| `GET /api/v1/submissions?size=1&status=SUBMITTED` | Pending reviews count | Primary |
+| `GET /api/v1/leaderboards/global?size=5&sort=rank,asc` | Top learners preview | Secondary |
+| `GET /api/v1/study-materials/materials?size=5&sort=createdAtUtc,desc` | Recent study materials | Secondary |
+| `GET /api/v1/projects?size=5&sort=updatedAtUtc,desc` | Recent project updates | Secondary |
+
+### CW-D02 — Fix summary
+
+1. **Before:** `Promise.all([initiatives, pendingSubmissions, leaderboard, materials, projects])` — one failure blanked the entire admin dashboard.
+2. **After:** Initiatives and pending submissions fetched with isolated `catch`; secondary widgets use `Promise.allSettled`; global error only when **both** primary APIs fail.
+
+### CW-D02 — Validation steps
+
+1. Log in as **admin** with at least one active initiative.
+2. Open `/` (Admin Dashboard).
+3. Confirm **no** top-level error when initiatives and/or pending-submissions APIs succeed, even if a secondary API fails.
+4. Confirm **Active Initiatives** and **Pending Reviews** metrics populate when their APIs succeed.
+5. Confirm secondary widgets (Top Learners, Recent Study Materials, Recent Project Updates) show empty states when their APIs fail — not a global error.
+6. Network tab: verify a failed secondary call does not set `data = null` or blank primary metrics.
+
+---
 
 ### CW-D01 — Validation steps
 
