@@ -42,7 +42,7 @@ describe('CreateUserDialog', () => {
   })
 
   it('creates a user with normalized email and shows success flow', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     vi.mocked(usersApi.create).mockResolvedValue({
       active: true,
       createdAtUtc: '2026-06-12T00:00:00Z',
@@ -79,7 +79,7 @@ describe('CreateUserDialog', () => {
   })
 
   it('shows server validation errors', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     const error = new axios.AxiosError(
       'Request failed',
       'ERR_BAD_REQUEST',

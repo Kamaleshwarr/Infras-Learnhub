@@ -87,7 +87,7 @@ describe('ProfilePage', () => {
   })
 
   it('updates profile and refreshes auth context on save', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
     const updatedProfile: Profile = {
       ...profile,
       fullName: 'Jane Smith',
@@ -125,7 +125,7 @@ describe('ProfilePage', () => {
   })
 
   it('keeps save disabled until profile form is dirty', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
 
     renderProfilePage()
     await user.click(await screen.findByRole('button', { name: 'Edit Profile' }))
@@ -140,7 +140,7 @@ describe('ProfilePage', () => {
   })
 
   it('cancels edit mode without saving', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
 
     renderProfilePage()
     await user.click(await screen.findByRole('button', { name: 'Edit Profile' }))
@@ -172,7 +172,7 @@ describe('ProfilePage', () => {
   })
 
   it('navigates to the existing change password page', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null })
 
     renderProfilePage()
     await user.click(await screen.findByRole('button', { name: 'Change Password' }))
