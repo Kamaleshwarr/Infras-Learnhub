@@ -1,19 +1,65 @@
 # Testing & Defect History
 
-Last updated: 2026-06-16 (v0.6 — Notification Infrastructure shipped)
+Last updated: 2026-06-16 (v0.6.1 — Certificate Workflow UI in progress)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.6) |
-|------|---------|-----------------|
-| Frontend | `cd frontend && npm test` | **140 tests** (33 files) |
+| Area | Command | Baseline (v0.6.1 in progress) |
+|------|---------|----------------------------------|
+| Frontend | `cd frontend && npm test` | **180+ tests** |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend (notifications) | `mvn -f backend/pom.xml test -Dtest='com.company.learninghub.notification.**'` | Pass |
-| Backend (profile) | `mvn -f backend/pom.xml test -Dtest='Profile*Test'` | Pass |
-| Backend (user mgmt) | `mvn -f backend/pom.xml test -Dtest='UserManagement*Test'` | Pass |
-| Backend (full) | `mvn -f backend/pom.xml test` | Pass (10 integration tests skipped without Docker) |
+| Backend (full) | `mvn -f backend/pom.xml test` | Pass (integration tests skipped without Docker) |
 
 ---
+
+## Certificate Workflow — Validation History (v0.6.1)
+
+| Phase | Deliverable | Status | Notes |
+|-------|-------------|--------|-------|
+| Phase 0 | API/types/shared route prep | **Passed** | PR #29 |
+| Phase 1 | Submit Certificate page | **Passed** | Employee submit E2E validated; initiative visibility was test data (`DRAFT`), not code defect |
+| Phase 2 | My Submissions page | **In progress** | Employee list, status filter, pagination |
+| Phase 3 | Admin Review page | Not started | Placeholder only |
+| Phase 4 | Notification E2E + docs | Not started | Depends on Phase 3 |
+
+---
+
+## Defects — Certificate Workflow (v0.6.1)
+
+| ID | Symptom | Root cause | Fix | Verified |
+|----|---------|------------|-----|----------|
+| CW-D01 | Employee dashboard shows **"Unable to load dashboard data"**; active initiatives and submissions widgets empty | `getEmployeeDashboardData()` used `Promise.all` across six APIs. Any single failure (e.g. leaderboard, projects, study materials) rejected the entire load; `DashboardPage` catch block set `error` and `data = null`, hiding initiatives/submissions even when `GET /initiatives` and `GET /me/submissions` succeeded | Partial fix in `dashboardApi.ts`: load initiatives separately and use `Promise.allSettled` for secondary widgets so one failure does not blank the page. **Open** — verify after redeploy; consider widget-level error states | Pending |
+
+### CW-D01 — APIs involved
+
+| API | Role in dashboard | Employee dashboard usage |
+|-----|-------------------|--------------------------|
+| `GET /api/v1/initiatives?size=5&status=ACTIVE&sort=expiryDateUtc,asc` | Active initiatives count + list | Primary |
+| `GET /api/v1/me/submissions?size=5&sort=submittedAtUtc,desc` | My submissions count + list | Primary |
+| `GET /api/v1/leaderboards/global?size=5&sort=rank,asc` | Leaderboard preview | Secondary |
+| `GET /api/v1/leaderboards/me` | My rank metrics | Secondary |
+| `GET /api/v1/study-materials?size=5&sort=createdAtUtc,desc` | Recent study materials | Secondary |
+| `GET /api/v1/projects?size=5&sort=updatedAtUtc,desc` | Assigned projects | Secondary |
+
+### CW-D01 — Fix summary
+
+1. **Before:** `Promise.all([initiatives, submissions, leaderboard, myRank, materials, projects])` — one HTTP 4xx/5xx or network error failed the whole dashboard.
+2. **After (partial):** Initiatives fetched with isolated `catch`; remaining calls use `Promise.allSettled`; successful sections render with empty fallbacks for failed sections.
+3. **Follow-up (optional):** Per-widget error hints instead of top-level banner when only secondary APIs fail; apply same pattern to `getAdminDashboardData()` if needed.
+
+### CW-D01 — Validation steps
+
+1. Log in as **employee** with at least one active initiative and one certificate submission.
+2. Open `/` (Employee Dashboard).
+3. Confirm **no** top-level "Unable to load dashboard data" error when initiatives/submissions APIs succeed.
+4. Confirm **Active Initiatives** metric and list show initiative data.
+5. Confirm **My Submissions** metric and list show submission data.
+6. If a secondary API fails (e.g. disable projects module in test env), confirm initiatives/submissions widgets still render.
+7. Network tab: verify failed secondary call does not prevent initiatives/submissions responses from populating the UI.
+
+---
+
+## Test Baselines (v0.6 — archived)
 
 ## Notifications — Validation History (v0.6 Infrastructure)
 
@@ -222,5 +268,6 @@ Run before each phase merge:
 | UM-006 | No downloadable import error report yet |
 | Import | Create-only; no update existing users via import |
 | Avatar storage | Local filesystem only; no cloud/S3 provider yet |
-| Notification E2E | Certificate producers backend-only; UI workflows in v0.6.1 |
-| Certificate submission UI | Submit / My Submissions / Admin Review pages are placeholders |
+| Notification E2E | Certificate producers backend-only; full UI E2E in v0.6.1 Phase 4 |
+| Admin Review UI | Placeholder until v0.6.1 Phase 3 |
+| Employee dashboard (CW-D01) | Partial load fix merged; validation pending |

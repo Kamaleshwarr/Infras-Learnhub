@@ -53,6 +53,12 @@ describe('AppRoutes certificate workflow preparation', () => {
     expect(screen.getByRole('heading', { name: 'Certificate Review' })).toBeInTheDocument()
   })
 
+  it('renders my submissions route for employees', () => {
+    renderRoute('/submissions', employeeUser)
+
+    expect(screen.getByRole('heading', { name: 'My Submissions' })).toBeInTheDocument()
+  })
+
   it('redirects employees away from admin review route', () => {
     renderRoute('/submissions/review', employeeUser)
 
