@@ -4,7 +4,7 @@ Enterprise-grade internal web application for managing learning initiatives, cer
 programs, study materials, project knowledge, KT documents, leaderboards, user administration,
 and in-app notifications.
 
-**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) — Certificate Preview, Download & Pending Reviews Drilldown (ready for release)
+**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) — Certificate Preview, Download & Pending Reviews Drilldown (shipped)
 
 ## Quick start
 

@@ -1,6 +1,6 @@
 # Testing & Defect History
 
-Last updated: 2026-06-18 (v0.6.2 — ready for release)
+Last updated: 2026-06-18 (v0.6.2 — shipped, PR #32)
 
 ## Test Baselines
 

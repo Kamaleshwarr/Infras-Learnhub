@@ -37,7 +37,7 @@
 
 ## Current Release
 
-**v0.6.2** — Certificate Preview, Download & Pending Reviews Drilldown (ready for release)
+**v0.6.2** — Certificate Preview, Download & Pending Reviews Drilldown (shipped, PR #32)
 
 Release notes: `docs/releases/release-v0.6.2.md`  
 Prior release: `docs/releases/release-v0.6.1.md`  

@@ -1,7 +1,7 @@
 # Engineering Learning Hub v0.6.2
 
 **Theme:** Certificate Preview, Download & Pending Reviews Dashboard Drilldown  
-**Status:** Ready for release  
+**Status:** Shipped (PR #32, merge commit `d13ce45`)  
 **Depends on:** v0.6.1 Certificate Workflow UI & Notification E2E Validation (merged PR #29)  
 **Classification:** Feature release — admin certificate document access and dashboard navigation
 
@@ -13,7 +13,7 @@ v0.6.2 completes the admin certificate review experience by letting reviewers pr
 
 **Success criterion (met):** Admin opens Certificate Review → previews or downloads a submitted certificate → approves or rejects with full document context; Admin Dashboard **Pending Reviews** card navigates to `/submissions/review`.
 
-**Merge target:** `cursor/v0.6.2-certificate-review-de8d` → `main`
+**Shipped via:** PR #32 — `cursor/v0.6.2-certificate-review-de8d` → `main` (merged 2026-06-18)
 
 ---
 

@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-18 (v0.6.2 — ready for release)
+Last updated: 2026-06-18 (v0.6.2 — shipped, PR #32)
 
 ## Release Overview
 
@@ -12,7 +12,7 @@ Last updated: 2026-06-18 (v0.6.2 — ready for release)
 | v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
 | v0.6 | In-App Notification Infrastructure | Shipped (PR #28) |
 | v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
-| **v0.6.2** | **Certificate Preview, Download & Pending Reviews Drilldown** | **Ready for release** |
+| **v0.6.2** | **Certificate Preview, Download & Pending Reviews Drilldown** | **Shipped (PR #32)** |
 
 Release notes: `docs/releases/release-v0.6.2.md`  
 Prior: `docs/releases/release-v0.6.1.md`  
