@@ -11,6 +11,7 @@ import com.company.learninghub.storage.StoredFile;
 import com.company.learninghub.submission.domain.ApprovalStatus;
 import com.company.learninghub.submission.domain.CertificateDocument;
 import com.company.learninghub.submission.domain.CertificateSubmission;
+import com.company.learninghub.submission.dto.CertificateContent;
 import com.company.learninghub.submission.dto.CertificateSubmissionResponse;
 import com.company.learninghub.submission.mapper.CertificateSubmissionMapper;
 import com.company.learninghub.submission.repository.CertificateDocumentRepository;
@@ -19,6 +20,7 @@ import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -143,7 +145,9 @@ public class CertificateSubmissionService {
             notificationService.notifyCertificateSubmitted(savedSubmission);
             return submissionMapper.toResponse(savedSubmission);
         } catch (RuntimeException ex) {
-            fileStorageService.deleteQuietly(storedFile.storageKey());
+            if (storedFile != null) {
+                fileStorageService.deleteQuietly(storedFile.storageKey());
+            }
             throw ex;
         }
     }
@@ -151,11 +155,25 @@ public class CertificateSubmissionService {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
     public CertificateSubmissionResponse getById(UUID submissionId, AuthenticatedUser authenticatedUser) {
-        CertificateSubmission submission = findSubmissionOrThrow(submissionId);
-        if (isAdmin(authenticatedUser) || submission.belongsTo(authenticatedUser.getId())) {
-            return submissionMapper.toResponse(submission);
+        CertificateSubmission submission = findAccessibleSubmissionOrThrow(submissionId, authenticatedUser);
+        return submissionMapper.toResponse(submission);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @Transactional(readOnly = true)
+    public CertificateContent getCertificateContent(UUID submissionId, AuthenticatedUser authenticatedUser) {
+        CertificateSubmission submission = findAccessibleSubmissionOrThrow(submissionId, authenticatedUser);
+        CertificateDocument document = submission.getCertificateDocument();
+        try {
+            Resource resource = fileStorageService.loadAsResource(document.getStorageKey());
+            return new CertificateContent(
+                    resource,
+                    document.getContentType(),
+                    document.getOriginalFilename()
+            );
+        } catch (IllegalStateException ex) {
+            throw new ResourceNotFoundException("Certificate file was not found");
         }
-        throw new ResourceNotFoundException("Certificate submission was not found");
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
@@ -215,6 +233,14 @@ public class CertificateSubmissionService {
     private CertificateSubmission findSubmissionOrThrow(UUID submissionId) {
         return submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Certificate submission was not found"));
+    }
+
+    private CertificateSubmission findAccessibleSubmissionOrThrow(UUID submissionId, AuthenticatedUser authenticatedUser) {
+        CertificateSubmission submission = findSubmissionOrThrow(submissionId);
+        if (isAdmin(authenticatedUser) || submission.belongsTo(authenticatedUser.getId())) {
+            return submission;
+        }
+        throw new ResourceNotFoundException("Certificate submission was not found");
     }
 
     private User findUserOrThrow(UUID userId) {

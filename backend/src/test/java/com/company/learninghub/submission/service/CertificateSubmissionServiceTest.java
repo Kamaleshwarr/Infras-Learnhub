@@ -12,6 +12,7 @@ import com.company.learninghub.storage.StoredFile;
 import com.company.learninghub.submission.domain.ApprovalStatus;
 import com.company.learninghub.submission.domain.CertificateDocument;
 import com.company.learninghub.submission.domain.CertificateSubmission;
+import com.company.learninghub.submission.dto.CertificateContent;
 import com.company.learninghub.submission.dto.CertificateSubmissionResponse;
 import com.company.learninghub.submission.mapper.CertificateSubmissionMapper;
 import com.company.learninghub.submission.repository.CertificateDocumentRepository;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +38,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -136,7 +139,7 @@ class CertificateSubmissionServiceTest {
 
     @Test
     void submitRejectsFutureInitiativeWithoutStoringFile() {
-        LearningInitiative future = initiative("Future", InitiativeStatus.ACTIVE, NOW.plusSeconds(60), NOW.plusSeconds(3600));
+        LearningInitiative future = initiative("Future", InitiativeStatus.ACTIVE, NOW.plus(1, ChronoUnit.DAYS), NOW.plus(2, ChronoUnit.DAYS));
         when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(initiativeRepository.findById(future.getId())).thenReturn(Optional.of(future));
 
@@ -149,7 +152,7 @@ class CertificateSubmissionServiceTest {
 
     @Test
     void submitRejectsExpiredInitiativeWithoutStoringFile() {
-        LearningInitiative expired = initiative("Expired", InitiativeStatus.ACTIVE, NOW.minusSeconds(3600), NOW.minusSeconds(1));
+        LearningInitiative expired = initiative("Expired", InitiativeStatus.ACTIVE, NOW.minus(2, ChronoUnit.DAYS), NOW.minus(1, ChronoUnit.DAYS));
         when(userRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(initiativeRepository.findById(expired.getId())).thenReturn(Optional.of(expired));
 
@@ -255,6 +258,56 @@ class CertificateSubmissionServiceTest {
         assertThatThrownBy(() -> submissionService.getById(otherSubmission.getId(), employeePrincipal))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Certificate submission was not found");
+    }
+
+    @Test
+    void getCertificateContentAllowsAdminToAccessAnySubmission() {
+        CertificateSubmission submission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
+        ByteArrayResource resource = new ByteArrayResource("certificate-content".getBytes());
+        when(submissionRepository.findById(submission.getId())).thenReturn(Optional.of(submission));
+        when(fileStorageService.loadAsResource(submission.getCertificateDocument().getStorageKey())).thenReturn(resource);
+
+        CertificateContent content = submissionService.getCertificateContent(submission.getId(), adminPrincipal);
+
+        assertThat(content.contentType()).isEqualTo("application/pdf");
+        assertThat(content.originalFilename()).isEqualTo("certificate.pdf");
+        assertThat(content.resource()).isSameAs(resource);
+    }
+
+    @Test
+    void getCertificateContentAllowsEmployeeToAccessOwnSubmission() {
+        CertificateSubmission ownSubmission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
+        ByteArrayResource resource = new ByteArrayResource("certificate-content".getBytes());
+        when(submissionRepository.findById(ownSubmission.getId())).thenReturn(Optional.of(ownSubmission));
+        when(fileStorageService.loadAsResource(ownSubmission.getCertificateDocument().getStorageKey())).thenReturn(resource);
+
+        CertificateContent content = submissionService.getCertificateContent(ownSubmission.getId(), employeePrincipal);
+
+        assertThat(content.originalFilename()).isEqualTo("certificate.pdf");
+    }
+
+    @Test
+    void getCertificateContentRejectsEmployeeAccessToOtherSubmission() {
+        CertificateSubmission otherSubmission = submission(anotherEmployee, initiative, ApprovalStatus.SUBMITTED);
+        when(submissionRepository.findById(otherSubmission.getId())).thenReturn(Optional.of(otherSubmission));
+
+        assertThatThrownBy(() -> submissionService.getCertificateContent(otherSubmission.getId(), employeePrincipal))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Certificate submission was not found");
+
+        verify(fileStorageService, never()).loadAsResource(any());
+    }
+
+    @Test
+    void getCertificateContentMapsMissingFileToNotFound() {
+        CertificateSubmission submission = submission(employee, initiative, ApprovalStatus.SUBMITTED);
+        when(submissionRepository.findById(submission.getId())).thenReturn(Optional.of(submission));
+        when(fileStorageService.loadAsResource(submission.getCertificateDocument().getStorageKey()))
+                .thenThrow(new IllegalStateException("Certificate file is not readable"));
+
+        assertThatThrownBy(() -> submissionService.getCertificateContent(submission.getId(), adminPrincipal))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Certificate file was not found");
     }
 
     @Test

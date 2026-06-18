@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-16 (v0.6.1 — ready for release)
+Last updated: 2026-06-18 (v0.6.2 — ready for release)
 
 ## Release Overview
 
@@ -11,10 +11,11 @@ Last updated: 2026-06-16 (v0.6.1 — ready for release)
 | v0.4 | User Management UI Phase 4 (bulk import) | Shipped (PRs #22–#24) |
 | v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
 | v0.6 | In-App Notification Infrastructure | Shipped (PR #28) |
-| **v0.6.1** | **Certificate Workflow UI & Notification E2E Validation** | **Ready for release (PR #29)** |
+| v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
+| **v0.6.2** | **Certificate Preview, Download & Pending Reviews Drilldown** | **Ready for release** |
 
-Release notes: `docs/releases/release-v0.6.1.md`  
-Prior: `docs/releases/release-v0.6.md`  
+Release notes: `docs/releases/release-v0.6.2.md`  
+Prior: `docs/releases/release-v0.6.1.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ---
@@ -130,13 +131,30 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 **Also delivered:** CW-D01/CW-D02 dashboard fault isolation; `CERTIFICATE_SUBMITTED` actionPath → `/submissions/review`
 
-**Deferred:** Dashboard status chips, filtering, Pending Reviews metric link
+**Deferred:** Dashboard status chips, filtering
 
 Release notes: `docs/releases/release-v0.6.1.md`
 
 ---
 
-## Backlog (post v0.6.1)
+## Shipped — v0.6.2 Certificate Preview & Dashboard Drilldown
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| B1–B4 | Backend certificate streaming API | **Validated** |
+| F1–F3 | Admin preview, download, metadata UI | **Validated** |
+| F4 | Pending Reviews dashboard drilldown | **Validated** |
+| F5–F6 | Docs, validation checklist, release notes | **Validated** |
+
+**Also delivered:** `GET /submissions/{id}/certificate`; `DashboardWidget` optional `href`; admin-only document actions in review workflow
+
+**Deferred:** Employee self-service download; other dashboard drilldowns; certificate access audit logging
+
+Release notes: `docs/releases/release-v0.6.2.md`
+
+---
+
+## Backlog (post v0.6.2)
 
 | ID | Item | Notes |
 |----|------|-------|
@@ -146,6 +164,8 @@ Release notes: `docs/releases/release-v0.6.1.md`
 | UM-006 | Downloadable import error report | Post-import CSV/text export |
 | — | Global Search | v0.7 candidate |
 | — | Dashboard status chips / filtering | Deferred from v0.6.1 |
+| — | Employee certificate download (My Submissions) | Deferred from v0.6.2 |
+| — | Dashboard drilldowns (Active/Expiring Initiatives, Top Learners) | Deferred from v0.6.2 |
 | — | Email notifications (account lifecycle) | Post v0.6.1 |
 | — | AI Features | Future |
 
@@ -176,3 +196,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
 7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)
 8. **Certificate Workflow UI** — Submit Certificate, My Submissions, Admin Review (v0.6.1)
+9. **Certificate Review enhancements** — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)

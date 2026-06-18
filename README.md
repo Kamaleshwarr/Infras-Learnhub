@@ -4,7 +4,7 @@ Enterprise-grade internal web application for managing learning initiatives, cer
 programs, study materials, project knowledge, KT documents, leaderboards, user administration,
 and in-app notifications.
 
-**Current release:** [v0.6.1](docs/releases/release-v0.6.1.md) — Certificate Workflow UI & Notification E2E Validation (shipped)
+**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) — Certificate Preview, Download & Pending Reviews Drilldown (ready for release)
 
 ## Quick start
 
@@ -103,7 +103,7 @@ cd frontend && npm test
 The default JWT secret is only for local development. Set `JWT_SECRET` to a strong Base64-encoded
 secret in shared or production environments.
 
-## Project status (v0.6.1)
+## Project status (v0.6.2)
 
 High-level snapshot. Detailed release notes, validation history, and backlog live under `docs/`.
 
@@ -111,7 +111,7 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
 
 - Authentication & password management
 - Learning initiatives
-- Certificate submissions (submit, approve, reject)
+- Certificate submissions (submit, approve, reject, **file streaming**)
 - Leaderboards
 - Study materials repository
 - Project knowledge repository
@@ -125,20 +125,22 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
 - User management UI — list, CRUD, activate/deactivate, reset password, bulk import (v0.3–v0.4)
 - Profile management UI — view, edit, change-password entry, avatar upload (v0.5)
 - Notifications UI — bell, dropdown, inbox page, badge sync (v0.6)
-- **Certificate workflow UI** — Submit Certificate (`/submissions/new`), My Submissions
+- Certificate workflow UI — Submit Certificate (`/submissions/new`), My Submissions
   (`/submissions`), Admin Review (`/submissions/review`) with notification E2E validation (v0.6.1)
+- **Certificate review enhancements** — admin preview/download in review queue; Pending Reviews
+  dashboard drilldown to `/submissions/review` (v0.6.2)
 
-### Recent release highlights (v0.6.1)
+### Recent release highlights (v0.6.2)
 
-- Employee submit → admin `CERTIFICATE_SUBMITTED` notification → approve on Certificate Review →
-  employee `CERTIFICATE_APPROVED` notification
-- Dashboard fault isolation for employee (CW-D01) and admin (CW-D02) widgets
-- Submit Certificate dropdown UX — available initiatives first
+- Admin previews and downloads submitted certificates (PDF, PNG, JPEG) before approve/reject
+- Admin Dashboard **Pending Reviews** metric links directly to Certificate Review queue
+- Backend `GET /submissions/{id}/certificate?disposition=inline|attachment`
 
-### Post-v0.6.1 backlog (summary)
+### Post-v0.6.2 backlog (summary)
 
 - Global search
-- Dashboard status chips, filtering, and Pending Reviews deep link
+- Employee self-service certificate download (My Submissions)
+- Dashboard drilldowns for other metrics; status chips and filtering
 - Email notification channel (account lifecycle)
 - Initiative / study materials / projects full UI surfaces
 - AI features
@@ -148,6 +150,7 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
 | Topic | Location |
 | --- | --- |
 | **Roadmap & release overview** | [`docs/project-roadmap.md`](docs/project-roadmap.md) |
+| **v0.6.2 release notes** | [`docs/releases/release-v0.6.2.md`](docs/releases/release-v0.6.2.md) |
 | **v0.6.1 release notes** | [`docs/releases/release-v0.6.1.md`](docs/releases/release-v0.6.1.md) |
 | **Testing & defect history** | [`docs/testing-and-defect-history.md`](docs/testing-and-defect-history.md) |
 | **Backend architecture** | [`docs/backend-architecture-and-roadmap.md`](docs/backend-architecture-and-roadmap.md) |

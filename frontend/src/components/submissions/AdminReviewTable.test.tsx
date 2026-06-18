@@ -1,8 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AdminReviewTable } from './AdminReviewTable'
 import type { CertificateSubmission } from '../../types/submissions'
+
+vi.mock('../../api/submissionsApi', () => ({
+  submissionsApi: {
+    getCertificateBlob: vi.fn(),
+  },
+}))
 
 const submission: CertificateSubmission = {
   approvalStatus: 'SUBMITTED',
@@ -32,6 +38,10 @@ const submission: CertificateSubmission = {
 }
 
 describe('AdminReviewTable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('renders pending submissions with action buttons', () => {
     const onApprove = vi.fn()
     const onReject = vi.fn()
@@ -49,6 +59,9 @@ describe('AdminReviewTable', () => {
     expect(screen.getByText('Employee One')).toBeInTheDocument()
     expect(screen.getByText('AWS Certification')).toBeInTheDocument()
     expect(screen.getByText('certificate.pdf')).toBeInTheDocument()
+    expect(screen.getByText('PDF · 1 KB')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Download' })).toBeInTheDocument()
     expect(screen.getByText('Completed the course last week.')).toBeInTheDocument()
   })
 

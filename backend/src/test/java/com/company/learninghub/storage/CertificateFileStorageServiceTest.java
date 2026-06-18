@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CertificateFileStorageServiceTest {
 
@@ -55,6 +56,36 @@ class CertificateFileStorageServiceTest {
         storageService.deleteQuietly(storedFile.storageKey());
 
         assertThat(storedPath).doesNotExist();
+    }
+
+    @Test
+    void loadAsResourceReturnsReadableFile() throws Exception {
+        StorageProperties storageProperties = new StorageProperties();
+        storageProperties.setLocalRoot(tempDir.toString());
+        CertificateFileStorageService storageService = new CertificateFileStorageService(storageProperties);
+        StoredFile storedFile = storageService.store(new MockMultipartFile(
+                "certificateFile",
+                "certificate.pdf",
+                "application/pdf",
+                "certificate-content".getBytes()
+        ));
+
+        var resource = storageService.loadAsResource(storedFile.storageKey());
+
+        assertThat(resource.exists()).isTrue();
+        assertThat(resource.isReadable()).isTrue();
+        assertThat(resource.getContentAsByteArray()).isEqualTo("certificate-content".getBytes());
+    }
+
+    @Test
+    void loadAsResourceThrowsWhenFileMissing() {
+        StorageProperties storageProperties = new StorageProperties();
+        storageProperties.setLocalRoot(tempDir.toString());
+        CertificateFileStorageService storageService = new CertificateFileStorageService(storageProperties);
+
+        assertThatThrownBy(() -> storageService.loadAsResource("certificates/missing.pdf"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Certificate file is not readable");
     }
 }
 

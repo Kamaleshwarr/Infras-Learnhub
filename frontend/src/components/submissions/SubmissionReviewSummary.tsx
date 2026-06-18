@@ -1,5 +1,7 @@
-import { Box, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import type { CertificateSubmission } from '../../types/submissions'
+import { CertificateDocumentMetadata } from './CertificateDocumentMetadata'
+import { CertificateFileActions } from './CertificateFileActions'
 
 interface SubmissionReviewSummaryProps {
   submission: CertificateSubmission
@@ -33,9 +35,11 @@ export function SubmissionReviewSummary({ submission }: SubmissionReviewSummaryP
           Comments: {submission.comments}
         </Typography>
       ) : null}
-      <Typography color="text.secondary" sx={{ mt: 1 }} variant="body2">
-        Certificate file: {submission.certificateDocument.originalFilename}
-      </Typography>
+      <Stack spacing={1} sx={{ mt: 1 }}>
+        <Typography variant="body2">Certificate file</Typography>
+        <CertificateDocumentMetadata document={submission.certificateDocument} />
+        <CertificateFileActions submission={submission} />
+      </Stack>
     </Box>
   )
 }

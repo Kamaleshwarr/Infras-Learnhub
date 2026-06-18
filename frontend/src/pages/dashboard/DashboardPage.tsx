@@ -96,7 +96,9 @@ function adminMetrics(data: DashboardData | null) {
     },
     {
       helperText: 'Certificate submissions awaiting review',
+      href: '/submissions/review',
       icon: <PendingActionsOutlinedIcon />,
+      linkAriaLabel: `View ${formatNumber(data?.pendingReviewsCount)} pending certificate reviews`,
       title: 'Pending Reviews',
       value: formatNumber(data?.pendingReviewsCount),
     },

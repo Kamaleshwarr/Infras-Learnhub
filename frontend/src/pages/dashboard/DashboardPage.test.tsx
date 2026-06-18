@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DashboardPage } from './DashboardPage'
 import { getAdminDashboardData, getEmployeeDashboardData } from '../../api/dashboardApi'
@@ -107,13 +108,22 @@ describe('DashboardPage', () => {
     vi.mocked(useAuth).mockReturnValue({ isAdmin: true } as ReturnType<typeof useAuth>)
     vi.mocked(getAdminDashboardData).mockResolvedValue(dashboardData)
 
-    render(<DashboardPage />)
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByText('Admin Dashboard')).toBeInTheDocument()
     expect(screen.getByText('Active Initiatives')).toBeInTheDocument()
 
     await waitFor(() => expect(screen.getByText('Pending Reviews')).toBeInTheDocument())
     expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View 7 pending certificate reviews' })).toHaveAttribute(
+      'href',
+      '/submissions/review',
+    )
+    expect(screen.queryByRole('link', { name: /active initiatives/i })).not.toBeInTheDocument()
     expect(screen.getByText('Top Learners Preview')).toBeInTheDocument()
     expect(screen.getByText('#1 Top Learner')).toBeInTheDocument()
     expect(screen.getByText('Recent Project Updates')).toBeInTheDocument()
@@ -126,11 +136,16 @@ describe('DashboardPage', () => {
     vi.mocked(useAuth).mockReturnValue({ isAdmin: false } as ReturnType<typeof useAuth>)
     vi.mocked(getEmployeeDashboardData).mockResolvedValue(dashboardData)
 
-    render(<DashboardPage />)
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByText('Employee Dashboard')).toBeInTheDocument()
 
     await waitFor(() => expect(screen.getByText('My Rank')).toBeInTheDocument())
+    expect(screen.queryByRole('link', { name: /pending certificate reviews/i })).not.toBeInTheDocument()
     expect(screen.getByText('#2')).toBeInTheDocument()
     expect(screen.getAllByText('My Submissions').length).toBeGreaterThan(0)
     expect(screen.getByText('Assigned Projects')).toBeInTheDocument()
@@ -143,7 +158,11 @@ describe('DashboardPage', () => {
     vi.mocked(useAuth).mockReturnValue({ isAdmin: false } as ReturnType<typeof useAuth>)
     vi.mocked(getEmployeeDashboardData).mockRejectedValue(new Error('network'))
 
-    render(<DashboardPage />)
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
 
     expect(await screen.findByText('Unable to load dashboard data. Please refresh or try again later.')).toBeInTheDocument()
   })

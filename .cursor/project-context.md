@@ -37,12 +37,19 @@
 
 ## Current Release
 
-**v0.6.1** — Certificate Workflow UI & Notification E2E Validation (ready for release, PR #29)
+**v0.6.2** — Certificate Preview, Download & Pending Reviews Drilldown (ready for release)
 
-Release notes: `docs/releases/release-v0.6.1.md`  
-Prior release: `docs/releases/release-v0.6.md`  
+Release notes: `docs/releases/release-v0.6.2.md`  
+Prior release: `docs/releases/release-v0.6.1.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
 Roadmap: `docs/project-roadmap.md`
+
+### v0.6.2 Highlights
+
+- Backend `GET /api/v1/submissions/{id}/certificate?disposition=inline|attachment`
+- Admin certificate preview (PDF iframe, PNG/JPEG image) and download in Certificate Review
+- `CertificateFileActions`, `CertificatePreviewDialog`, `CertificateDocumentMetadata`
+- Admin Dashboard **Pending Reviews** metric → `/submissions/review` (F4 drilldown only)
 
 ### v0.6.1 Highlights
 
@@ -108,6 +115,7 @@ Roadmap: `docs/project-roadmap.md`
 6. Profile Management UI (Phases 1–4: view, edit, change-password entry, avatar)
 7. Notifications UI (bell, dropdown, inbox — consumer only)
 8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
+9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 
 ## Completed Features
 
@@ -159,12 +167,14 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. Dashboard status chips / filtering / Pending Reviews link (deferred from v0.6.1)
-2. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-3. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
-4. Global Search
-5. Email notifications (account lifecycle)
-6. AI Features
+1. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
+2. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
+3. Dashboard status chips / filtering (deferred from v0.6.1)
+4. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+5. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
+6. Global Search
+7. Email notifications (account lifecycle)
+8. AI Features
 
 ## Current Backend Package Pattern
 

@@ -1,14 +1,53 @@
 # Testing & Defect History
 
-Last updated: 2026-06-16 (v0.6.1 — ready for release, PR #29)
+Last updated: 2026-06-18 (v0.6.2 — ready for release)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.6.1) |
+| Area | Command | Baseline (v0.6.2) |
 |------|---------|-------------------|
-| Frontend | `cd frontend && npm test` | **220 tests** |
+| Frontend | `cd frontend && npm test` | **231 tests** — 54 files |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend | `mvn -f backend/pom.xml test` | **211 tests** run; **12 skipped** (Testcontainers/Docker) |
+| Backend | `mvn -f backend/pom.xml test` | **224 tests** run; **12 skipped** (Testcontainers/Docker); **4 pre-existing failures** (not v0.6.2) |
+| Backend (certificate-scoped) | `mvn test -Dtest='Certificate*Test,CertificateFileStorageServiceTest,CertificateContentDispositionTest'` | **34/34 pass** |
+
+---
+
+## Certificate Review — Validation History (v0.6.2)
+
+| Phase | Deliverable | Status | Notes |
+|-------|-------------|--------|-------|
+| B1–B4 | Backend certificate streaming API | **Passed** | `GET /submissions/{id}/certificate?disposition=inline\|attachment` |
+| F1–F3 | Admin preview, download, metadata UI | **Passed** | `CertificateFileActions`, `CertificatePreviewDialog`, review table + dialogs |
+| F4 | Pending Reviews dashboard drilldown | **Passed** | Admin metric → `/submissions/review`; other metrics unchanged |
+| F5–F6 | Docs, validation checklist, release notes | **Passed** | This document + `docs/releases/release-v0.6.2.md` |
+
+### v0.6.2 — Manual validation checklist
+
+| # | Scenario | Status |
+|---|----------|--------|
+| 1 | Employee submit PDF → admin queue | **Pass** |
+| 2 | Employee submit PNG → admin image preview | **Pass** |
+| 3 | Admin preview PDF from review table | **Pass** |
+| 4 | Admin download from review table | **Pass** |
+| 5 | Preview/Download in approve/reject dialogs | **Pass** |
+| 6 | Reject after preview | **Pass** |
+| 7 | Dashboard Pending Reviews → `/submissions/review` | **Pass** |
+| 8–10 | Other admin metrics not clickable | **Pass** |
+| 11 | Employee dashboard unchanged | **Pass** |
+| 12–13 | CW-D01 / CW-D02 regression | **Pass** |
+| 14 | Notification E2E regression | **Pass** |
+| 15 | Unauthorized certificate access (404) | **Pass** |
+
+### v0.6.2 — Test coverage added
+
+| Component / area | Tests |
+|------------------|-------|
+| `submissionsApi.getCertificateBlob` | API client blob + disposition |
+| `certificateDocumentDisplay` | Filename, size, type formatting |
+| `CertificateFileActions`, `CertificatePreviewDialog` | Preview/download UX |
+| `AdminReviewTable` | Certificate actions in review queue |
+| `DashboardWidget`, `DashboardPage` | Pending Reviews `href` drilldown |
 
 ---
 
