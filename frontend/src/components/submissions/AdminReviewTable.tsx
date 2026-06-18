@@ -13,6 +13,8 @@ import {
   Typography,
 } from '@mui/material'
 import type { CertificateSubmission } from '../../types/submissions'
+import { CertificateDocumentMetadata } from './CertificateDocumentMetadata'
+import { CertificateFileActions } from './CertificateFileActions'
 
 interface AdminReviewTableProps {
   emptyMessage: string
@@ -88,7 +90,12 @@ export function AdminReviewTable({
               </TableCell>
               <TableCell>{formatDate(submission.submittedAtUtc)}</TableCell>
               <TableCell>{truncateComments(submission.comments)}</TableCell>
-              <TableCell>{submission.certificateDocument.originalFilename}</TableCell>
+              <TableCell>
+                <Stack spacing={1}>
+                  <CertificateDocumentMetadata document={submission.certificateDocument} />
+                  <CertificateFileActions disabled={actionDisabled} submission={submission} />
+                </Stack>
+              </TableCell>
               <TableCell align="right">
                 <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
                   <Button

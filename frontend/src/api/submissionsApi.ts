@@ -35,4 +35,17 @@ export const submissionsApi = {
     const response = await httpClient.post<CertificateSubmission>(`/submissions/${submissionId}/reject`, body)
     return response.data
   },
+  getCertificateBlob: async (
+    submissionId: string,
+    options?: { disposition?: 'inline' | 'attachment' },
+  ) => {
+    const response = await httpClient.get<Blob>(`/submissions/${submissionId}/certificate`, {
+      params: { disposition: options?.disposition ?? 'attachment' },
+      responseType: 'blob',
+    })
+    return {
+      blob: response.data,
+      contentType: response.headers['content-type'] ?? 'application/octet-stream',
+    }
+  },
 }

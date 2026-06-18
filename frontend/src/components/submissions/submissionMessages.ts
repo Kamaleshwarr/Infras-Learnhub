@@ -22,4 +22,7 @@ export const SUBMISSION_MESSAGES = {
   fileValidationError: 'Certificate file must be a PDF, JPEG, or PNG and within the size limit.',
   rejectionReasonRequired: 'Rejection reason is required.',
   duplicateSubmission: 'A certificate submission already exists for this initiative.',
+  certificatePreviewError: 'Unable to preview certificate. Please try again or download the file.',
+  certificateDownloadError: 'Unable to download certificate. Please try again.',
+  certificateFileNotFound: 'Certificate file is no longer available.',
 } as const

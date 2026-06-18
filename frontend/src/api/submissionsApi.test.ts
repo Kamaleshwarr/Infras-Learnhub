@@ -132,4 +132,20 @@ describe('submissionsApi', () => {
     })
     expect(result).toEqual(rejectedSubmission)
   })
+
+  it('downloads certificate blob with disposition', async () => {
+    const blob = new Blob(['certificate-content'], { type: 'application/pdf' })
+    vi.mocked(httpClient.get).mockResolvedValue({
+      data: blob,
+      headers: { 'content-type': 'application/pdf' },
+    })
+
+    const result = await submissionsApi.getCertificateBlob('submission-1', { disposition: 'inline' })
+
+    expect(httpClient.get).toHaveBeenCalledWith('/submissions/submission-1/certificate', {
+      params: { disposition: 'inline' },
+      responseType: 'blob',
+    })
+    expect(result).toEqual({ blob, contentType: 'application/pdf' })
+  })
 })
