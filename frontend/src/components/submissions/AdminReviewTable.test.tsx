@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { submissionsApi } from '../../api/submissionsApi'
 import { AdminReviewTable } from './AdminReviewTable'
 import type { CertificateSubmission } from '../../types/submissions'
 
