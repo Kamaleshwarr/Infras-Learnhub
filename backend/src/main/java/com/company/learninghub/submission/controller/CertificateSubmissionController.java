@@ -3,6 +3,8 @@ package com.company.learninghub.submission.controller;
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.submission.domain.ApprovalStatus;
+import com.company.learninghub.submission.dto.CertificateContent;
+import com.company.learninghub.submission.dto.CertificateContentDisposition;
 import com.company.learninghub.submission.dto.CertificateSubmissionResponse;
 import com.company.learninghub.submission.dto.RejectSubmissionRequest;
 import com.company.learninghub.submission.service.CertificateSubmissionService;
@@ -16,8 +18,10 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -120,6 +124,39 @@ public class CertificateSubmissionController {
         return ResponseEntity.ok(submissionService.getById(submissionId, authenticatedUser));
     }
 
+    @GetMapping("/submissions/{submissionId}/certificate")
+    @Operation(
+            summary = "Download or preview a certificate file",
+            description = """
+                    Streams the certificate document for a submission.
+                    Admins may access any submission. Employees may access only their own.
+                    Use disposition=inline for browser preview and disposition=attachment for download.
+                    """
+    )
+    public ResponseEntity<Resource> getCertificate(
+            @PathVariable UUID submissionId,
+            @RequestParam(defaultValue = "attachment") String disposition,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+        CertificateContentDisposition contentDisposition = CertificateContentDisposition.fromQueryValue(disposition);
+        CertificateContent certificateContent = submissionService.getCertificateContent(submissionId, authenticatedUser);
+        MediaType mediaType = MediaType.parseMediaType(
+                certificateContent.contentType() == null
+                        ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+                        : certificateContent.contentType()
+        );
+        String filename = sanitizeContentDispositionFilename(certificateContent.originalFilename());
+        String contentDispositionHeader = contentDisposition == CertificateContentDisposition.INLINE
+                ? "inline"
+                : "attachment; filename=\"" + filename + "\"";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-cache, no-store, must-revalidate")
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDispositionHeader)
+                .body(certificateContent.resource());
+    }
+
     @PostMapping("/submissions/{submissionId}/approve")
     @Operation(summary = "Approve a certificate submission", description = "Admin only.")
     public ResponseEntity<CertificateSubmissionResponse> approve(
@@ -141,6 +178,11 @@ public class CertificateSubmissionController {
                 request.rejectionReason(),
                 authenticatedUser
         ));
+    }
+
+    private String sanitizeContentDispositionFilename(String filename) {
+        String sanitized = filename == null || filename.isBlank() ? "certificate" : filename.trim();
+        return sanitized.replace("\"", "");
     }
 }
 

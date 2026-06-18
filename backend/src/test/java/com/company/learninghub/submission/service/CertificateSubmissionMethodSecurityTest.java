@@ -1,6 +1,8 @@
 package com.company.learninghub.submission.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import com.company.learninghub.common.exception.GlobalExceptionHandler;
+import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
 import com.company.learninghub.notification.service.NotificationService;
 import com.company.learninghub.storage.CertificateFileStorageService;
@@ -29,6 +31,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,6 +89,16 @@ class CertificateSubmissionMethodSecurityTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         assertThat(submissionService.listAll(null, null, null, pageable).getTotalElements()).isZero();
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void employeeCanRequestCertificateContentForOwnSubmission() {
+        UUID submissionId = UUID.randomUUID();
+        when(submissionRepository.findById(submissionId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> submissionService.getCertificateContent(submissionId, principal(RoleName.EMPLOYEE)))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     private AuthenticatedUser principal(RoleName roleName) {

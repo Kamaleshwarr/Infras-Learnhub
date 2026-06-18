@@ -1,11 +1,14 @@
 package com.company.learninghub.storage;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -46,6 +49,19 @@ public class CertificateFileStorageService {
                 contentType(file),
                 file.getSize()
         );
+    }
+
+    public Resource loadAsResource(String storageKey) {
+        try {
+            Path file = resolveStorageKey(storageKey);
+            Resource resource = new UrlResource(file.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new IllegalStateException("Certificate file is not readable");
+            }
+            return resource;
+        } catch (MalformedURLException ex) {
+            throw new IllegalStateException("Certificate file is not readable", ex);
+        }
     }
 
     public void deleteQuietly(String storageKey) {
