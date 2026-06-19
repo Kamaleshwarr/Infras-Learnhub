@@ -1,0 +1,15 @@
+export const INITIATIVE_MESSAGES = {
+  listEmpty: 'No learning initiatives are available right now. Check back later or contact your administrator.',
+  listSearchEmpty: 'No initiatives match your search. Try a different title.',
+  listLoadError: 'Unable to load initiatives. Please try again.',
+  detailLoadError: 'Unable to load initiative details. Please try again.',
+  detailNotFound: 'This initiative is not available. It may have expired or been removed.',
+  progressLoadError: 'Unable to load your submission status.',
+  progressNotSubmitted: 'Not submitted',
+  progressRejectedHelper: 'Your submission was rejected. Contact your administrator for next steps.',
+  browseInitiatives: 'Browse Initiatives',
+  retry: 'Retry',
+  clearSearch: 'Clear search',
+  expiresInDays: (days: number) => `Expires in ${days} day${days === 1 ? '' : 's'}`,
+  expiresToday: 'Expires today',
+} as const

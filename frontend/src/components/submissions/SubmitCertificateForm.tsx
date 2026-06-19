@@ -13,7 +13,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import type { InitiativeSummary } from '../../api/initiativesApi'
+import type { Initiative } from '../../types/initiatives'
 import { resolveApiError } from '../../utils/apiErrors'
 import { getCertificateAcceptAttribute, isAllowedCertificateFile } from './certificateFileValidation'
 import { normalizeInitiativeId, sortInitiativesForSubmitDropdown } from './submissionInitiativeFilter'
@@ -26,7 +26,7 @@ export interface SubmitCertificateValues {
 }
 
 interface SubmitCertificateFormProps {
-  initiatives: InitiativeSummary[]
+  initiatives: Initiative[]
   submittedInitiativeIds: Set<string>
   loadingInitiatives: boolean
   loadError: string | null

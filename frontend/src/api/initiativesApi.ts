@@ -1,31 +1,16 @@
 import { httpClient } from './httpClient'
 import type { PageResponse } from '../types/api'
+import type { Initiative, InitiativeListParams } from '../types/initiatives'
 
-export interface InitiativeSummary {
-  id: string
-  title: string
-  description: string
-  rewardDescription?: string
-  startDateUtc: string
-  expiryDateUtc: string
-  status: 'DRAFT' | 'ACTIVE' | 'EXPIRED'
-}
-
-export interface InitiativeListParams {
-  page?: number
-  size?: number
-  sort?: string
-  status?: InitiativeSummary['status']
-  search?: string
-}
+export type { Initiative, InitiativeListParams, InitiativeSummary } from '../types/initiatives'
 
 export const initiativesApi = {
   list: async (params?: InitiativeListParams) => {
-    const response = await httpClient.get<PageResponse<InitiativeSummary>>('/initiatives', { params })
+    const response = await httpClient.get<PageResponse<Initiative>>('/initiatives', { params })
     return response.data
   },
   get: async (initiativeId: string) => {
-    const response = await httpClient.get<InitiativeSummary>(`/initiatives/${initiativeId}`)
+    const response = await httpClient.get<Initiative>(`/initiatives/${initiativeId}`)
     return response.data
   },
 }
