@@ -4,7 +4,7 @@ Enterprise-grade internal web application for managing learning initiatives, cer
 programs, study materials, project knowledge, KT documents, leaderboards, user administration,
 and in-app notifications.
 
-**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) — Certificate Preview, Download & Pending Reviews Drilldown (shipped)
+**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) (shipped) — [v0.7.0 Initiatives Experience](docs/releases/release-v0.7.0.md) validated, PR #36 ready for merge
 
 ## Quick start
 
@@ -103,9 +103,11 @@ cd frontend && npm test
 The default JWT secret is only for local development. Set `JWT_SECRET` to a strong Base64-encoded
 secret in shared or production environments.
 
-## Project status (v0.6.2)
+## Project status (v0.7.0)
 
 High-level snapshot. Detailed release notes, validation history, and backlog live under `docs/`.
+
+**Shipped:** v0.6.2 · **Validated (pending merge):** v0.7.0 Initiatives Experience — PR #36
 
 ### Shipped platform modules (backend)
 
@@ -129,20 +131,31 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
   (`/submissions`), Admin Review (`/submissions/review`) with notification E2E validation (v0.6.1)
 - **Certificate review enhancements** — admin preview/download in review queue; Pending Reviews
   dashboard drilldown to `/submissions/review` (v0.6.2)
+- **Initiatives Experience UI** — list, detail, submit pre-selection, F2.1 polish (v0.7.0 — PR #36)
 
-### Recent release highlights (v0.6.2)
+### Recent release highlights (v0.7.0 — validated)
+
+- Initiative list at `/initiatives` — search, sort, pagination, admin status filters
+- Initiative detail at `/initiatives/:initiativeId` — progress, top learner, submit CTA
+- Submit Certificate pre-selection via `?initiativeId=`
+- **Reward / Benefits** column label; **Back to Initiatives** navigation
+
+### Prior release highlights (v0.6.2)
 
 - Admin previews and downloads submitted certificates (PDF, PNG, JPEG) before approve/reject
 - Admin Dashboard **Pending Reviews** metric links directly to Certificate Review queue
 - Backend `GET /submissions/{id}/certificate?disposition=inline|attachment`
 
-### Post-v0.6.2 backlog (summary)
+### Post-v0.7.0 backlog (summary)
 
+- Initiative Management UI (create/edit/delete/lifecycle) — v0.7.1
+- Initiative leaderboard full page; top 3 learners; dashboard initiative drilldowns
+- Rejected submission resubmission workflow
 - Global search
 - Employee self-service certificate download (My Submissions)
 - Dashboard drilldowns for other metrics; status chips and filtering
 - Email notification channel (account lifecycle)
-- Initiative / study materials / projects full UI surfaces
+- Study materials / projects full UI surfaces
 - AI features
 
 ## Documentation
@@ -150,6 +163,7 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
 | Topic | Location |
 | --- | --- |
 | **Roadmap & release overview** | [`docs/project-roadmap.md`](docs/project-roadmap.md) |
+| **v0.7.0 release notes** | [`docs/releases/release-v0.7.0.md`](docs/releases/release-v0.7.0.md) |
 | **v0.6.2 release notes** | [`docs/releases/release-v0.6.2.md`](docs/releases/release-v0.6.2.md) |
 | **v0.6.1 release notes** | [`docs/releases/release-v0.6.1.md`](docs/releases/release-v0.6.1.md) |
 | **Testing & defect history** | [`docs/testing-and-defect-history.md`](docs/testing-and-defect-history.md) |

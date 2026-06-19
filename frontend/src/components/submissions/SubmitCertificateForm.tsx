@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined'
 import {
@@ -13,7 +13,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import type { InitiativeSummary } from '../../api/initiativesApi'
+import type { Initiative } from '../../types/initiatives'
 import { resolveApiError } from '../../utils/apiErrors'
 import { getCertificateAcceptAttribute, isAllowedCertificateFile } from './certificateFileValidation'
 import { normalizeInitiativeId, sortInitiativesForSubmitDropdown } from './submissionInitiativeFilter'
@@ -26,13 +26,14 @@ export interface SubmitCertificateValues {
 }
 
 interface SubmitCertificateFormProps {
-  initiatives: InitiativeSummary[]
+  initiatives: Initiative[]
   submittedInitiativeIds: Set<string>
   loadingInitiatives: boolean
   loadError: string | null
   emptyMessage: string | null
   infoMessage: string | null
   submitting: boolean
+  initialInitiativeId?: string | null
   onSubmit: (values: SubmitCertificateValues) => Promise<void>
 }
 
@@ -55,9 +56,11 @@ export function SubmitCertificateForm({
   emptyMessage,
   infoMessage,
   submitting,
+  initialInitiativeId = null,
   onSubmit,
 }: SubmitCertificateFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const hasManualInitiativeSelection = useRef(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -72,6 +75,29 @@ export function SubmitCertificateForm({
     () => sortInitiativesForSubmitDropdown(initiatives, submittedInitiativeIds),
     [initiatives, submittedInitiativeIds],
   )
+
+  useEffect(() => {
+    if (loadingInitiatives || !initialInitiativeId || hasManualInitiativeSelection.current) {
+      return
+    }
+
+    const normalizedInitialId = normalizeInitiativeId(initialInitiativeId)
+    const matchingInitiative = initiatives.find(
+      (initiative) => normalizeInitiativeId(initiative.id) === normalizedInitialId,
+    )
+
+    if (!matchingInitiative || submittedInitiativeIds.has(normalizedInitialId)) {
+      return
+    }
+
+    setForm((current) => {
+      if (current.initiativeId) {
+        return current
+      }
+
+      return { ...current, initiativeId: matchingInitiative.id }
+    })
+  }, [initialInitiativeId, initiatives, loadingInitiatives, submittedInitiativeIds])
 
   function updateField<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [field]: value }))
@@ -164,7 +190,10 @@ export function SubmitCertificateForm({
             fullWidth
             helperText={fieldErrors.initiativeId}
             label="Initiative"
-            onChange={(event) => updateField('initiativeId', event.target.value)}
+            onChange={(event) => {
+              hasManualInitiativeSelection.current = true
+              updateField('initiativeId', event.target.value)
+            }}
             required
             select
             value={form.initiativeId}

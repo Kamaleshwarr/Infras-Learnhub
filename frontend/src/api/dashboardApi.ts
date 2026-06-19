@@ -3,7 +3,7 @@ import { leaderboardsApi } from './leaderboardsApi'
 import { projectsApi } from './projectsApi'
 import { studyMaterialsApi } from './studyMaterialsApi'
 import { submissionsApi } from './submissionsApi'
-import type { InitiativeSummary } from './initiativesApi'
+import type { Initiative } from '../types/initiatives'
 import type { LeaderboardEntry, PersonalLeaderboard } from './leaderboardsApi'
 import type { ProjectSummary } from './projectsApi'
 import type { StudyMaterial } from './studyMaterialsApi'
@@ -12,7 +12,7 @@ import type { CertificateSubmission } from '../types/submissions'
 const EXPIRING_WINDOW_DAYS = 14
 
 export interface DashboardData {
-  activeInitiatives: InitiativeSummary[]
+  activeInitiatives: Initiative[]
   activeInitiativesCount: number
   expiringInitiativesCount: number
   mySubmissions: CertificateSubmission[]
@@ -93,7 +93,7 @@ export async function getEmployeeDashboardData(): Promise<DashboardData> {
   }
 }
 
-function countExpiringInitiatives(initiatives: InitiativeSummary[]) {
+function countExpiringInitiatives(initiatives: Initiative[]) {
   const now = Date.now()
   const threshold = now + EXPIRING_WINDOW_DAYS * 24 * 60 * 60 * 1000
   return initiatives.filter((initiative) => {

@@ -37,12 +37,21 @@
 
 ## Current Release
 
-**v0.6.2** — Certificate Preview, Download & Pending Reviews Drilldown (shipped, PR #32)
+**v0.7.0** — Initiatives Experience (validated, PR #36 ready for merge)  
+**Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
 
-Release notes: `docs/releases/release-v0.6.2.md`  
-Prior release: `docs/releases/release-v0.6.1.md`  
+Release notes: `docs/releases/release-v0.7.0.md`  
+Prior release: `docs/releases/release-v0.6.2.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
 Roadmap: `docs/project-roadmap.md`
+
+### v0.7.0 Highlights (PR #36 — pending merge)
+
+- Initiative list — `/initiatives` with search, sort, pagination, admin status filters
+- Initiative detail — `/initiatives/:initiativeId` with progress, top learner, submit CTA
+- F10 — Submit Certificate pre-selection via `?initiativeId=`
+- F2.1 — **Reward / Benefits** column label; **Back to Initiatives** navigation
+- Fault-isolated detail loading; no backend or Flyway changes
 
 ### v0.6.2 Highlights
 
@@ -116,6 +125,7 @@ Roadmap: `docs/project-roadmap.md`
 7. Notifications UI (bell, dropdown, inbox — consumer only)
 8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
+10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
 
 ## Completed Features
 
@@ -167,14 +177,18 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
-2. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
-3. Dashboard status chips / filtering (deferred from v0.6.1)
-4. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-5. Learning domain UI (initiatives, leaderboards, study materials, projects — placeholder pages)
-6. Global Search
-7. Email notifications (account lifecycle)
-8. AI Features
+1. Initiative Management UI — create/edit/delete/lifecycle (v0.7.1; backend APIs exist)
+2. Initiative leaderboard full page UI (`InitiativeLeaderboardPage` — placeholder)
+3. Top 3 learners + leaderboard navigation from detail (future)
+4. Rejected submission resubmission workflow (future — backend constraint)
+5. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
+6. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
+7. Dashboard status chips / filtering (deferred from v0.6.1)
+8. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+9. Study materials and projects full UI surfaces (placeholder pages remain)
+10. Global Search
+11. Email notifications (account lifecycle)
+12. AI Features
 
 ## Current Backend Package Pattern
 

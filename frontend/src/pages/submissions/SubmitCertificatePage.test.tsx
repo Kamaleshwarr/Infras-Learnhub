@@ -153,6 +153,66 @@ describe('SubmitCertificatePage', () => {
     )
   })
 
+  it('pre-selects initiative from initiativeId query parameter', async () => {
+    renderSubmitPage(
+      '/submissions/new?initiativeId=550e8400-e29b-41d4-a716-446655440002',
+    )
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Initiative/i })).toHaveTextContent('Azure Certification'),
+    )
+  })
+
+  it('does not pre-select initiative when query parameter matches an already-submitted initiative', async () => {
+    renderSubmitPage(
+      '/submissions/new?initiativeId=550E8400-E29B-41D4-A716-446655440001',
+    )
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    expect(screen.getByRole('combobox', { name: /Initiative/i })).not.toHaveTextContent('AWS Certification')
+  })
+
+  it('does not pre-select initiative when query parameter is unknown', async () => {
+    renderSubmitPage('/submissions/new?initiativeId=unknown-initiative-id')
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    expect(screen.getByRole('combobox', { name: /Initiative/i })).not.toHaveTextContent('AWS Certification')
+    expect(screen.getByRole('combobox', { name: /Initiative/i })).not.toHaveTextContent('Azure Certification')
+  })
+
+  it('submits a pre-selected certificate and redirects to My Submissions', async () => {
+    const user = userEvent.setup()
+    vi.mocked(submissionsApi.submit).mockResolvedValue({
+      ...existingSubmission,
+      initiative: {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        status: 'ACTIVE',
+        title: 'Azure Certification',
+      },
+    })
+
+    renderSubmitPage(
+      '/submissions/new?initiativeId=550e8400-e29b-41d4-a716-446655440002',
+    )
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Initiative/i })).toHaveTextContent('Azure Certification'),
+    )
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const certificateFile = new File(['pdf'], 'certificate.pdf', { type: 'application/pdf' })
+    fireEvent.change(fileInput, { target: { files: [certificateFile] } })
+    await user.click(screen.getByRole('button', { name: 'Submit certificate' }))
+
+    await waitFor(() => expect(submissionsApi.submit).toHaveBeenCalled())
+    const [initiativeId] = vi.mocked(submissionsApi.submit).mock.calls[0]
+    expect(initiativeId).toBe('550e8400-e29b-41d4-a716-446655440002')
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'My Submissions' })).toBeInTheDocument(),
+    )
+  })
+
   it('shows an info message when every initiative has already been submitted', async () => {
     vi.mocked(loadAllMySubmissions).mockResolvedValue([
       existingSubmission,

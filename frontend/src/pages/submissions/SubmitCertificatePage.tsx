@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 import { initiativesApi } from '../../api/initiativesApi'
 import { loadAllMySubmissions } from '../../api/loadAllMySubmissions'
@@ -28,6 +28,8 @@ export const SUBMIT_CERTIFICATE_INITIATIVE_PARAMS = {
 
 export function SubmitCertificatePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const initialInitiativeId = searchParams.get('initiativeId')
   const [initiatives, setInitiatives] = useState<ReturnType<typeof parseInitiativeSummaries>>([])
   const [mySubmissions, setMySubmissions] = useState<Awaited<ReturnType<typeof loadAllMySubmissions>>>([])
   const [loadingInitiatives, setLoadingInitiatives] = useState(true)
@@ -153,6 +155,7 @@ export function SubmitCertificatePage() {
         <SubmitCertificateForm
           emptyMessage={emptyMessage}
           infoMessage={infoMessage}
+          initialInitiativeId={initialInitiativeId}
           initiatives={initiatives}
           loadError={loadError}
           loadingInitiatives={loadingInitiatives}

@@ -187,6 +187,48 @@ describe('SubmitCertificateForm', () => {
     ])
   })
 
+  it('pre-selects initiative from initialInitiativeId when available', async () => {
+    renderForm({
+      initialInitiativeId: '550e8400-e29b-41d4-a716-446655440002',
+      submittedInitiativeIds: new Set(),
+    })
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Initiative/i })).toHaveTextContent('Azure Certification'),
+    )
+  })
+
+  it('pre-selects initiative using case-insensitive initialInitiativeId matching', async () => {
+    renderForm({
+      initialInitiativeId: '550E8400-E29B-41D4-A716-446655440002',
+      submittedInitiativeIds: new Set(),
+    })
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Initiative/i })).toHaveTextContent('Azure Certification'),
+    )
+  })
+
+  it('does not pre-select initiative when initialInitiativeId is already submitted', async () => {
+    renderForm({
+      initialInitiativeId: '550E8400-E29B-41D4-A716-446655440001',
+    })
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    expect(screen.getByRole('combobox', { name: /Initiative/i })).not.toHaveTextContent('AWS Certification')
+  })
+
+  it('does not pre-select initiative when initialInitiativeId is unknown', async () => {
+    renderForm({
+      initialInitiativeId: 'unknown-initiative-id',
+      submittedInitiativeIds: new Set(),
+    })
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Initiative/i })).toBeInTheDocument())
+    expect(screen.getByRole('combobox', { name: /Initiative/i })).not.toHaveTextContent('AWS Certification')
+    expect(screen.getByRole('combobox', { name: /Initiative/i })).not.toHaveTextContent('Azure Certification')
+  })
+
   it('shows empty-state messaging when no initiatives are available', () => {
     renderForm({
       emptyMessage: SUBMISSION_MESSAGES.noInitiativesAvailable,

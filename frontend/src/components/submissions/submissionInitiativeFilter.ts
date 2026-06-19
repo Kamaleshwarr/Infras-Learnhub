@@ -1,4 +1,4 @@
-import type { InitiativeSummary } from '../../api/initiativesApi'
+import type { Initiative } from '../../types/initiatives'
 import type { CertificateSubmission } from '../../types/submissions'
 
 export function normalizeInitiativeId(id: string) {
@@ -19,7 +19,7 @@ export function extractSubmittedInitiativeIds(submissions: CertificateSubmission
 }
 
 export function filterAvailableInitiatives(
-  initiatives: InitiativeSummary[],
+  initiatives: Initiative[],
   submissions: CertificateSubmission[],
 ) {
   const submittedInitiativeIds = extractSubmittedInitiativeIds(submissions)
@@ -29,18 +29,18 @@ export function filterAvailableInitiatives(
   )
 }
 
-export function parseInitiativeSummaries(content: InitiativeSummary[] | undefined | null) {
+export function parseInitiativeSummaries(content: Initiative[] | undefined | null) {
   if (!Array.isArray(content)) {
     return []
   }
 
   return content.filter(
-    (initiative): initiative is InitiativeSummary =>
+    (initiative): initiative is Initiative =>
       Boolean(initiative?.id) && Boolean(initiative?.title),
   )
 }
 
-function compareByExpiryDateUtcAsc(left: InitiativeSummary, right: InitiativeSummary) {
+function compareByExpiryDateUtcAsc(left: Initiative, right: Initiative) {
   const leftExpiry = Date.parse(left.expiryDateUtc)
   const rightExpiry = Date.parse(right.expiryDateUtc)
 
@@ -52,11 +52,11 @@ function compareByExpiryDateUtcAsc(left: InitiativeSummary, right: InitiativeSum
 }
 
 export function sortInitiativesForSubmitDropdown(
-  initiatives: InitiativeSummary[],
+  initiatives: Initiative[],
   submittedInitiativeIds: Set<string>,
 ) {
-  const available: InitiativeSummary[] = []
-  const submitted: InitiativeSummary[] = []
+  const available: Initiative[] = []
+  const submitted: Initiative[] = []
 
   for (const initiative of initiatives) {
     if (submittedInitiativeIds.has(normalizeInitiativeId(initiative.id))) {
