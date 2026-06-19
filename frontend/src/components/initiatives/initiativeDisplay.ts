@@ -1,6 +1,16 @@
 export const EXPIRING_SOON_DAYS = 14
 export const EXPIRING_CRITICAL_DAYS = 3
 
+export function daysUntilExpiry(expiryDateUtc: string, now = Date.now()) {
+  const expiry = Date.parse(expiryDateUtc)
+  if (!Number.isFinite(expiry)) {
+    return null
+  }
+
+  const msPerDay = 24 * 60 * 60 * 1000
+  return Math.ceil((expiry - now) / msPerDay)
+}
+
 export function isExpiringSoon(expiryDateUtc: string, withinDays = EXPIRING_SOON_DAYS, now = Date.now()) {
   const expiry = Date.parse(expiryDateUtc)
   if (!Number.isFinite(expiry) || expiry < now) {

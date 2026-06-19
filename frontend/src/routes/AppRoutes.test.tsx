@@ -1,9 +1,26 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { AppRoutes } from './AppRoutes'
 import { AuthContext } from '../auth/AuthProvider'
 import type { UserProfile } from '../types/auth'
+import { vi } from 'vitest'
+
+vi.mock('../api/initiativesApi', () => ({
+  initiativesApi: {
+    get: vi.fn(),
+    list: vi.fn().mockResolvedValue({
+      content: [],
+      first: true,
+      last: true,
+      page: 0,
+      size: 20,
+      sort: [],
+      totalElements: 0,
+      totalPages: 0,
+    }),
+  },
+}))
 
 const adminUser: UserProfile = {
   id: 'admin-1',
@@ -64,5 +81,11 @@ describe('AppRoutes certificate workflow preparation', () => {
 
     expect(screen.queryByRole('heading', { name: 'Certificate Review' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Employee Dashboard' })).toBeInTheDocument()
+  })
+
+  it('renders initiative list route for employees', async () => {
+    renderRoute('/initiatives', employeeUser)
+
+    expect(await screen.findByRole('heading', { name: 'Learning Initiatives' })).toBeInTheDocument()
   })
 })

@@ -17,6 +17,7 @@ export function parseInitiativeListQuery(searchParams: URLSearchParams): Initiat
     size,
     sort,
     search: searchParams.get('search')?.trim() ?? '',
+    status: parseStatus(searchParams.get('status')),
   }
 }
 
@@ -35,11 +36,17 @@ export function buildInitiativeListSearchParams(query: InitiativeListQuery): URL
   if (query.search) {
     params.set('search', query.search)
   }
+  if (query.status) {
+    params.set('status', query.status)
+  }
 
   return params
 }
 
-export function toInitiativeApiParams(query: InitiativeListQuery): InitiativeListParams {
+export function toInitiativeApiParams(
+  query: InitiativeListQuery,
+  options?: { isAdmin?: boolean },
+): InitiativeListParams {
   const params: InitiativeListParams = {
     page: query.page,
     size: query.size,
@@ -48,6 +55,10 @@ export function toInitiativeApiParams(query: InitiativeListQuery): InitiativeLis
 
   if (query.search) {
     params.search = query.search
+  }
+
+  if (options?.isAdmin && query.status) {
+    params.status = query.status
   }
 
   return params
@@ -69,6 +80,13 @@ export function toggleSort(currentSort: string, property: string): string {
   return `${property},asc`
 }
 
+function parseStatus(value: string | null) {
+  if (value === 'DRAFT' || value === 'ACTIVE' || value === 'EXPIRED') {
+    return value
+  }
+  return ''
+}
+
 function parsePositiveInt(value: string | null, fallback: number) {
   if (!value) {
     return fallback
@@ -76,3 +94,10 @@ function parsePositiveInt(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value, 10)
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
 }
+
+export const INITIATIVE_STATUS_TABS: Array<{ label: string; value: InitiativeListQuery['status'] }> = [
+  { label: 'All', value: '' },
+  { label: 'Draft', value: 'DRAFT' },
+  { label: 'Active', value: 'ACTIVE' },
+  { label: 'Expired', value: 'EXPIRED' },
+]

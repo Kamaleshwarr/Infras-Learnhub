@@ -31,11 +31,14 @@ export interface InitiativeListParams {
   search?: string
 }
 
+export type InitiativeStatusFilter = '' | InitiativeStatus
+
 export interface InitiativeListQuery {
   page: number
   size: number
   sort: string
   search: string
+  status: InitiativeStatusFilter
 }
 
 export const DEFAULT_INITIATIVE_LIST_QUERY: InitiativeListQuery = {
@@ -43,6 +46,7 @@ export const DEFAULT_INITIATIVE_LIST_QUERY: InitiativeListQuery = {
   size: 20,
   sort: 'expiryDateUtc,asc',
   search: '',
+  status: '',
 }
 
 export const INITIATIVE_PAGE_SIZE_OPTIONS = [10, 20, 50] as const

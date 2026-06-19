@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   EXPIRING_SOON_DAYS,
+  daysUntilExpiry,
   formatInitiativeDateRange,
   isExpiringCritical,
   isExpiringSoon,
@@ -10,6 +11,11 @@ import {
 const NOW = Date.parse('2026-06-01T12:00:00Z')
 
 describe('initiativeDisplay', () => {
+  it('calculates days until expiry', () => {
+    const inTenDays = new Date(NOW + 10 * 24 * 60 * 60 * 1000).toISOString()
+    expect(daysUntilExpiry(inTenDays, NOW)).toBe(10)
+  })
+
   it('detects initiatives expiring within the default window', () => {
     const inTenDays = new Date(NOW + 10 * 24 * 60 * 60 * 1000).toISOString()
     const inTwentyDays = new Date(NOW + 20 * 24 * 60 * 60 * 1000).toISOString()
