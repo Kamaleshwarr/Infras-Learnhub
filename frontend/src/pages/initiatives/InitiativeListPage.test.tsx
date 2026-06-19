@@ -9,7 +9,38 @@ import { InitiativeDetailPage } from './InitiativeDetailPage'
 
 vi.mock('../../api/initiativesApi', () => ({
   initiativesApi: {
+    get: vi.fn(),
     list: vi.fn(),
+  },
+}))
+
+vi.mock('../../api/leaderboardsApi', () => ({
+  leaderboardsApi: {
+    initiative: vi.fn().mockResolvedValue({
+      content: [],
+      first: true,
+      last: true,
+      page: 0,
+      size: 1,
+      sort: [],
+      totalElements: 0,
+      totalPages: 0,
+    }),
+  },
+}))
+
+vi.mock('../../api/submissionsApi', () => ({
+  submissionsApi: {
+    listMine: vi.fn().mockResolvedValue({
+      content: [],
+      first: true,
+      last: true,
+      page: 0,
+      size: 1,
+      sort: [],
+      totalElements: 0,
+      totalPages: 0,
+    }),
   },
 }))
 
@@ -65,6 +96,7 @@ describe('InitiativeListPage', () => {
       user: null,
     })
     vi.mocked(initiativesApi.list).mockResolvedValue(pageResponse)
+    vi.mocked(initiativesApi.get).mockResolvedValue(initiative)
   })
 
   it('renders initiatives for employees', async () => {
@@ -140,7 +172,7 @@ describe('InitiativeListPage', () => {
     await user.click(screen.getByText('AWS Certification'))
 
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Initiative Details' })).toBeInTheDocument(),
+      expect(screen.getByRole('heading', { name: 'AWS Certification' })).toBeInTheDocument(),
     )
   })
 })
