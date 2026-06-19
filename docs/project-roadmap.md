@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-18 (v0.6.2 — shipped, PR #32)
+Last updated: 2026-06-19 (v0.7.0 — validated, PR #36 ready for merge)
 
 ## Release Overview
 
@@ -12,10 +12,11 @@ Last updated: 2026-06-18 (v0.6.2 — shipped, PR #32)
 | v0.5 | Profile Management (Phases 1–4) | Shipped (PR #27) |
 | v0.6 | In-App Notification Infrastructure | Shipped (PR #28) |
 | v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
-| **v0.6.2** | **Certificate Preview, Download & Pending Reviews Drilldown** | **Shipped (PR #32)** |
+| v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
+| **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
 
-Release notes: `docs/releases/release-v0.6.2.md`  
-Prior: `docs/releases/release-v0.6.1.md`  
+Release notes: `docs/releases/release-v0.7.0.md`  
+Prior: `docs/releases/release-v0.6.2.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ---
@@ -137,6 +138,25 @@ Release notes: `docs/releases/release-v0.6.1.md`
 
 ---
 
+## Validated — v0.7.0 Initiatives Experience (PR #36)
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| F0 | Initiative types, params, route foundation | **Validated** (PR #33) |
+| F1 | Initiative list page (search, sort, pagination) | **Validated** (PR #34) |
+| F2 | Initiative detail page (progress, top learner, submit CTA) | **Validated** (PR #35) |
+| F10 | Submit Certificate `?initiativeId=` pre-selection | **Validated** (PR #36) |
+| F2.1a | Reward / Benefits column label | **Validated** (PR #36) |
+| F2.1b | Back to Initiatives navigation | **Validated** (PR #36) |
+
+**Also delivered:** Fault-isolated detail loading; `isNotFoundError` helper; responsive list table + mobile cards; admin status filter tabs
+
+**Deferred:** Initiative Management UI (v0.7.1); rejected resubmission; top 3 learners; full initiative leaderboard page; dashboard initiative drilldowns
+
+Release notes: `docs/releases/release-v0.7.0.md`
+
+---
+
 ## Shipped — v0.6.2 Certificate Preview & Dashboard Drilldown
 
 | Phase | Deliverable | Status |
@@ -154,18 +174,22 @@ Release notes: `docs/releases/release-v0.6.2.md`
 
 ---
 
-## Backlog (post v0.6.2)
+## Backlog (post v0.7.0)
 
 | ID | Item | Notes |
 |----|------|-------|
+| — | Initiative Management UI (create/edit/delete/lifecycle) | v0.7.1 — backend APIs exist |
+| — | Rejected submission resubmission workflow | Future — backend `UNIQUE(employee_id, initiative_id)` |
+| — | Initiative leaderboard full page UI | Route exists; placeholder only |
+| — | Top 3 learners on detail + leaderboard navigation | Future release |
+| — | Dashboard initiative drilldowns | Active/Expiring Initiatives, Top Learners |
 | UM-002 | User Details Drawer | Read-only metadata + action shortcuts |
 | UM-003 | Unified cross-field search | Optional backend `search` param |
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
 | UM-006 | Downloadable import error report | Post-import CSV/text export |
-| — | Global Search | v0.7 candidate |
+| — | Global Search | v0.8+ candidate |
 | — | Dashboard status chips / filtering | Deferred from v0.6.1 |
 | — | Employee certificate download (My Submissions) | Deferred from v0.6.2 |
-| — | Dashboard drilldowns (Active/Expiring Initiatives, Top Learners) | Deferred from v0.6.2 |
 | — | Email notifications (account lifecycle) | Post v0.6.1 |
 | — | AI Features | Future |
 
@@ -197,3 +221,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)
 8. **Certificate Workflow UI** — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. **Certificate Review enhancements** — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
+10. **Initiatives Experience UI** — List, detail, submit integration, F2.1 polish (v0.7.0 — PR #36 pending merge)

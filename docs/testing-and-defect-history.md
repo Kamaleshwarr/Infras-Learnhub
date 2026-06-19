@@ -1,15 +1,67 @@
 # Testing & Defect History
 
-Last updated: 2026-06-18 (v0.6.2 — shipped, PR #32)
+Last updated: 2026-06-19 (v0.7.0 — validated, PR #36 ready for merge)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.6.2) |
+| Area | Command | Baseline (v0.7.0) |
 |------|---------|-------------------|
-| Frontend | `cd frontend && npm test` | **231 tests** — 54 files |
+| Frontend | `cd frontend && npm test` | **292 tests** — 68 files |
+| Frontend (v0.6.2) | `cd frontend && npm test` | **231 tests** — 54 files |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend | `mvn -f backend/pom.xml test` | **224 tests** run; **12 skipped** (Testcontainers/Docker); **4 pre-existing failures** (not v0.6.2) |
+| Backend | `mvn -f backend/pom.xml test` | **224 tests** run; **12 skipped** (Testcontainers/Docker); **4 pre-existing failures** (unchanged — no backend changes in v0.7.0) |
 | Backend (certificate-scoped) | `mvn test -Dtest='Certificate*Test,CertificateFileStorageServiceTest,CertificateContentDispositionTest'` | **34/34 pass** |
+
+---
+
+## Initiatives Experience — Validation History (v0.7.0)
+
+| Phase | Deliverable | Status | Notes |
+|-------|-------------|--------|-------|
+| F0 | Initiative types, params, route foundation | **Passed** | PR #33 — `Initiative` type, list params, leaderboard route |
+| F1 | Initiative list page | **Passed** | PR #34 — search, sort, pagination, admin status tabs |
+| F2 | Initiative detail page | **Passed** | PR #35 — progress, top learner, submit CTA, fault isolation |
+| F10 | Submit Certificate pre-selection | **Passed** | PR #36 — `?initiativeId=` dropdown pre-select |
+| F2.1a | Reward / Benefits column label | **Passed** | PR #36 — desktop table header |
+| F2.1b | Back to Initiatives navigation | **Passed** | PR #36 — detail page back link |
+
+**Deferred (not in v0.7.0):** Initiative Management UI (v0.7.1); rejected resubmission; top 3 learners; full initiative leaderboard page.
+
+### v0.7.0 — Manual validation checklist
+
+| # | Scenario | Status |
+|---|----------|--------|
+| 1 | Initiative list — employee visibility, search, sort, pagination | **Pass** |
+| 2 | Initiative list — admin status filter tabs | **Pass** |
+| 3 | Initiative detail — content, dates, reward, status | **Pass** |
+| 4 | Top Learner card (#1 preview) | **Pass** |
+| 5 | Submit Certificate CTA with `?initiativeId=` | **Pass** |
+| 6 | F10 — initiative dropdown pre-selected on submit page | **Pass** |
+| 7 | F2.1a — **Reward / Benefits** column header (desktop) | **Pass** |
+| 8 | F2.1b — **Back to Initiatives** (employee + admin) | **Pass** |
+| 9 | Existing submission — View My Submission; no resubmit | **Pass** |
+| 10 | Rejected submission — helper text; no resubmit CTA | **Pass** |
+| 11 | Admin detail — no employee progress/actions | **Pass** |
+| 12 | 404 not found panel | **Pass** |
+| 13 | Primary load error + retry | **Pass** |
+| 14 | Secondary load failure isolation | **Pass** |
+| 15 | Certificate workflow regression (no query param) | **Pass** |
+
+### v0.7.0 — QA branch note
+
+Initial manual QA on PR #35 (`cursor/f2-initiative-detail-7a10`) reported F10/F2.1 failures. Root cause: F10 and F2.1 ship only in PR #36 (`bf13659`). Re-validation on `cursor/f10-submit-preselect-7a10` — **all pass**, no blocking defects.
+
+### v0.7.0 — Test coverage added (cumulative)
+
+| Component / area | Tests |
+|------------------|-------|
+| `types/initiatives`, `initiativeListParams` | Type contracts, URL param parsing |
+| `initiativesApi`, `leaderboardsApi` | API client alignment |
+| `InitiativeListPage`, `InitiativeListViews`, search/filter components | List, sort, pagination, responsive layouts |
+| `InitiativeDetailPage`, detail components | Detail load, progress, top learner, actions, errors |
+| `SubmitCertificatePage`, `SubmitCertificateForm` | Pre-select via `?initiativeId=`, submit regression |
+| `InitiativeDetailBackLink` | Back navigation (via page integration test) |
+| `AppRoutes` | Initiative and leaderboard route guards |
 
 ---
 
@@ -377,3 +429,7 @@ Run before each phase merge:
 | Admin Review UI | Shipped v0.6.1 |
 | Dashboard fault isolation | CW-D01 (employee) and CW-D02 (admin) — **Pass** |
 | `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |
+| Initiatives Experience (v0.7.0) | **Validated** — PR #36; list + detail + F10/F2.1 |
+| Initiative Management UI | Not implemented — deferred v0.7.1 |
+| Initiative leaderboard page | Placeholder only — route exists |
+| Rejected resubmission | Not supported — backend unique constraint |
