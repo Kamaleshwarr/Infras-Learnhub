@@ -104,6 +104,13 @@ describe('InitiativeDetailPage', () => {
     })
   })
 
+  it('shows back to initiatives navigation', async () => {
+    renderDetailPage()
+
+    const backLink = await screen.findByRole('link', { name: /Back to Initiatives/i })
+    expect(backLink).toHaveAttribute('href', '/initiatives')
+  })
+
   it('renders initiative details from direct URL access', async () => {
     renderDetailPage()
 

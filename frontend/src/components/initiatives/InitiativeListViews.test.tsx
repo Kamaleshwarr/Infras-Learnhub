@@ -28,6 +28,7 @@ describe('InitiativeListViews', () => {
     )
 
     expect(screen.getByText('AWS Certification')).toBeInTheDocument()
+    expect(screen.getByText('Reward / Benefits')).toBeInTheDocument()
     expect(screen.getByText('Learning credit')).toBeInTheDocument()
   })
 

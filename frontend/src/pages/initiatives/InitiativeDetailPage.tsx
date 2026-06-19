@@ -8,6 +8,7 @@ import { submissionsApi } from '../../api/submissionsApi'
 import { useAuth } from '../../auth/useAuth'
 import { PageHeader } from '../../components/common/PageHeader'
 import { DetailPageSkeleton } from '../../components/initiatives/DetailPageSkeleton'
+import { InitiativeDetailBackLink } from '../../components/initiatives/InitiativeDetailBackLink'
 import { InitiativeActionBar } from '../../components/initiatives/InitiativeActionBar'
 import { InitiativeDescriptionCard } from '../../components/initiatives/InitiativeDescriptionCard'
 import { InitiativeDetailAlerts } from '../../components/initiatives/InitiativeDetailAlerts'
@@ -209,6 +210,7 @@ export function InitiativeDetailPage() {
 
   return (
     <>
+      <InitiativeDetailBackLink />
       <PageHeader
         description={formatInitiativeDateRange(initiative.startDateUtc, initiative.expiryDateUtc)}
         title={initiative.title}

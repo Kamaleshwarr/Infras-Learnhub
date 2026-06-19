@@ -8,6 +8,7 @@ export const INITIATIVE_MESSAGES = {
   progressNotSubmitted: 'Not submitted',
   progressRejectedHelper: 'Your submission was rejected. Contact your administrator for next steps.',
   browseInitiatives: 'Browse Initiatives',
+  backToInitiatives: 'Back to Initiatives',
   retry: 'Retry',
   clearSearch: 'Clear search',
   about: 'About',

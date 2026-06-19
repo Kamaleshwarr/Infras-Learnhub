@@ -33,7 +33,7 @@ interface InitiativeTableProps {
 const BASE_COLUMNS: SortableColumn[] = [
   { id: 'title', label: 'Title', sortable: true },
   { id: 'expiryDateUtc', label: 'Expires', sortable: true },
-  { id: 'reward', label: 'Reward' },
+  { id: 'reward', label: 'Reward / Benefits' },
 ]
 
 const STATUS_COLUMN: SortableColumn = { id: 'status', label: 'Status', sortable: true }
