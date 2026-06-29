@@ -54,3 +54,16 @@ export const INITIATIVE_PAGE_SIZE_OPTIONS = [10, 20, 50] as const
 export const INITIATIVE_SORTABLE_COLUMNS = ['title', 'expiryDateUtc', 'startDateUtc', 'createdAtUtc', 'updatedAtUtc'] as const
 
 export type InitiativeSortableColumn = (typeof INITIATIVE_SORTABLE_COLUMNS)[number]
+
+export interface UpsertInitiativeRequest {
+  title: string
+  description: string
+  rewardDescription?: string | null
+  startDateUtc: string
+  expiryDateUtc: string
+  status: InitiativeStatus
+}
+
+export type CreateInitiativeRequest = UpsertInitiativeRequest
+
+export type UpdateInitiativeRequest = UpsertInitiativeRequest
