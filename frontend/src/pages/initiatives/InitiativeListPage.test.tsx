@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { initiativesApi } from '../../api/initiativesApi'
 import { useAuth } from '../../auth/useAuth'
 import { InitiativeListPage } from './InitiativeListPage'
@@ -55,7 +55,7 @@ const initiative = {
   expiryDateUtc: '2026-12-31T00:00:00Z',
   id: 'initiative-1',
   rewardDescription: 'Learning credit',
-  startDateUtc: '2026-01-01T00:00:00Z',
+  startDateUtc: '2026-07-01T00:00:00.000Z',
   status: 'ACTIVE' as const,
   title: 'AWS Certification',
 }
@@ -85,6 +85,7 @@ function renderListPage(initialEntry = '/initiatives') {
 describe('InitiativeListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.setSystemTime(Date.parse('2026-06-27T12:00:00.000Z'))
     vi.mocked(useAuth).mockReturnValue({
       currentRole: 'EMPLOYEE',
       hasRole: (role) => role === 'EMPLOYEE',
@@ -99,6 +100,10 @@ describe('InitiativeListPage', () => {
     })
     vi.mocked(initiativesApi.list).mockResolvedValue(pageResponse)
     vi.mocked(initiativesApi.get).mockResolvedValue(initiative)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders initiatives for employees', async () => {

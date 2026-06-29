@@ -112,7 +112,7 @@ export function InitiativeTable({
                     maxLength={TEXT_DISPLAY_LIMITS.tableTitle}
                     text={initiative.title}
                   />
-                  <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} />
+                  <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} status={initiative.status} />
                 </Stack>
               </TableCell>
               {showStatusColumn ? (
@@ -209,7 +209,7 @@ export function InitiativeCardList({
                   ) : null}
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
                     {showStatusColumn ? <InitiativeStatusChip status={initiative.status} /> : null}
-                    <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} />
+                    <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} status={initiative.status} />
                   </Stack>
                 </Box>
                 <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>

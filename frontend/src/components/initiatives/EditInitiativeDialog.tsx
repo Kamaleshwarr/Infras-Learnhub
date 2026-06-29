@@ -17,6 +17,7 @@ import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { InitiativeFormFields } from './InitiativeFormFields'
 import { InitiativeMetadataPanel } from './InitiativeMetadataPanel'
 import {
+  applyInitiativeStatusChange,
   buildUpdateInitiativeRequest,
   createEmptyInitiativeForm,
   createInitiativeFormBaseline,
@@ -26,6 +27,7 @@ import {
   type InitiativeFormFieldName,
   type InitiativeFormValues,
 } from './initiativeFormState'
+import { todayUtcDateInput } from './initiativeDateUtils'
 import { INITIATIVE_MESSAGES } from './initiativeMessages'
 
 interface EditInitiativeDialogProps {
@@ -60,7 +62,7 @@ export function EditInitiativeDialog({ open, initiative, onClose, onSuccess }: E
   const isDirty = useMemo(() => isInitiativeFormDirty(form, baseline), [baseline, form])
 
   function updateField<K extends InitiativeFormFieldName>(field: K, value: InitiativeFormValues[K]) {
-    setForm((current) => ({ ...current, [field]: value }))
+    setForm((current) => applyInitiativeStatusChange(field, value, current))
     setFieldErrors((current) => {
       if (!(field in current)) {
         return current
@@ -131,6 +133,7 @@ export function EditInitiativeDialog({ open, initiative, onClose, onSuccess }: E
                   disabled={submitting}
                   fieldErrors={fieldErrors}
                   minExpiryDate={form.startDate}
+                  minStartDate={todayUtcDateInput()}
                   onChange={updateField}
                   showStatusHelper
                   values={form}

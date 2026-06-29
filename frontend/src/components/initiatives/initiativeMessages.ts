@@ -23,6 +23,7 @@ export const INITIATIVE_MESSAGES = {
   topLearnerApproved: (date: string) => `Approved ${date}`,
   expiresInDays: (days: number) => `Expires in ${days} day${days === 1 ? '' : 's'}`,
   expiresToday: 'Expires today',
+  expiredLabel: 'Expired',
   createInitiative: 'Create Initiative',
   createDialogTitle: 'Create Initiative',
   editDialogTitle: 'Edit Initiative',

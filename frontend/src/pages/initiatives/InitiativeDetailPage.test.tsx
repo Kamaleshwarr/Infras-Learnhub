@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import axios from 'axios'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { initiativesApi } from '../../api/initiativesApi'
 import { leaderboardsApi } from '../../api/leaderboardsApi'
 import { submissionsApi } from '../../api/submissionsApi'
@@ -44,7 +44,7 @@ const initiative = {
   expiryDateUtc: '2026-12-31T00:00:00Z',
   id: 'initiative-1',
   rewardDescription: '$500 learning credit',
-  startDateUtc: '2026-01-01T00:00:00Z',
+  startDateUtc: '2026-07-01T00:00:00.000Z',
   status: 'ACTIVE' as const,
   title: 'AWS Certification',
   updatedAtUtc: '2026-06-01T12:00:00Z',
@@ -78,6 +78,7 @@ function renderDetailPage(path = '/initiatives/initiative-1') {
 describe('InitiativeDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.setSystemTime(Date.parse('2026-06-27T12:00:00.000Z'))
     vi.mocked(useAuth).mockReturnValue({
       currentRole: 'EMPLOYEE',
       hasRole: (role) => role === 'EMPLOYEE',
@@ -111,6 +112,10 @@ describe('InitiativeDetailPage', () => {
       totalElements: 0,
       totalPages: 0,
     })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('shows back to initiatives navigation', async () => {

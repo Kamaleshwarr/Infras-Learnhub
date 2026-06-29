@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import axios from 'axios'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { initiativesApi } from '../../api/initiativesApi'
 import type { Initiative } from '../../types/initiatives'
 import { EditInitiativeDialog } from './EditInitiativeDialog'
@@ -11,6 +11,8 @@ vi.mock('../../api/initiativesApi', () => ({
     update: vi.fn(),
   },
 }))
+
+const frozenNow = Date.parse('2026-06-27T12:00:00.000Z')
 
 const initiative: Initiative = {
   createdAtUtc: '2025-01-01T10:00:00Z',
@@ -24,7 +26,7 @@ const initiative: Initiative = {
   expiryDateUtc: '2026-12-31T00:00:00.000Z',
   id: 'initiative-1',
   rewardDescription: '$500 credit',
-  startDateUtc: '2020-06-01T00:00:00.000Z',
+  startDateUtc: '2026-07-01T00:00:00.000Z',
   status: 'ACTIVE',
   title: 'Azure Certification',
   updatedAtUtc: '2026-06-01T12:00:00Z',
@@ -40,6 +42,11 @@ describe('EditInitiativeDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.setSystemTime(frozenNow)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('pre-populates existing initiative values', () => {
@@ -49,7 +56,7 @@ describe('EditInitiativeDialog', () => {
     expect(dialog.getByLabelText(/^Title/i)).toHaveValue('Azure Certification')
     expect(dialog.getByLabelText(/^Description/i)).toHaveValue('Azure certification program')
     expect(dialog.getByLabelText(/^Reward \/ Benefits/i)).toHaveValue('$500 credit')
-    expect(dialog.getByLabelText(/^Start date \(UTC\)/i)).toHaveValue('2020-06-01')
+    expect(dialog.getByLabelText(/^Start date \(UTC\)/i)).toHaveValue('2026-07-01')
     expect(dialog.getByLabelText(/^Expiry date \(UTC\)/i)).toHaveValue('2026-12-31')
     expect(dialog.getByRole('combobox', { name: /^Status/i })).toHaveTextContent('Active')
   })
@@ -82,15 +89,26 @@ describe('EditInitiativeDialog', () => {
     expect(initiativesApi.update).not.toHaveBeenCalled()
   })
 
-  it('allows past start dates in edit mode', async () => {
+  it('rejects start dates before today in edit mode', async () => {
+    const user = userEvent.setup({ delay: null })
+    render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
+    const dialog = getEditDialog()
+
+    fireEvent.change(dialog.getByLabelText(/^Start date \(UTC\)/i), { target: { value: '2026-06-26' } })
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    expect(dialog.getByText(/Start date cannot be earlier than today/i)).toBeInTheDocument()
+    expect(initiativesApi.update).not.toHaveBeenCalled()
+  })
+
+  it('allows today and future start dates in edit mode', async () => {
     const user = userEvent.setup({ delay: null })
     vi.mocked(initiativesApi.update).mockResolvedValue(initiative)
 
     render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
     const dialog = getEditDialog()
 
-    fireEvent.change(dialog.getByLabelText(/^Start date \(UTC\)/i), { target: { value: '2020-01-01' } })
-    fireEvent.change(dialog.getByLabelText(/^Expiry date \(UTC\)/i), { target: { value: '2026-12-31' } })
+    fireEvent.change(dialog.getByLabelText(/^Start date \(UTC\)/i), { target: { value: '2026-06-27' } })
     await user.click(dialog.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(initiativesApi.update).toHaveBeenCalled())
@@ -102,11 +120,43 @@ describe('EditInitiativeDialog', () => {
     render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
     const dialog = getEditDialog()
 
-    fireEvent.change(dialog.getByLabelText(/^Expiry date \(UTC\)/i), { target: { value: '2019-12-31' } })
+    fireEvent.change(dialog.getByLabelText(/^Expiry date \(UTC\)/i), { target: { value: '2026-06-20' } })
     await user.click(dialog.getByRole('button', { name: 'Save' }))
 
     expect(dialog.getByText(/Expiry date must be on or after the start date/i)).toBeInTheDocument()
     expect(initiativesApi.update).not.toHaveBeenCalled()
+  })
+
+  it('sets expiry to today when status changes to expired', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.mocked(initiativesApi.update).mockResolvedValue({
+      ...initiative,
+      expiryDateUtc: '2026-06-27T00:00:00.000Z',
+      startDateUtc: '2026-06-27T00:00:00.000Z',
+      status: 'EXPIRED',
+    })
+
+    render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
+    const dialog = getEditDialog()
+
+    await user.click(dialog.getByRole('combobox', { name: /^Status/i }))
+    await user.click(screen.getByRole('option', { name: 'Expired' }))
+
+    expect(dialog.getByLabelText(/^Expiry date \(UTC\)/i)).toHaveValue('2026-06-27')
+    expect(dialog.getByLabelText(/^Start date \(UTC\)/i)).toHaveValue('2026-06-27')
+
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(initiativesApi.update).toHaveBeenCalledWith('initiative-1', {
+        title: 'Azure Certification',
+        description: 'Azure certification program',
+        rewardDescription: '$500 credit',
+        startDateUtc: '2026-06-27T00:00:00.000Z',
+        expiryDateUtc: '2026-06-27T00:00:00.000Z',
+        status: 'EXPIRED',
+      }),
+    )
   })
 
   it('updates an initiative and calls onSuccess', async () => {
@@ -128,7 +178,7 @@ describe('EditInitiativeDialog', () => {
         title: 'Updated Azure Certification',
         description: 'Azure certification program',
         rewardDescription: '$500 credit',
-        startDateUtc: '2020-06-01T00:00:00.000Z',
+        startDateUtc: '2026-07-01T00:00:00.000Z',
         expiryDateUtc: '2026-12-31T00:00:00.000Z',
         status: 'ACTIVE',
       }),

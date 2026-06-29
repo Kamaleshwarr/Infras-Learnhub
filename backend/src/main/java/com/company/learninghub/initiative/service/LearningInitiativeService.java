@@ -65,12 +65,18 @@ public class LearningInitiativeService {
         User createdBy = userRepository.findById(authenticatedUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Authenticated user was not found"));
 
+        NormalizedInitiativeDates dates = normalizeInitiativeDates(
+                request.startDateUtc(),
+                request.expiryDateUtc(),
+                request.status()
+        );
+
         LearningInitiative initiative = new LearningInitiative(
                 request.title(),
                 request.description(),
                 request.rewardDescription(),
-                request.startDateUtc(),
-                request.expiryDateUtc(),
+                dates.startDateUtc(),
+                dates.expiryDateUtc(),
                 request.status(),
                 createdBy
         );
@@ -82,12 +88,17 @@ public class LearningInitiativeService {
     @Transactional
     public InitiativeResponse update(UUID initiativeId, UpdateInitiativeRequest request) {
         LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        NormalizedInitiativeDates dates = normalizeInitiativeDates(
+                request.startDateUtc(),
+                request.expiryDateUtc(),
+                request.status()
+        );
         initiative.updateDetails(
                 request.title(),
                 request.description(),
                 request.rewardDescription(),
-                request.startDateUtc(),
-                request.expiryDateUtc(),
+                dates.startDateUtc(),
+                dates.expiryDateUtc(),
                 request.status()
         );
         return initiativeMapper.toResponse(initiative);
@@ -131,6 +142,48 @@ public class LearningInitiativeService {
     private LearningInitiative findInitiativeOrThrow(UUID initiativeId) {
         return initiativeRepository.findById(initiativeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning initiative was not found"));
+    }
+
+    private NormalizedInitiativeDates normalizeInitiativeDates(
+            Instant startDateUtc,
+            Instant expiryDateUtc,
+            InitiativeStatus status
+    ) {
+        Instant normalizedStart = startDateUtc;
+        Instant normalizedExpiry = expiryDateUtc;
+
+        if (InitiativeStatus.EXPIRED.equals(status)) {
+            normalizedExpiry = startOfTodayUtc();
+            if (normalizedStart.isAfter(normalizedExpiry)) {
+                normalizedStart = normalizedExpiry;
+            }
+        }
+
+        validateStartDateOnOrAfterToday(normalizedStart);
+
+        if (normalizedExpiry.isBefore(normalizedStart)) {
+            throw new IllegalArgumentException("expiryDateUtc must be on or after startDateUtc");
+        }
+
+        return new NormalizedInitiativeDates(normalizedStart, normalizedExpiry);
+    }
+
+    private void validateStartDateOnOrAfterToday(Instant startDateUtc) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate today = LocalDate.ofInstant(clock.instant(), utc);
+        LocalDate startDate = LocalDate.ofInstant(startDateUtc, utc);
+        if (startDate.isBefore(today)) {
+            throw new IllegalArgumentException("startDateUtc cannot be earlier than today (UTC)");
+        }
+    }
+
+    private Instant startOfTodayUtc() {
+        return LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant();
+    }
+
+    private record NormalizedInitiativeDates(Instant startDateUtc, Instant expiryDateUtc) {
     }
 
     private boolean isAdmin(AuthenticatedUser authenticatedUser) {

@@ -140,14 +140,15 @@ class LearningInitiativeServiceTest {
     }
 
     @Test
-    void updateAllowsAdminToTransitionActiveInitiativeToExpired() {
+    void updateSetsExpiryToTodayWhenMarkingInitiativeExpired() {
         LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+        Instant futureExpiry = Instant.parse("2026-12-31T00:00:00.000Z");
         UpdateInitiativeRequest request = new UpdateInitiativeRequest(
                 "Active",
                 "Expired after review",
                 "Reward",
-                NOW.minusSeconds(7200),
-                NOW.minusSeconds(3600),
+                NOW.plusSeconds(3600),
+                futureExpiry,
                 InitiativeStatus.EXPIRED
         );
         UUID initiativeId = UUID.randomUUID();
@@ -156,7 +157,43 @@ class LearningInitiativeServiceTest {
         InitiativeResponse response = initiativeService.update(initiativeId, request);
 
         assertThat(response.status()).isEqualTo(InitiativeStatus.EXPIRED);
-        assertThat(response.expiryDateUtc()).isBefore(NOW);
+        assertThat(response.expiryDateUtc()).isEqualTo(Instant.parse("2026-06-06T00:00:00.000Z"));
+    }
+
+    @Test
+    void createRejectsStartDateBeforeToday() {
+        CreateInitiativeRequest request = new CreateInitiativeRequest(
+                "AWS AI Certification",
+                "Complete the AWS AI certification.",
+                "Recognition",
+                NOW.minusSeconds(86_400),
+                NOW.plusSeconds(7200),
+                InitiativeStatus.DRAFT
+        );
+        when(userRepository.findById(adminPrincipal.getId())).thenReturn(Optional.of(adminUser));
+
+        assertThatThrownBy(() -> initiativeService.create(request, adminPrincipal))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("startDateUtc cannot be earlier than today (UTC)");
+    }
+
+    @Test
+    void updateRejectsStartDateBeforeToday() {
+        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+        UpdateInitiativeRequest request = new UpdateInitiativeRequest(
+                "Active",
+                "Updated description",
+                "Reward",
+                NOW.minusSeconds(86_400),
+                NOW.plusSeconds(3600),
+                InitiativeStatus.ACTIVE
+        );
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        assertThatThrownBy(() -> initiativeService.update(initiativeId, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("startDateUtc cannot be earlier than today (UTC)");
     }
 
     @Test

@@ -96,7 +96,7 @@ describe('initiativeFormState', () => {
     expect(errors.expiryDate).toBeUndefined()
   })
 
-  it('does not enforce start-date minimum in edit mode', () => {
+  it('enforces start-date minimum in edit mode', () => {
     const errors = getInitiativeFormFieldErrors(
       {
         title: 'Azure',
@@ -109,7 +109,52 @@ describe('initiativeFormState', () => {
       { mode: 'edit', now: Date.parse('2026-06-19T12:00:00.000Z') },
     )
 
-    expect(errors.startDate).toBeUndefined()
+    expect(errors.startDate).toContain('today')
+  })
+
+  it('allows today and future start dates in edit mode', () => {
+    const now = Date.parse('2026-06-27T12:00:00.000Z')
+    const todayErrors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-27',
+        expiryDate: '2026-12-31',
+        status: 'ACTIVE',
+      },
+      { mode: 'edit', now },
+    )
+    const futureErrors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-07-01',
+        expiryDate: '2026-12-31',
+        status: 'ACTIVE',
+      },
+      { mode: 'edit', now },
+    )
+
+    expect(todayErrors.startDate).toBeUndefined()
+    expect(futureErrors.startDate).toBeUndefined()
+  })
+
+  it('normalizes expiry to today when status is expired', () => {
+    const now = Date.parse('2026-06-27T12:00:00.000Z')
+    const request = buildUpdateInitiativeRequest({
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+      status: 'EXPIRED',
+    }, now)
+
+    expect(request.status).toBe('EXPIRED')
+    expect(request.expiryDateUtc).toBe('2026-06-27T00:00:00.000Z')
+    expect(request.startDateUtc).toBe('2026-06-27T00:00:00.000Z')
   })
 
   it('validates required fields and date range', () => {
@@ -181,14 +226,18 @@ describe('initiativeFormState', () => {
   })
 
   it('accepts values at the maximum field length limits', () => {
-    const errors = getInitiativeFormFieldErrors({
-      title: 't'.repeat(100),
-      description: 'd'.repeat(2000),
-      rewardDescription: 'r'.repeat(500),
-      startDate: '2026-06-01',
-      expiryDate: '2026-12-31',
-      status: 'DRAFT',
-    })
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 't'.repeat(100),
+        description: 'd'.repeat(2000),
+        rewardDescription: 'r'.repeat(500),
+        startDate: '2026-06-19',
+        expiryDate: '2026-12-31',
+        status: 'DRAFT',
+      },
+      { now },
+    )
 
     expect(errors).toEqual({})
   })
