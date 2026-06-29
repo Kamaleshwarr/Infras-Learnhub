@@ -1,5 +1,6 @@
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
 import { InputAdornment, TextField } from '@mui/material'
+import { INITIATIVE_FORM_LIMITS } from './initiativeFormState'
 
 interface InitiativeSearchBarProps {
   value: string
@@ -16,6 +17,7 @@ export function InitiativeSearchBar({ value, onChange, disabled = false }: Initi
       onChange={(event) => onChange(event.target.value)}
       placeholder="Search by title"
       slotProps={{
+        htmlInput: { maxLength: INITIATIVE_FORM_LIMITS.title },
         input: {
           startAdornment: (
             <InputAdornment position="start">

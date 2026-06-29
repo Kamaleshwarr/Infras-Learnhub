@@ -4,6 +4,8 @@ import { AppBar, Box, IconButton, Toolbar, Typography, Button } from '@mui/mater
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { NotificationBell } from '../components/notifications/NotificationBell'
+import { TruncatedTextWithTooltip } from '../components/common/TruncatedTextWithTooltip'
+import { TEXT_DISPLAY_LIMITS } from '../components/common/textDisplay'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -34,11 +36,13 @@ export function Header({ onMenuClick }: HeaderProps) {
         >
           <MenuIcon />
         </IconButton>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography variant="h6">Engineering Learning Hub</Typography>
-          <Typography color="text.secondary" variant="body2">
-            {user?.fullName ?? 'Authenticated user'}{currentRole ? ` · ${currentRole}` : ''}
-          </Typography>
+          <TruncatedTextWithTooltip
+            color="text.secondary"
+            maxLength={TEXT_DISPLAY_LIMITS.headerSubtitle}
+            text={`${user?.fullName ?? 'Authenticated user'}${currentRole ? ` · ${currentRole}` : ''}`}
+          />
         </Box>
         <NotificationBell />
         <Button color="primary" onClick={handleLogout} startIcon={<LogoutIcon />} sx={{ ml: 1 }}>

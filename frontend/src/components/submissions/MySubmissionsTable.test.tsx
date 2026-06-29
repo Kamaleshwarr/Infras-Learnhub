@@ -46,4 +46,31 @@ describe('MySubmissionsTable', () => {
 
     expect(screen.getByText('No certificate submissions yet.')).toBeInTheDocument()
   })
+
+  it('truncates long initiative and rejection reason text', () => {
+    render(
+      <MySubmissionsTable
+        emptyMessage="No submissions"
+        loading={false}
+        submissions={[
+          {
+            ...submission,
+            certificateDocument: {
+              ...submission.certificateDocument,
+              originalFilename: `${'f'.repeat(80)}.pdf`,
+            },
+            initiative: {
+              ...submission.initiative,
+              title: 't'.repeat(80),
+            },
+            rejectionReason: 'r'.repeat(100),
+          },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText(`${'t'.repeat(60)}…`)).toBeInTheDocument()
+    expect(screen.getByText(`${'f'.repeat(50)}…`)).toBeInTheDocument()
+    expect(screen.getByText(`${'r'.repeat(80)}…`)).toBeInTheDocument()
+  })
 })

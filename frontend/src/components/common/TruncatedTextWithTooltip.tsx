@@ -1,6 +1,6 @@
 import { Tooltip, Typography } from '@mui/material'
 import type { TypographyProps } from '@mui/material'
-import { truncateText } from '../initiatives/initiativeDisplay'
+import { truncateText } from './textDisplay'
 import { longTextWrapSx, singleLineEllipsisSx } from './textStyles'
 
 interface TruncatedTextWithTooltipProps {

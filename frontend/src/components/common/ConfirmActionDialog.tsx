@@ -8,10 +8,10 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
-  Typography,
 } from '@mui/material'
 import type { UserSummary } from '../../types/users'
 import { UserStatusChip } from '../users/UserStatusChip'
+import { WrappingText } from './WrappingText'
 
 interface ConfirmActionDialogProps {
   open: boolean
@@ -54,13 +54,14 @@ export function ConfirmActionDialog({
               sx={{
                 bgcolor: 'action.hover',
                 borderRadius: 1,
+                minWidth: 0,
                 p: 2,
               }}
             >
-              <Typography variant="subtitle2">{user.fullName}</Typography>
-              <Typography color="text.secondary" variant="body2">
+              <WrappingText variant="subtitle2">{user.fullName}</WrappingText>
+              <WrappingText color="text.secondary" variant="body2">
                 {user.employeeId} · {user.email}
-              </Typography>
+              </WrappingText>
               <Box sx={{ mt: 1 }}>
                 <UserStatusChip active={user.active} />
               </Box>

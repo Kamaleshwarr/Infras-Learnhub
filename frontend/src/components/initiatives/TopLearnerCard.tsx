@@ -1,6 +1,7 @@
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined'
 import { Card, CardContent, Skeleton, Stack, Typography } from '@mui/material'
 import type { InitiativeLeaderboardEntry } from '../../api/leaderboardsApi'
+import { WrappingText } from '../common/WrappingText'
 import { formatInitiativeDate } from './initiativeDisplay'
 import { INITIATIVE_MESSAGES } from './initiativeMessages'
 
@@ -12,7 +13,7 @@ interface TopLearnerCardProps {
 
 export function TopLearnerCard({ loading, error, entry }: TopLearnerCardProps) {
   return (
-    <Card sx={{ mb: 2 }} variant="outlined">
+    <Card sx={{ mb: 2, minWidth: 0 }} variant="outlined">
       <CardContent>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
           <EmojiEventsOutlinedIcon color="primary" fontSize="small" />
@@ -29,8 +30,8 @@ export function TopLearnerCard({ loading, error, entry }: TopLearnerCardProps) {
             {INITIATIVE_MESSAGES.topLearnerUnavailable}
           </Typography>
         ) : entry ? (
-          <Stack spacing={0.5}>
-            <Typography variant="subtitle1">#{entry.rank} {entry.employee.fullName}</Typography>
+          <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+            <WrappingText variant="subtitle1">#{entry.rank} {entry.employee.fullName}</WrappingText>
             <Typography color="text.secondary" variant="body2">
               {INITIATIVE_MESSAGES.topLearnerApproved(formatInitiativeDate(entry.approvedAtUtc))}
             </Typography>

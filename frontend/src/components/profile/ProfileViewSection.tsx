@@ -2,6 +2,8 @@ import { Box, Button, Card, CardContent, Grid, Stack, TextField, Typography } fr
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { UserStatusChip } from '../users/UserStatusChip'
+import { readOnlyTextFieldSlotProps } from '../common/readOnlyTextField'
+import { WrappingText } from '../common/WrappingText'
 import { ProfileAvatar } from './ProfileAvatar'
 import { ProfileAvatarUpload } from './ProfileAvatarUpload'
 import type { Profile } from '../../types/profile'
@@ -26,7 +28,7 @@ export function ProfileViewSection({
   avatarBusy = false,
 }: ProfileViewSectionProps) {
   return (
-    <Card>
+    <Card sx={{ minWidth: 0 }}>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
         <Stack spacing={3}>
           <Stack spacing={2} sx={{ alignItems: 'center' }}>
@@ -35,11 +37,13 @@ export function ProfileViewSection({
               fullName={profile.fullName}
               hasAvatar={profile.hasAvatar}
             />
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h5">{profile.fullName}</Typography>
-              <Typography color="text.secondary" variant="body2">
+            <Box sx={{ minWidth: 0, textAlign: 'center', width: '100%' }}>
+              <WrappingText component="h2" variant="h5">
+                {profile.fullName}
+              </WrappingText>
+              <WrappingText color="text.secondary" variant="body2">
                 {profile.email}
-              </Typography>
+              </WrappingText>
             </Box>
             {onAvatarUpdated && onAvatarError ? (
               <ProfileAvatarUpload
@@ -56,7 +60,7 @@ export function ProfileViewSection({
               <TextField
                 fullWidth
                 label="Full Name"
-                slotProps={{ input: { readOnly: true } }}
+                slotProps={readOnlyTextFieldSlotProps}
                 value={profile.fullName}
               />
             </Grid>
@@ -64,7 +68,7 @@ export function ProfileViewSection({
               <TextField
                 fullWidth
                 label="Email"
-                slotProps={{ input: { readOnly: true } }}
+                slotProps={readOnlyTextFieldSlotProps}
                 value={profile.email}
               />
             </Grid>
@@ -72,7 +76,7 @@ export function ProfileViewSection({
               <TextField
                 fullWidth
                 label="Employee ID"
-                slotProps={{ input: { readOnly: true } }}
+                slotProps={readOnlyTextFieldSlotProps}
                 value={profile.employeeId}
               />
             </Grid>
@@ -80,7 +84,7 @@ export function ProfileViewSection({
               <TextField
                 fullWidth
                 label="Role"
-                slotProps={{ input: { readOnly: true } }}
+                slotProps={readOnlyTextFieldSlotProps}
                 value={profile.role}
               />
             </Grid>
