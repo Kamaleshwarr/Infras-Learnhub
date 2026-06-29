@@ -45,7 +45,59 @@ class InitiativeRequestValidationTest {
 
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
-                .contains("expiryDateUtc must be after startDateUtc");
+                .contains("expiryDateUtc must be on or after startDateUtc");
+    }
+
+    @Test
+    void createRequestAllowsExpiryOnSameDayAsStart() {
+        Instant sameDay = Instant.parse("2026-06-10T00:00:00Z");
+        CreateInitiativeRequest request = new CreateInitiativeRequest(
+                "One-day Workshop",
+                "Single-day learning event.",
+                null,
+                sameDay,
+                sameDay,
+                InitiativeStatus.DRAFT
+        );
+
+        Set<ConstraintViolation<CreateInitiativeRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void updateRequestRejectsExpiryBeforeStart() {
+        UpdateInitiativeRequest request = new UpdateInitiativeRequest(
+                "AI Certification",
+                "Complete the certification.",
+                "Recognition",
+                Instant.parse("2026-06-10T00:00:00Z"),
+                Instant.parse("2026-06-09T00:00:00Z"),
+                InitiativeStatus.ACTIVE
+        );
+
+        Set<ConstraintViolation<UpdateInitiativeRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .extracting(ConstraintViolation::getMessage)
+                .contains("expiryDateUtc must be on or after startDateUtc");
+    }
+
+    @Test
+    void updateRequestAllowsExpiryOnSameDayAsStart() {
+        Instant sameDay = Instant.parse("2026-06-10T00:00:00Z");
+        UpdateInitiativeRequest request = new UpdateInitiativeRequest(
+                "One-day Workshop",
+                "Single-day learning event.",
+                null,
+                sameDay,
+                sameDay,
+                InitiativeStatus.DRAFT
+        );
+
+        Set<ConstraintViolation<UpdateInitiativeRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
     }
 
     @Test
@@ -59,4 +111,3 @@ class InitiativeRequestValidationTest {
                 .contains("title", "description", "startDateUtc", "expiryDateUtc", "status");
     }
 }
-

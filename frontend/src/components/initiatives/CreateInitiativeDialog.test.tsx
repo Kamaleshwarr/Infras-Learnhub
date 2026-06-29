@@ -114,6 +114,42 @@ describe('CreateInitiativeDialog', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('creates a one-day initiative when expiry matches start date', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.setSystemTime(new Date('2026-06-19T12:00:00.000Z'))
+    vi.mocked(initiativesApi.create).mockResolvedValue({
+      ...createdInitiative,
+      expiryDateUtc: '2026-06-19T00:00:00.000Z',
+      startDateUtc: '2026-06-19T00:00:00.000Z',
+      title: 'One-day Workshop',
+    })
+
+    render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
+    const dialog = getCreateDialog()
+
+    await user.clear(dialog.getByLabelText(/^Title/i))
+    await user.type(dialog.getByLabelText(/^Title/i), 'One-day Workshop')
+    await user.clear(dialog.getByLabelText(/^Description/i))
+    await user.type(dialog.getByLabelText(/^Description/i), 'Single-day learning event')
+    fireEvent.change(dialog.getByLabelText(/^Start date \(UTC\)/i), { target: { value: '2026-06-19' } })
+    fireEvent.change(dialog.getByLabelText(/^Expiry date \(UTC\)/i), { target: { value: '2026-06-19' } })
+    await user.click(dialog.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() =>
+      expect(initiativesApi.create).toHaveBeenCalledWith({
+        title: 'One-day Workshop',
+        description: 'Single-day learning event',
+        rewardDescription: null,
+        startDateUtc: '2026-06-19T00:00:00.000Z',
+        expiryDateUtc: '2026-06-19T00:00:00.000Z',
+        status: 'DRAFT',
+      }),
+    )
+    expect(onSuccess).toHaveBeenCalledTimes(1)
+
+    vi.useRealTimers()
+  })
+
   it('shows client validation errors when required fields are missing', async () => {
     const user = userEvent.setup({ delay: null })
     render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)

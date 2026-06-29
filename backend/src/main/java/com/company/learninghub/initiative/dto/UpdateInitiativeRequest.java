@@ -30,9 +30,9 @@ public record UpdateInitiativeRequest(
         InitiativeStatus status
 ) {
 
-    @AssertTrue(message = "expiryDateUtc must be after startDateUtc")
+    @AssertTrue(message = "expiryDateUtc must be on or after startDateUtc")
     public boolean isDateRangeValid() {
-        return startDateUtc == null || expiryDateUtc == null || expiryDateUtc.isAfter(startDateUtc);
+        return startDateUtc == null || expiryDateUtc == null || !expiryDateUtc.isBefore(startDateUtc);
     }
 }
 

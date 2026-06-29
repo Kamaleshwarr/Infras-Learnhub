@@ -98,6 +98,26 @@ class LearningInitiativeServiceTest {
     }
 
     @Test
+    void createAllowsOneDayInitiativeWhenExpiryMatchesStartDate() {
+        Instant sameDay = Instant.parse("2026-06-19T00:00:00.000Z");
+        CreateInitiativeRequest request = new CreateInitiativeRequest(
+                "One-day Workshop",
+                "Single-day learning event.",
+                null,
+                sameDay,
+                sameDay,
+                InitiativeStatus.DRAFT
+        );
+        when(userRepository.findById(adminPrincipal.getId())).thenReturn(Optional.of(adminUser));
+        when(initiativeRepository.save(any(LearningInitiative.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InitiativeResponse response = initiativeService.create(request, adminPrincipal);
+
+        assertThat(response.startDateUtc()).isEqualTo(sameDay);
+        assertThat(response.expiryDateUtc()).isEqualTo(sameDay);
+    }
+
+    @Test
     void updateChangesExistingInitiativeFields() {
         LearningInitiative initiative = initiative("Initial", InitiativeStatus.DRAFT, adminUser);
         UpdateInitiativeRequest request = new UpdateInitiativeRequest(
