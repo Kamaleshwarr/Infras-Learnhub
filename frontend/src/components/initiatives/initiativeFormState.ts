@@ -14,9 +14,9 @@ import {
 import { INITIATIVE_MESSAGES } from './initiativeMessages'
 
 export const INITIATIVE_FORM_LIMITS = {
-  title: 200,
-  description: 5000,
-  rewardDescription: 2000,
+  title: 100,
+  description: 2000,
+  rewardDescription: 500,
 } as const
 
 export const INITIATIVE_STATUS_OPTIONS: InitiativeStatus[] = ['DRAFT', 'ACTIVE', 'EXPIRED']

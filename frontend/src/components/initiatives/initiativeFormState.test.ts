@@ -164,4 +164,32 @@ describe('initiativeFormState', () => {
     expect(isInitiativeFormDirty(unchanged, baseline)).toBe(false)
     expect(isInitiativeFormDirty(changed, baseline)).toBe(true)
   })
+
+  it('rejects values that exceed field length limits', () => {
+    const errors = getInitiativeFormFieldErrors({
+      title: 't'.repeat(101),
+      description: 'd'.repeat(2001),
+      rewardDescription: 'r'.repeat(501),
+      startDate: '2026-06-01',
+      expiryDate: '2026-12-31',
+      status: 'DRAFT',
+    })
+
+    expect(errors.title).toContain('100')
+    expect(errors.description).toContain('2000')
+    expect(errors.rewardDescription).toContain('500')
+  })
+
+  it('accepts values at the maximum field length limits', () => {
+    const errors = getInitiativeFormFieldErrors({
+      title: 't'.repeat(100),
+      description: 'd'.repeat(2000),
+      rewardDescription: 'r'.repeat(500),
+      startDate: '2026-06-01',
+      expiryDate: '2026-12-31',
+      status: 'DRAFT',
+    })
+
+    expect(errors).toEqual({})
+  })
 })

@@ -10,14 +10,14 @@ import java.time.Instant;
 
 public record UpdateInitiativeRequest(
         @NotBlank
-        @Size(max = 200)
+        @Size(max = 100)
         String title,
 
         @NotBlank
-        @Size(max = 5000)
+        @Size(max = 2000)
         String description,
 
-        @Size(max = 2000)
+        @Size(max = 500)
         String rewardDescription,
 
         @NotNull
