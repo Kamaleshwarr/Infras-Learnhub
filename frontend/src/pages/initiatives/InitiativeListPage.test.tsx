@@ -12,6 +12,7 @@ vi.mock('../../api/initiativesApi', () => ({
     create: vi.fn(),
     get: vi.fn(),
     list: vi.fn(),
+    update: vi.fn(),
   },
 }))
 
@@ -245,6 +246,47 @@ describe('InitiativeListPage', () => {
 
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: 'AWS Certification' })).toBeInTheDocument(),
+    )
+  })
+
+  it('opens edit dialog from admin list and refreshes after save', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.mocked(useAuth).mockReturnValue({
+      currentRole: 'ADMIN',
+      hasRole: (role) => role === 'ADMIN',
+      isAdmin: true,
+      isAuthenticated: true,
+      isEmployee: false,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshProfile: vi.fn(),
+      user: null,
+    })
+    vi.mocked(initiativesApi.update).mockResolvedValue({
+      ...initiative,
+      title: 'Updated AWS Certification',
+    })
+    vi.mocked(initiativesApi.list)
+      .mockResolvedValueOnce(pageResponse)
+      .mockResolvedValueOnce({
+        ...pageResponse,
+        content: [{ ...initiative, title: 'Updated AWS Certification' }],
+      })
+
+    renderListPage()
+
+    await user.click(await screen.findByRole('button', { name: /Edit initiative AWS Certification/i }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Edit Initiative' }))
+    await user.clear(dialog.getByLabelText(/^Title/i))
+    await user.type(dialog.getByLabelText(/^Title/i), 'Updated AWS Certification')
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(initiativesApi.update).toHaveBeenCalled())
+    await waitFor(() => expect(screen.getByText('Initiative updated.')).toBeInTheDocument())
+    await waitFor(() => expect(initiativesApi.list).toHaveBeenCalledTimes(2))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit Initiative' })).not.toBeInTheDocument(),
     )
   })
 })

@@ -8,6 +8,7 @@ import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { InitiativeCardList, InitiativeTable } from '../../components/initiatives/InitiativeListViews'
 import { InitiativeListToolbar } from '../../components/initiatives/InitiativeListToolbar'
 import { CreateInitiativeDialog } from '../../components/initiatives/CreateInitiativeDialog'
+import { EditInitiativeDialog } from '../../components/initiatives/EditInitiativeDialog'
 import {
   InitiativeManagementSnackbar,
   type InitiativeManagementNotification,
@@ -51,6 +52,7 @@ export function InitiativeListPage() {
   const [error, setError] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
   const [createOpen, setCreateOpen] = useState(false)
+  const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
   const [notification, setNotification] = useState<InitiativeManagementNotification | null>(null)
 
   const refreshInitiatives = useCallback(() => {
@@ -134,6 +136,12 @@ export function InitiativeListPage() {
     refreshInitiatives()
   }
 
+  function handleEditSuccess() {
+    setEditingInitiative(null)
+    showSuccessNotification(INITIATIVE_MESSAGES.updateSuccess)
+    refreshInitiatives()
+  }
+
   return (
     <>
       <PageHeader
@@ -151,6 +159,13 @@ export function InitiativeListPage() {
         onClose={() => setCreateOpen(false)}
         onSuccess={handleCreateSuccess}
         open={createOpen}
+      />
+
+      <EditInitiativeDialog
+        initiative={editingInitiative}
+        onClose={() => setEditingInitiative(null)}
+        onSuccess={handleEditSuccess}
+        open={Boolean(editingInitiative)}
       />
 
       <InitiativeManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
@@ -208,12 +223,14 @@ export function InitiativeListPage() {
             <InitiativeCardList
               initiatives={pageData.content}
               loading={loading}
+              onEdit={isAdmin ? setEditingInitiative : undefined}
               showStatusColumn={isAdmin}
             />
           ) : (
             <InitiativeTable
               initiatives={pageData.content}
               loading={loading}
+              onEdit={isAdmin ? setEditingInitiative : undefined}
               onSort={(property) => updateQuery({ ...appliedQuery, page: 0, sort: toggleSort(appliedQuery.sort, property) })}
               showStatusColumn={isAdmin}
               sort={appliedQuery.sort}

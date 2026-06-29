@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { Alert, Box, Button, Stack } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { initiativesApi } from '../../api/initiativesApi'
@@ -11,6 +12,7 @@ import { DetailPageSkeleton } from '../../components/initiatives/DetailPageSkele
 import { InitiativeDetailBackLink } from '../../components/initiatives/InitiativeDetailBackLink'
 import { InitiativeActionBar } from '../../components/initiatives/InitiativeActionBar'
 import { InitiativeDescriptionCard } from '../../components/initiatives/InitiativeDescriptionCard'
+import { EditInitiativeDialog } from '../../components/initiatives/EditInitiativeDialog'
 import { InitiativeDetailAlerts } from '../../components/initiatives/InitiativeDetailAlerts'
 import { InitiativeNotFoundPanel } from '../../components/initiatives/InitiativeNotFoundPanel'
 import { InitiativeRewardCard } from '../../components/initiatives/InitiativeRewardCard'
@@ -19,6 +21,10 @@ import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMess
 import { formatInitiativeDateRange } from '../../components/initiatives/initiativeDisplay'
 import { MyProgressCard } from '../../components/initiatives/MyProgressCard'
 import { TopLearnerCard } from '../../components/initiatives/TopLearnerCard'
+import {
+  InitiativeManagementSnackbar,
+  type InitiativeManagementNotification,
+} from '../../components/initiatives/InitiativeManagementSnackbar'
 import type { Initiative } from '../../types/initiatives'
 import type { CertificateSubmission } from '../../types/submissions'
 import { isNotFoundError, resolveApiError } from '../../utils/apiErrors'
@@ -39,7 +45,7 @@ const EMPTY_SECONDARY: SecondaryDetailData = {
 
 export function InitiativeDetailPage() {
   const { initiativeId } = useParams()
-  const { isEmployee } = useAuth()
+  const { isAdmin, isEmployee } = useAuth()
   const [initiative, setInitiative] = useState<Initiative | null>(null)
   const [secondary, setSecondary] = useState<SecondaryDetailData>(EMPTY_SECONDARY)
   const [loadingPrimary, setLoadingPrimary] = useState(true)
@@ -47,6 +53,8 @@ export function InitiativeDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [primaryError, setPrimaryError] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
+  const [editOpen, setEditOpen] = useState(false)
+  const [notification, setNotification] = useState<InitiativeManagementNotification | null>(null)
 
   const loadSecondaryData = useCallback(async (id: string, employeeView: boolean) => {
     setLoadingSecondary(true)
@@ -216,9 +224,27 @@ export function InitiativeDetailPage() {
         title={initiative.title}
       />
 
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <InitiativeStatusChip status={initiative.status} />
+        {isAdmin ? (
+          <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
+            Edit
+          </Button>
+        ) : null}
       </Stack>
+
+      <EditInitiativeDialog
+        initiative={initiative}
+        onClose={() => setEditOpen(false)}
+        onSuccess={() => {
+          setEditOpen(false)
+          setNotification({ message: INITIATIVE_MESSAGES.updateSuccess, severity: 'success' })
+          setRefreshToken((current) => current + 1)
+        }}
+        open={editOpen}
+      />
+
+      <InitiativeManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
 
       <InitiativeDetailAlerts initiative={initiative} />
 

@@ -1,9 +1,11 @@
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import {
   Box,
   Card,
   CardActionArea,
   CardContent,
+  IconButton,
   Paper,
   Skeleton,
   Stack,
@@ -12,6 +14,7 @@ import {
   TableCell,
   TableContainer,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
@@ -30,6 +33,7 @@ interface InitiativeTableProps {
   sort: string
   showStatusColumn: boolean
   onSort: (property: string) => void
+  onEdit?: (initiative: Initiative) => void
 }
 
 const BASE_COLUMNS: SortableColumn[] = [
@@ -40,23 +44,35 @@ const BASE_COLUMNS: SortableColumn[] = [
 
 const STATUS_COLUMN: SortableColumn = { id: 'status', label: 'Status', sortable: true }
 
-function buildColumns(showStatusColumn: boolean) {
-  if (!showStatusColumn) {
-    return BASE_COLUMNS
+const ACTIONS_COLUMN: SortableColumn = {
+  id: 'actions',
+  align: 'right',
+  label: 'Actions',
+}
+
+function buildColumns(showStatusColumn: boolean, showActionsColumn: boolean) {
+  const columns = showStatusColumn
+    ? [BASE_COLUMNS[0], STATUS_COLUMN, BASE_COLUMNS[1], BASE_COLUMNS[2]]
+    : [...BASE_COLUMNS]
+
+  if (showActionsColumn) {
+    columns.push(ACTIONS_COLUMN)
   }
 
-  return [BASE_COLUMNS[0], STATUS_COLUMN, BASE_COLUMNS[1], BASE_COLUMNS[2]]
+  return columns
 }
 
 export function InitiativeTable({
   initiatives,
   loading,
+  onEdit,
   sort,
   showStatusColumn,
   onSort,
 }: InitiativeTableProps) {
   const navigate = useNavigate()
-  const columns = buildColumns(showStatusColumn)
+  const showActionsColumn = Boolean(onEdit)
+  const columns = buildColumns(showStatusColumn, showActionsColumn)
 
   if (loading) {
     return (
@@ -90,7 +106,7 @@ export function InitiativeTable({
               sx={{ cursor: 'pointer' }}
               tabIndex={0}
             >
-              <TableCell sx={{ maxWidth: 0, width: showStatusColumn ? '36%' : '42%' }}>
+              <TableCell sx={{ maxWidth: 0, width: showActionsColumn ? (showStatusColumn ? '30%' : '36%') : showStatusColumn ? '36%' : '42%' }}>
                 <Stack spacing={0.5} sx={{ minWidth: 0 }}>
                   <TruncatedTextWithTooltip
                     maxLength={TEXT_DISPLAY_LIMITS.tableTitle}
@@ -100,14 +116,14 @@ export function InitiativeTable({
                 </Stack>
               </TableCell>
               {showStatusColumn ? (
-                <TableCell sx={{ width: '12%' }}>
+                <TableCell sx={{ width: showActionsColumn ? '10%' : '12%' }}>
                   <InitiativeStatusChip status={initiative.status} />
                 </TableCell>
               ) : null}
-              <TableCell sx={{ width: showStatusColumn ? '18%' : '22%' }}>
+              <TableCell sx={{ width: showActionsColumn ? (showStatusColumn ? '14%' : '18%') : showStatusColumn ? '18%' : '22%' }}>
                 {formatInitiativeDate(initiative.expiryDateUtc)}
               </TableCell>
-              <TableCell sx={{ maxWidth: 0, width: showStatusColumn ? '34%' : '36%' }}>
+              <TableCell sx={{ maxWidth: 0, width: showActionsColumn ? (showStatusColumn ? '28%' : '32%') : showStatusColumn ? '34%' : '36%' }}>
                 {initiative.rewardDescription ? (
                   <TruncatedTextWithTooltip
                     maxLength={TEXT_DISPLAY_LIMITS.tableReward}
@@ -117,6 +133,22 @@ export function InitiativeTable({
                   <Typography variant="body2">—</Typography>
                 )}
               </TableCell>
+              {showActionsColumn ? (
+                <TableCell align="right" sx={{ width: '10%' }}>
+                  <Tooltip title="Edit initiative">
+                    <IconButton
+                      aria-label={`Edit initiative ${initiative.title}`}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onEdit?.(initiative)
+                      }}
+                      size="small"
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              ) : null}
             </TableRow>
           ))}
         </TableBody>
@@ -129,9 +161,15 @@ interface InitiativeCardListProps {
   initiatives: Initiative[]
   loading: boolean
   showStatusColumn: boolean
+  onEdit?: (initiative: Initiative) => void
 }
 
-export function InitiativeCardList({ initiatives, loading, showStatusColumn }: InitiativeCardListProps) {
+export function InitiativeCardList({
+  initiatives,
+  loading,
+  onEdit,
+  showStatusColumn,
+}: InitiativeCardListProps) {
   const navigate = useNavigate()
 
   if (loading) {
@@ -174,7 +212,24 @@ export function InitiativeCardList({ initiatives, loading, showStatusColumn }: I
                     <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} />
                   </Stack>
                 </Box>
-                <ChevronRightOutlinedIcon color="action" sx={{ flexShrink: 0 }} />
+                <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                  {onEdit ? (
+                    <Tooltip title="Edit initiative">
+                      <IconButton
+                        aria-label={`Edit initiative ${initiative.title}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          event.preventDefault()
+                          onEdit(initiative)
+                        }}
+                        size="small"
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                  <ChevronRightOutlinedIcon color="action" />
+                </Stack>
               </Stack>
             </CardContent>
           </CardActionArea>
