@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   addUtcDays,
+  compareUtcDateInputs,
   instantToUtcDateInput,
+  isUtcDateBefore,
+  isUtcDateOnOrAfter,
   isUtcDateInput,
   todayUtcDateInput,
   utcDateInputToInstant,
@@ -29,5 +32,12 @@ describe('initiativeDateUtils', () => {
 
   it('adds days in UTC without local timezone drift', () => {
     expect(addUtcDays('2026-06-19', 90)).toBe('2026-09-17')
+  })
+
+  it('compares UTC date inputs', () => {
+    expect(compareUtcDateInputs('2026-06-19', '2026-06-20')).toBeLessThan(0)
+    expect(isUtcDateBefore('2026-06-18', '2026-06-19')).toBe(true)
+    expect(isUtcDateOnOrAfter('2026-06-19', '2026-06-19')).toBe(true)
+    expect(isUtcDateOnOrAfter('2026-06-18', '2026-06-19')).toBe(false)
   })
 })

@@ -40,6 +40,24 @@ export function addUtcDays(dateInput: string, days: number) {
   return instantToUtcDateInput(utcDate.toISOString())
 }
 
+export function compareUtcDateInputs(left: string, right: string) {
+  if (!isUtcDateInput(left) || !isUtcDateInput(right)) {
+    return null
+  }
+
+  return left.localeCompare(right)
+}
+
+export function isUtcDateBefore(left: string, right: string) {
+  const comparison = compareUtcDateInputs(left, right)
+  return comparison !== null && comparison < 0
+}
+
+export function isUtcDateOnOrAfter(left: string, right: string) {
+  const comparison = compareUtcDateInputs(left, right)
+  return comparison !== null && comparison >= 0
+}
+
 export function defaultExpiryUtcDateInput(now = Date.now()) {
   return addUtcDays(todayUtcDateInput(now), 90)
 }

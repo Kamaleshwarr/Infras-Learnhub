@@ -12,6 +12,9 @@ interface InitiativeFormFieldsProps {
   values: InitiativeFormValues
   fieldErrors?: Partial<Record<InitiativeFormFieldName, string>>
   disabled?: boolean
+  minStartDate?: string
+  minExpiryDate?: string
+  showStatusHelper?: boolean
   onChange: <K extends InitiativeFormFieldName>(field: K, value: InitiativeFormValues[K]) => void
 }
 
@@ -25,6 +28,9 @@ export function InitiativeFormFields({
   values,
   fieldErrors = {},
   disabled = false,
+  minStartDate,
+  minExpiryDate,
+  showStatusHelper = false,
   onChange,
 }: InitiativeFormFieldsProps) {
   return (
@@ -76,7 +82,10 @@ export function InitiativeFormFields({
         label={INITIATIVE_MESSAGES.formStartDate}
         onChange={(event) => onChange('startDate', event.target.value)}
         required
-        slotProps={{ inputLabel: { shrink: true } }}
+        slotProps={{
+          htmlInput: { min: minStartDate },
+          inputLabel: { shrink: true },
+        }}
         type="date"
         value={values.startDate}
       />
@@ -89,7 +98,10 @@ export function InitiativeFormFields({
         label={INITIATIVE_MESSAGES.formExpiryDate}
         onChange={(event) => onChange('expiryDate', event.target.value)}
         required
-        slotProps={{ inputLabel: { shrink: true } }}
+        slotProps={{
+          htmlInput: { min: (minExpiryDate ?? values.startDate) || undefined },
+          inputLabel: { shrink: true },
+        }}
         type="date"
         value={values.expiryDate}
       />
@@ -110,7 +122,9 @@ export function InitiativeFormFields({
         ))}
       </TextField>
 
-      <FormHelperText>{INITIATIVE_MESSAGES.formStatusHelper}</FormHelperText>
+      {showStatusHelper ? (
+        <FormHelperText>{INITIATIVE_MESSAGES.formStatusHelper}</FormHelperText>
+      ) : null}
     </Stack>
   )
 }

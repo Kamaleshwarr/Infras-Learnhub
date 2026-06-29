@@ -47,10 +47,45 @@ describe('CreateInitiativeDialog', () => {
     expect(getCreateDialog().getByRole('combobox', { name: /^Status/i })).toHaveTextContent('Draft')
   })
 
-  it('disables create until the form is valid', () => {
+  it('keeps create enabled and shows validation on submit', async () => {
+    const user = userEvent.setup({ delay: null })
+    render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
+    const dialog = getCreateDialog()
+
+    expect(dialog.getByRole('button', { name: 'Create' })).toBeEnabled()
+    await user.click(dialog.getByRole('button', { name: 'Create' }))
+
+    expect(dialog.getByText(/Title is required/i)).toBeInTheDocument()
+    expect(dialog.getByText(/Description is required/i)).toBeInTheDocument()
+    expect(initiativesApi.create).not.toHaveBeenCalled()
+  })
+
+  it('shows date validation errors on submit', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.setSystemTime(new Date('2026-06-19T12:00:00.000Z'))
+
+    render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
+    const dialog = getCreateDialog()
+
+    await user.type(dialog.getByLabelText(/^Title/i), 'Azure Certification')
+    await user.type(dialog.getByLabelText(/^Description/i), 'Azure certification program')
+    fireEvent.change(dialog.getByLabelText(/^Start date \(UTC\)/i), { target: { value: '2026-06-18' } })
+    fireEvent.change(dialog.getByLabelText(/^Expiry date \(UTC\)/i), { target: { value: '2026-06-17' } })
+    await user.click(dialog.getByRole('button', { name: 'Create' }))
+
+    expect(dialog.getByText(/Start date cannot be earlier than today/i)).toBeInTheDocument()
+    expect(dialog.getByText(/Expiry date must be on or after the start date/i)).toBeInTheDocument()
+    expect(initiativesApi.create).not.toHaveBeenCalled()
+
+    vi.useRealTimers()
+  })
+
+  it('does not show edit-only status helper text', () => {
     render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
 
-    expect(getCreateDialog().getByRole('button', { name: 'Create' })).toBeDisabled()
+    expect(
+      screen.queryByText(/Expired initiatives can be reactivated to Active through Edit/i),
+    ).not.toBeInTheDocument()
   })
 
   it('creates an initiative and calls onSuccess', async () => {
@@ -79,11 +114,12 @@ describe('CreateInitiativeDialog', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('shows client validation errors when required fields are missing', () => {
+  it('shows client validation errors when required fields are missing', async () => {
+    const user = userEvent.setup({ delay: null })
     render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
     const dialog = getCreateDialog()
 
-    fireEvent.submit(dialog.getByRole('button', { name: 'Create' }).closest('form')!)
+    await user.click(dialog.getByRole('button', { name: 'Create' }))
 
     expect(dialog.getByText(/Title is required/i)).toBeInTheDocument()
     expect(dialog.getByText(/Description is required/i)).toBeInTheDocument()

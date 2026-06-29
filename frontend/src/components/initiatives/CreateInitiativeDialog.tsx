@@ -14,13 +14,13 @@ import {
 import { initiativesApi } from '../../api/initiativesApi'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { InitiativeFormFields } from './InitiativeFormFields'
+import { todayUtcDateInput } from './initiativeDateUtils'
 import {
   buildCreateInitiativeRequest,
   createEmptyInitiativeForm,
   createInitiativeFormBaseline,
   getInitiativeFormFieldErrors,
   isInitiativeFormDirty,
-  isInitiativeFormValid,
   type InitiativeFormFieldName,
   type InitiativeFormValues,
 } from './initiativeFormState'
@@ -55,7 +55,6 @@ export function CreateInitiativeDialog({ open, onClose, onSuccess }: CreateIniti
   }, [open])
 
   const isDirty = useMemo(() => isInitiativeFormDirty(form, baseline), [baseline, form])
-  const canSubmit = isInitiativeFormValid(form) && !submitting
 
   function updateField<K extends InitiativeFormFieldName>(field: K, value: InitiativeFormValues[K]) {
     setForm((current) => ({ ...current, [field]: value }))
@@ -90,13 +89,9 @@ export function CreateInitiativeDialog({ open, onClose, onSuccess }: CreateIniti
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const clientErrors = getInitiativeFormFieldErrors(form)
+    const clientErrors = getInitiativeFormFieldErrors(form, { mode: 'create' })
     if (Object.keys(clientErrors).length > 0) {
       setFieldErrors(clientErrors)
-      return
-    }
-
-    if (!canSubmit) {
       return
     }
 
@@ -119,13 +114,15 @@ export function CreateInitiativeDialog({ open, onClose, onSuccess }: CreateIniti
     <>
       <Dialog fullWidth maxWidth="md" onClose={requestClose} open={open}>
         <DialogTitle>{INITIATIVE_MESSAGES.createDialogTitle}</DialogTitle>
-        <form onSubmit={(event) => void handleSubmit(event)}>
+        <form noValidate onSubmit={(event) => void handleSubmit(event)}>
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               {formError ? <Alert severity="error">{formError}</Alert> : null}
               <InitiativeFormFields
                 disabled={submitting}
                 fieldErrors={fieldErrors}
+                minExpiryDate={form.startDate || todayUtcDateInput()}
+                minStartDate={todayUtcDateInput()}
                 onChange={updateField}
                 values={form}
               />
@@ -135,7 +132,7 @@ export function CreateInitiativeDialog({ open, onClose, onSuccess }: CreateIniti
             <Button disabled={submitting} onClick={requestClose} type="button">
               {INITIATIVE_MESSAGES.formCancel}
             </Button>
-            <Button disabled={!canSubmit} type="submit" variant="contained">
+            <Button disabled={submitting} type="submit" variant="contained">
               {submitting ? <CircularProgress color="inherit" size={24} /> : INITIATIVE_MESSAGES.formCreate}
             </Button>
           </DialogActions>

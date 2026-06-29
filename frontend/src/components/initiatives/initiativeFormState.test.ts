@@ -49,6 +49,69 @@ describe('initiativeFormState', () => {
     })
   })
 
+  it('validates required fields and date range for create mode', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: '',
+        description: '',
+        rewardDescription: '',
+        startDate: '2026-06-18',
+        expiryDate: '2026-06-18',
+        status: 'DRAFT',
+      },
+      { mode: 'create', now },
+    )
+
+    expect(errors.title).toBeTruthy()
+    expect(errors.description).toBeTruthy()
+    expect(errors.startDate).toContain('today')
+    expect(isInitiativeFormValid(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-19',
+        expiryDate: '2026-06-18',
+        status: 'DRAFT',
+      },
+      { mode: 'create', now },
+    )).toBe(false)
+  })
+
+  it('allows expiry on the same day as start for create mode', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-19',
+        expiryDate: '2026-06-19',
+        status: 'DRAFT',
+      },
+      { mode: 'create', now },
+    )
+
+    expect(errors.expiryDate).toBeUndefined()
+  })
+
+  it('does not enforce start-date minimum in edit mode', () => {
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2020-01-01',
+        expiryDate: '2026-12-31',
+        status: 'ACTIVE',
+      },
+      { mode: 'edit', now: Date.parse('2026-06-19T12:00:00.000Z') },
+    )
+
+    expect(errors.startDate).toBeUndefined()
+  })
+
   it('validates required fields and date range', () => {
     const errors = getInitiativeFormFieldErrors({
       title: '',
