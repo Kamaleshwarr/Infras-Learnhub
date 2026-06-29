@@ -6,6 +6,20 @@
 - **Repository:** https://github.com/Kamaleshwarr/Infras-Learnhub.git
 - **Purpose:** Enterprise internal learning platform for initiatives, certification submissions, study materials, project knowledge, leaderboards, and administration workflows.
 
+## Engineering Standards (Mandatory)
+
+All implementation work must follow **`.cursor/engineering-standards.md`** unless explicitly overridden by the product owner or release plan.
+
+That document defines:
+
+- Engineering principles and implementation standards
+- Reuse requirements, architecture consistency, and frontend/backend separation
+- Mandatory self-QA (functional, UX, regression, product review, browser compatibility)
+- Phase completion criteria and working rules
+- Feature numbering conventions (F0, F1, …)
+
+Read `engineering-standards.md` **before starting any feature phase**. Language-level rules remain in `.cursor/coding-standards.md`.
+
 ## Technology Stack
 
 ### Backend
