@@ -178,8 +178,15 @@ class LearningInitiativeServiceTest {
     }
 
     @Test
-    void updateRejectsStartDateBeforeToday() {
-        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+    void updateRejectsModifiedStartDateBeforeToday() {
+        Instant storedStart = Instant.parse("2026-06-06T05:00:00.000Z");
+        LearningInitiative initiative = initiative(
+                "Active",
+                InitiativeStatus.ACTIVE,
+                storedStart,
+                NOW.plusSeconds(3600),
+                adminUser
+        );
         UpdateInitiativeRequest request = new UpdateInitiativeRequest(
                 "Active",
                 "Updated description",
@@ -194,6 +201,62 @@ class LearningInitiativeServiceTest {
         assertThatThrownBy(() -> initiativeService.update(initiativeId, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("startDateUtc cannot be earlier than today (UTC)");
+    }
+
+    @Test
+    void updateAllowsUnchangedPastStartDateWhenEditingOtherFields() {
+        Instant pastStart = Instant.parse("2026-06-01T00:00:00.000Z");
+        Instant expiry = Instant.parse("2026-12-31T00:00:00.000Z");
+        LearningInitiative initiative = initiative(
+                "Active",
+                InitiativeStatus.ACTIVE,
+                pastStart,
+                expiry,
+                adminUser
+        );
+        UpdateInitiativeRequest request = new UpdateInitiativeRequest(
+                "Updated title",
+                "Updated description",
+                "Updated reward",
+                pastStart,
+                expiry,
+                InitiativeStatus.ACTIVE
+        );
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        InitiativeResponse response = initiativeService.update(initiativeId, request);
+
+        assertThat(response.title()).isEqualTo("Updated title");
+        assertThat(response.description()).isEqualTo("Updated description");
+        assertThat(response.startDateUtc()).isEqualTo(pastStart);
+    }
+
+    @Test
+    void updateAllowsModifiedStartDateOnOrAfterToday() {
+        Instant pastStart = Instant.parse("2026-06-01T00:00:00.000Z");
+        Instant futureStart = Instant.parse("2026-06-19T00:00:00.000Z");
+        LearningInitiative initiative = initiative(
+                "Active",
+                InitiativeStatus.ACTIVE,
+                pastStart,
+                Instant.parse("2026-12-31T00:00:00.000Z"),
+                adminUser
+        );
+        UpdateInitiativeRequest request = new UpdateInitiativeRequest(
+                "Active",
+                "Updated description",
+                "Reward",
+                futureStart,
+                Instant.parse("2026-12-31T00:00:00.000Z"),
+                InitiativeStatus.ACTIVE
+        );
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        InitiativeResponse response = initiativeService.update(initiativeId, request);
+
+        assertThat(response.startDateUtc()).isEqualTo(futureStart);
     }
 
     @Test

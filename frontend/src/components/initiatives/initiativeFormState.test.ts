@@ -96,45 +96,71 @@ describe('initiativeFormState', () => {
     expect(errors.expiryDate).toBeUndefined()
   })
 
-  it('enforces start-date minimum in edit mode', () => {
+  it('allows unchanged past start dates in edit mode', () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z')
+    const baseline = {
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+      status: 'ACTIVE' as const,
+    }
     const errors = getInitiativeFormFieldErrors(
       {
-        title: 'Azure',
-        description: 'Program',
-        rewardDescription: '',
-        startDate: '2020-01-01',
-        expiryDate: '2026-12-31',
-        status: 'ACTIVE',
+        ...baseline,
+        description: 'Updated program details',
       },
-      { mode: 'edit', now: Date.parse('2026-06-19T12:00:00.000Z') },
+      { mode: 'edit', now, baseline },
+    )
+
+    expect(errors.startDate).toBeUndefined()
+  })
+
+  it('rejects modified start dates before today in edit mode', () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z')
+    const baseline = {
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+      status: 'ACTIVE' as const,
+    }
+    const errors = getInitiativeFormFieldErrors(
+      {
+        ...baseline,
+        startDate: '2026-07-10',
+      },
+      { mode: 'edit', now, baseline },
     )
 
     expect(errors.startDate).toContain('today')
   })
 
-  it('allows today and future start dates in edit mode', () => {
-    const now = Date.parse('2026-06-27T12:00:00.000Z')
+  it('allows modified start dates on or after today in edit mode', () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z')
+    const baseline = {
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+      status: 'ACTIVE' as const,
+    }
     const todayErrors = getInitiativeFormFieldErrors(
       {
-        title: 'Azure',
-        description: 'Program',
-        rewardDescription: '',
-        startDate: '2026-06-27',
-        expiryDate: '2026-12-31',
-        status: 'ACTIVE',
+        ...baseline,
+        startDate: '2026-07-20',
       },
-      { mode: 'edit', now },
+      { mode: 'edit', now, baseline },
     )
     const futureErrors = getInitiativeFormFieldErrors(
       {
-        title: 'Azure',
-        description: 'Program',
-        rewardDescription: '',
-        startDate: '2026-07-01',
-        expiryDate: '2026-12-31',
-        status: 'ACTIVE',
+        ...baseline,
+        startDate: '2026-07-21',
       },
-      { mode: 'edit', now },
+      { mode: 'edit', now, baseline },
     )
 
     expect(todayErrors.startDate).toBeUndefined()

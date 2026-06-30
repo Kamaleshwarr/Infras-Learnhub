@@ -89,7 +89,7 @@ describe('EditInitiativeDialog', () => {
     expect(initiativesApi.update).not.toHaveBeenCalled()
   })
 
-  it('rejects start dates before today in edit mode', async () => {
+  it('rejects modified start dates before today in edit mode', async () => {
     const user = userEvent.setup({ delay: null })
     render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
     const dialog = getEditDialog()
@@ -101,7 +101,46 @@ describe('EditInitiativeDialog', () => {
     expect(initiativesApi.update).not.toHaveBeenCalled()
   })
 
-  it('allows today and future start dates in edit mode', async () => {
+  it('allows editing other fields when start date is unchanged and in the past', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.setSystemTime(Date.parse('2026-07-20T12:00:00.000Z'))
+    const pastStartInitiative: Initiative = {
+      ...initiative,
+      startDateUtc: '2026-07-01T00:00:00.000Z',
+    }
+    vi.mocked(initiativesApi.update).mockResolvedValue({
+      ...pastStartInitiative,
+      description: 'Updated certification program',
+    })
+
+    render(
+      <EditInitiativeDialog
+        initiative={pastStartInitiative}
+        onClose={onClose}
+        onSuccess={onSuccess}
+        open
+      />,
+    )
+    const dialog = getEditDialog()
+
+    await user.clear(dialog.getByLabelText(/^Description/i))
+    await user.type(dialog.getByLabelText(/^Description/i), 'Updated certification program')
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(initiativesApi.update).toHaveBeenCalledWith('initiative-1', {
+        title: 'Azure Certification',
+        description: 'Updated certification program',
+        rewardDescription: '$500 credit',
+        startDateUtc: '2026-07-01T00:00:00.000Z',
+        expiryDateUtc: '2026-12-31T00:00:00.000Z',
+        status: 'ACTIVE',
+      }),
+    )
+    expect(onSuccess).toHaveBeenCalledTimes(1)
+  })
+
+  it('allows modified start dates on or after today in edit mode', async () => {
     const user = userEvent.setup({ delay: null })
     vi.mocked(initiativesApi.update).mockResolvedValue(initiative)
 

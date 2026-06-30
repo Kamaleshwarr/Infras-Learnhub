@@ -98,7 +98,7 @@ export function EditInitiativeDialog({ open, initiative, onClose, onSuccess }: E
       return
     }
 
-    const clientErrors = getInitiativeFormFieldErrors(form, { mode: 'edit' })
+    const clientErrors = getInitiativeFormFieldErrors(form, { baseline, mode: 'edit' })
     if (Object.keys(clientErrors).length > 0) {
       setFieldErrors(clientErrors)
       return

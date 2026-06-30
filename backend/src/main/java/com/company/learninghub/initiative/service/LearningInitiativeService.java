@@ -68,7 +68,8 @@ public class LearningInitiativeService {
         NormalizedInitiativeDates dates = normalizeInitiativeDates(
                 request.startDateUtc(),
                 request.expiryDateUtc(),
-                request.status()
+                request.status(),
+                true
         );
 
         LearningInitiative initiative = new LearningInitiative(
@@ -88,10 +89,12 @@ public class LearningInitiativeService {
     @Transactional
     public InitiativeResponse update(UUID initiativeId, UpdateInitiativeRequest request) {
         LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        boolean startDateChanged = isStartDateChanged(initiative.getStartDateUtc(), request.startDateUtc());
         NormalizedInitiativeDates dates = normalizeInitiativeDates(
                 request.startDateUtc(),
                 request.expiryDateUtc(),
-                request.status()
+                request.status(),
+                startDateChanged
         );
         initiative.updateDetails(
                 request.title(),
@@ -147,10 +150,15 @@ public class LearningInitiativeService {
     private NormalizedInitiativeDates normalizeInitiativeDates(
             Instant startDateUtc,
             Instant expiryDateUtc,
-            InitiativeStatus status
+            InitiativeStatus status,
+            boolean validateStartAgainstToday
     ) {
         Instant normalizedStart = startDateUtc;
         Instant normalizedExpiry = expiryDateUtc;
+
+        if (validateStartAgainstToday) {
+            validateStartDateOnOrAfterToday(startDateUtc);
+        }
 
         if (InitiativeStatus.EXPIRED.equals(status)) {
             normalizedExpiry = startOfTodayUtc();
@@ -159,13 +167,18 @@ public class LearningInitiativeService {
             }
         }
 
-        validateStartDateOnOrAfterToday(normalizedStart);
-
         if (normalizedExpiry.isBefore(normalizedStart)) {
             throw new IllegalArgumentException("expiryDateUtc must be on or after startDateUtc");
         }
 
         return new NormalizedInitiativeDates(normalizedStart, normalizedExpiry);
+    }
+
+    private boolean isStartDateChanged(Instant storedStartDateUtc, Instant requestedStartDateUtc) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate storedDate = LocalDate.ofInstant(storedStartDateUtc, utc);
+        LocalDate requestedDate = LocalDate.ofInstant(requestedStartDateUtc, utc);
+        return !storedDate.equals(requestedDate);
     }
 
     private void validateStartDateOnOrAfterToday(Instant startDateUtc) {
