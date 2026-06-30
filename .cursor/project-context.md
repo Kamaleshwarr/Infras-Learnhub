@@ -37,7 +37,7 @@
 
 ## Current Release
 
-**v0.7.1** — Initiative Management (in progress — F13 **Completed**, manual QA passed)  
+**v0.7.1** — Initiative Management (in progress — F14 **Completed**, manual QA passed)  
 **Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
 
@@ -52,8 +52,8 @@ Roadmap: `docs/project-roadmap.md`
 |-------|--------|-------------|
 | F11 / Phase 0 | **Completed** | Initiative management foundation — types, API, shared form state |
 | F12 | **Completed** | Create Initiative dialog + admin list integration |
-| F13 | **Completed** | Edit Initiative dialog (list + detail), metadata panel, lifecycle business rules |
-| F14 | **Pending** | Lifecycle status confirmations (publish, return to draft, mark expired) |
+| F13 | **Completed** | Edit Initiative dialog (list + detail), metadata panel, date/lifecycle business rules |
+| F14 | **Completed** | Initiative Lifecycle Management — dedicated actions, confirmations, backend transition enforcement (PR #42) |
 | F15 | **Pending** | Delete Initiative |
 
 **F13 business rules (finalized, manual QA passed):**
@@ -61,8 +61,19 @@ Roadmap: `docs/project-roadmap.md`
 - Create: start date ≥ today (UTC)
 - Edit, start unchanged: preserve stored start (even if past)
 - Edit, start modified: new start ≥ today (UTC) — no backdating
-- EXPIRED: expiry auto-set to today (UTC); banners status-aware (never "Expires in X days" when expired)
+- Mark Expired: expiry auto-set to today (UTC); banners status-aware (never "Expires in X days" when expired)
 - Field limits: title 100, description 2000, reward 500
+
+**F14 lifecycle business rules (finalized, manual QA passed):**
+
+- Status read-only throughout; removed from Create/Edit forms
+- Lifecycle transitions only via dedicated actions: Publish, Return to Draft, Mark Expired, Reactivate
+- Transition matrix: DRAFT→ACTIVE, ACTIVE→DRAFT, ACTIVE→EXPIRED, EXPIRED→ACTIVE; blocked: DRAFT→EXPIRED, EXPIRED→DRAFT, status via PUT
+- Publish: full metadata validation; employees gain access per configured start date
+- Return to Draft: allowed with submissions; preserves history; employees hidden; no new submissions while Draft
+- Mark Expired: expiry → today (UTC); employees lose access; submissions preserved
+- Reactivate: expiry ≥ today (UTC) and ≥ start date; same-cohort reopen only (not recurring yearly programs)
+- Backend: `POST /publish`, `/return-to-draft`, `/mark-expired`, `/reactivate`
 
 ### v0.7.0 Highlights (PR #36 — pending merge)
 
@@ -145,7 +156,7 @@ Roadmap: `docs/project-roadmap.md`
 8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
-11. Initiative Management UI (partial) — Create (F12), Edit (F13) (v0.7.1 — F14/F15 pending)
+11. Initiative Management UI (partial) — Create (F12), Edit (F13), Lifecycle (F14) (v0.7.1 — F15 pending)
 
 ## Completed Features
 
@@ -197,11 +208,11 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. **F14** — Initiative lifecycle status confirmations (publish, return to draft, mark expired) — v0.7.1
-2. **F15** — Delete Initiative UI (backend API exists) — v0.7.1
-3. Initiative leaderboard full page UI (`InitiativeLeaderboardPage` — placeholder)
-4. Top 3 learners + leaderboard navigation from detail (future)
-5. Rejected submission resubmission workflow (future — backend constraint)
+1. **F15** — Delete Initiative UI (backend API exists) — v0.7.1
+2. Initiative leaderboard full page UI (`InitiativeLeaderboardPage` — placeholder)
+3. Top 3 learners + leaderboard navigation from detail (future)
+4. Rejected submission resubmission workflow (future — backend constraint)
+5. Clone Initiative (future enhancement — deferred from F14)
 6. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
 7. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
 8. Dashboard status chips / filtering (deferred from v0.6.1)
