@@ -1,6 +1,5 @@
 package com.company.learninghub.initiative.dto;
 
-import com.company.learninghub.initiative.domain.InitiativeStatus;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,10 +23,7 @@ public record CreateInitiativeRequest(
         Instant startDateUtc,
 
         @NotNull
-        Instant expiryDateUtc,
-
-        @NotNull
-        InitiativeStatus status
+        Instant expiryDateUtc
 ) {
 
     @AssertTrue(message = "expiryDateUtc must be on or after startDateUtc")
@@ -35,4 +31,3 @@ public record CreateInitiativeRequest(
         return startDateUtc == null || expiryDateUtc == null || !expiryDateUtc.isBefore(startDateUtc);
     }
 }
-

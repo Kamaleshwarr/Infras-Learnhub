@@ -1,11 +1,9 @@
 import {
-  FormHelperText,
-  MenuItem,
   Stack,
   TextField,
 } from '@mui/material'
 import type { InitiativeFormFieldName, InitiativeFormValues } from './initiativeFormState'
-import { INITIATIVE_FORM_LIMITS, INITIATIVE_STATUS_OPTIONS } from './initiativeFormState'
+import { INITIATIVE_FORM_LIMITS } from './initiativeFormState'
 import { INITIATIVE_MESSAGES } from './initiativeMessages'
 
 interface InitiativeFormFieldsProps {
@@ -14,15 +12,8 @@ interface InitiativeFormFieldsProps {
   disabled?: boolean
   minStartDate?: string
   minExpiryDate?: string
-  showStatusHelper?: boolean
   onChange: <K extends InitiativeFormFieldName>(field: K, value: InitiativeFormValues[K]) => void
 }
-
-const STATUS_LABELS = {
-  ACTIVE: 'Active',
-  DRAFT: 'Draft',
-  EXPIRED: 'Expired',
-} as const
 
 export function InitiativeFormFields({
   values,
@@ -30,7 +21,6 @@ export function InitiativeFormFields({
   disabled = false,
   minStartDate,
   minExpiryDate,
-  showStatusHelper = false,
   onChange,
 }: InitiativeFormFieldsProps) {
   return (
@@ -105,26 +95,6 @@ export function InitiativeFormFields({
         type="date"
         value={values.expiryDate}
       />
-
-      <TextField
-        disabled={disabled}
-        fullWidth
-        label={INITIATIVE_MESSAGES.formStatus}
-        onChange={(event) => onChange('status', event.target.value as InitiativeFormValues['status'])}
-        required
-        select
-        value={values.status}
-      >
-        {INITIATIVE_STATUS_OPTIONS.map((status) => (
-          <MenuItem key={status} value={status}>
-            {STATUS_LABELS[status]}
-          </MenuItem>
-        ))}
-      </TextField>
-
-      {showStatusHelper ? (
-        <FormHelperText>{INITIATIVE_MESSAGES.formStatusHelper}</FormHelperText>
-      ) : null}
     </Stack>
   )
 }

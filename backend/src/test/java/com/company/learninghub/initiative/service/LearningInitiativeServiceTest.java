@@ -6,6 +6,7 @@ import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.dto.CreateInitiativeRequest;
 import com.company.learninghub.initiative.dto.InitiativeResponse;
+import com.company.learninghub.initiative.dto.ReactivateInitiativeRequest;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.mapper.LearningInitiativeMapper;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
@@ -80,8 +81,7 @@ class LearningInitiativeServiceTest {
                 "Complete the AWS AI certification.",
                 "Recognition",
                 NOW.plusSeconds(3600),
-                NOW.plusSeconds(7200),
-                InitiativeStatus.DRAFT
+                NOW.plusSeconds(7200)
         );
         when(userRepository.findById(adminPrincipal.getId())).thenReturn(Optional.of(adminUser));
         when(initiativeRepository.save(any(LearningInitiative.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -105,8 +105,7 @@ class LearningInitiativeServiceTest {
                 "Single-day learning event.",
                 null,
                 sameDay,
-                sameDay,
-                InitiativeStatus.DRAFT
+                sameDay
         );
         when(userRepository.findById(adminPrincipal.getId())).thenReturn(Optional.of(adminUser));
         when(initiativeRepository.save(any(LearningInitiative.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -125,8 +124,7 @@ class LearningInitiativeServiceTest {
                 "Updated description",
                 "Updated reward",
                 NOW.plusSeconds(1800),
-                NOW.plusSeconds(3600),
-                InitiativeStatus.ACTIVE
+                NOW.plusSeconds(3600)
         );
         UUID initiativeId = UUID.randomUUID();
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
@@ -136,28 +134,149 @@ class LearningInitiativeServiceTest {
         assertThat(response.title()).isEqualTo("Updated");
         assertThat(response.description()).isEqualTo("Updated description");
         assertThat(response.rewardDescription()).isEqualTo("Updated reward");
+        assertThat(response.status()).isEqualTo(InitiativeStatus.DRAFT);
+    }
+
+    @Test
+    void publishTransitionsDraftToActive() {
+        LearningInitiative initiative = initiative("Draft", InitiativeStatus.DRAFT, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        InitiativeResponse response = initiativeService.publish(initiativeId);
+
         assertThat(response.status()).isEqualTo(InitiativeStatus.ACTIVE);
     }
 
     @Test
-    void updateSetsExpiryToTodayWhenMarkingInitiativeExpired() {
-        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
-        Instant futureExpiry = Instant.parse("2026-12-31T00:00:00.000Z");
-        UpdateInitiativeRequest request = new UpdateInitiativeRequest(
-                "Active",
-                "Expired after review",
+    void publishRejectsInvalidMetadata() {
+        LearningInitiative initiative = new LearningInitiative(
+                "",
+                "Description",
                 "Reward",
                 NOW.plusSeconds(3600),
-                futureExpiry,
-                InitiativeStatus.EXPIRED
+                NOW.plusSeconds(7200),
+                InitiativeStatus.DRAFT,
+                adminUser
         );
         UUID initiativeId = UUID.randomUUID();
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
 
-        InitiativeResponse response = initiativeService.update(initiativeId, request);
+        assertThatThrownBy(() -> initiativeService.publish(initiativeId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("title is required");
+    }
+
+    @Test
+    void publishRejectsInvalidTransition() {
+        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        assertThatThrownBy(() -> initiativeService.publish(initiativeId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Cannot transition initiative from ACTIVE to ACTIVE");
+    }
+
+    @Test
+    void returnToDraftTransitionsActiveToDraft() {
+        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        InitiativeResponse response = initiativeService.returnToDraft(initiativeId);
+
+        assertThat(response.status()).isEqualTo(InitiativeStatus.DRAFT);
+    }
+
+    @Test
+    void returnToDraftRejectsInvalidTransition() {
+        LearningInitiative initiative = initiative("Draft", InitiativeStatus.DRAFT, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        assertThatThrownBy(() -> initiativeService.returnToDraft(initiativeId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Cannot transition initiative from DRAFT to DRAFT");
+    }
+
+    @Test
+    void markExpiredSetsExpiryToToday() {
+        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        InitiativeResponse response = initiativeService.markExpired(initiativeId);
 
         assertThat(response.status()).isEqualTo(InitiativeStatus.EXPIRED);
         assertThat(response.expiryDateUtc()).isEqualTo(Instant.parse("2026-06-06T00:00:00.000Z"));
+    }
+
+    @Test
+    void markExpiredRejectsInvalidTransition() {
+        LearningInitiative initiative = initiative("Draft", InitiativeStatus.DRAFT, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        assertThatThrownBy(() -> initiativeService.markExpired(initiativeId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Cannot transition initiative from DRAFT to EXPIRED");
+    }
+
+    @Test
+    void reactivateTransitionsExpiredToActiveWithNewExpiry() {
+        LearningInitiative initiative = initiative(
+                "Expired",
+                InitiativeStatus.EXPIRED,
+                NOW.minusSeconds(86_400),
+                Instant.parse("2026-06-05T00:00:00.000Z"),
+                adminUser
+        );
+        UUID initiativeId = UUID.randomUUID();
+        Instant newExpiry = Instant.parse("2026-12-31T00:00:00.000Z");
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        InitiativeResponse response = initiativeService.reactivate(
+                initiativeId,
+                new ReactivateInitiativeRequest(newExpiry)
+        );
+
+        assertThat(response.status()).isEqualTo(InitiativeStatus.ACTIVE);
+        assertThat(response.expiryDateUtc()).isEqualTo(newExpiry);
+    }
+
+    @Test
+    void reactivateRejectsExpiryBeforeToday() {
+        LearningInitiative initiative = initiative(
+                "Expired",
+                InitiativeStatus.EXPIRED,
+                Instant.parse("2026-06-01T00:00:00.000Z"),
+                Instant.parse("2026-06-05T00:00:00.000Z"),
+                adminUser
+        );
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        assertThatThrownBy(() -> initiativeService.reactivate(
+                initiativeId,
+                new ReactivateInitiativeRequest(Instant.parse("2026-06-05T00:00:00.000Z"))
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("expiryDateUtc cannot be earlier than today (UTC)");
+    }
+
+    @Test
+    void reactivateRejectsInvalidTransition() {
+        LearningInitiative initiative = initiative("Active", InitiativeStatus.ACTIVE, adminUser);
+        UUID initiativeId = UUID.randomUUID();
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+
+        assertThatThrownBy(() -> initiativeService.reactivate(
+                initiativeId,
+                new ReactivateInitiativeRequest(Instant.parse("2026-12-31T00:00:00.000Z"))
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Cannot transition initiative from ACTIVE to ACTIVE");
     }
 
     @Test
@@ -167,8 +286,7 @@ class LearningInitiativeServiceTest {
                 "Complete the AWS AI certification.",
                 "Recognition",
                 NOW.minusSeconds(86_400),
-                NOW.plusSeconds(7200),
-                InitiativeStatus.DRAFT
+                NOW.plusSeconds(7200)
         );
         when(userRepository.findById(adminPrincipal.getId())).thenReturn(Optional.of(adminUser));
 
@@ -192,8 +310,7 @@ class LearningInitiativeServiceTest {
                 "Updated description",
                 "Reward",
                 NOW.minusSeconds(86_400),
-                NOW.plusSeconds(3600),
-                InitiativeStatus.ACTIVE
+                NOW.plusSeconds(3600)
         );
         UUID initiativeId = UUID.randomUUID();
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
@@ -219,8 +336,7 @@ class LearningInitiativeServiceTest {
                 "Updated description",
                 "Updated reward",
                 pastStart,
-                expiry,
-                InitiativeStatus.ACTIVE
+                expiry
         );
         UUID initiativeId = UUID.randomUUID();
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
@@ -248,8 +364,7 @@ class LearningInitiativeServiceTest {
                 "Updated description",
                 "Reward",
                 futureStart,
-                Instant.parse("2026-12-31T00:00:00.000Z"),
-                InitiativeStatus.ACTIVE
+                Instant.parse("2026-12-31T00:00:00.000Z")
         );
         UUID initiativeId = UUID.randomUUID();
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
@@ -395,7 +510,7 @@ class LearningInitiativeServiceTest {
         LearningInitiative initiative = initiative(
                 "Future active",
                 InitiativeStatus.ACTIVE,
-                NOW.plusSeconds(1),
+                Instant.parse("2026-06-07T00:00:00.000Z"),
                 NOW.plusSeconds(7200),
                 adminUser
         );

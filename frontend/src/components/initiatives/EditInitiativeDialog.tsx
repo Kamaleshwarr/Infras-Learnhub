@@ -16,8 +16,8 @@ import type { Initiative } from '../../types/initiatives'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { InitiativeFormFields } from './InitiativeFormFields'
 import { InitiativeMetadataPanel } from './InitiativeMetadataPanel'
+import { InitiativeStatusChip } from './InitiativeStatusChip'
 import {
-  applyInitiativeStatusChange,
   buildUpdateInitiativeRequest,
   createEmptyInitiativeForm,
   createInitiativeFormBaseline,
@@ -62,7 +62,7 @@ export function EditInitiativeDialog({ open, initiative, onClose, onSuccess }: E
   const isDirty = useMemo(() => isInitiativeFormDirty(form, baseline), [baseline, form])
 
   function updateField<K extends InitiativeFormFieldName>(field: K, value: InitiativeFormValues[K]) {
-    setForm((current) => applyInitiativeStatusChange(field, value, current))
+    setForm((current) => ({ ...current, [field]: value }))
     setFieldErrors((current) => {
       if (!(field in current)) {
         return current
@@ -128,6 +128,9 @@ export function EditInitiativeDialog({ open, initiative, onClose, onSuccess }: E
             <DialogContent sx={{ minWidth: 0 }}>
               <Stack spacing={2} sx={{ pt: 1 }}>
                 {formError ? <Alert severity="error">{formError}</Alert> : null}
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <InitiativeStatusChip status={initiative.status} />
+                </Stack>
                 <InitiativeMetadataPanel initiative={initiative} />
                 <InitiativeFormFields
                   disabled={submitting}
@@ -135,7 +138,6 @@ export function EditInitiativeDialog({ open, initiative, onClose, onSuccess }: E
                   minExpiryDate={form.startDate}
                   minStartDate={todayUtcDateInput()}
                   onChange={updateField}
-                  showStatusHelper
                   values={form}
                 />
               </Stack>

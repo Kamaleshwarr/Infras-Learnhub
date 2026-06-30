@@ -1,7 +1,6 @@
 import type {
   CreateInitiativeRequest,
   Initiative,
-  InitiativeStatus,
   UpdateInitiativeRequest,
 } from '../../types/initiatives'
 import {
@@ -19,15 +18,12 @@ export const INITIATIVE_FORM_LIMITS = {
   rewardDescription: 500,
 } as const
 
-export const INITIATIVE_STATUS_OPTIONS: InitiativeStatus[] = ['DRAFT', 'ACTIVE', 'EXPIRED']
-
 export interface InitiativeFormValues {
   title: string
   description: string
   rewardDescription: string
   startDate: string
   expiryDate: string
-  status: InitiativeStatus
 }
 
 export interface InitiativeFormBaseline {
@@ -36,7 +32,6 @@ export interface InitiativeFormBaseline {
   rewardDescription: string
   startDate: string
   expiryDate: string
-  status: InitiativeStatus
 }
 
 export type InitiativeFormFieldName = keyof InitiativeFormValues
@@ -55,7 +50,6 @@ export function createEmptyInitiativeForm(now = Date.now()): InitiativeFormValue
     rewardDescription: '',
     startDate,
     expiryDate: defaultExpiryUtcDateInput(now),
-    status: 'DRAFT',
   }
 }
 
@@ -66,7 +60,6 @@ export function initiativeToFormValues(initiative: Initiative): InitiativeFormVa
     rewardDescription: initiative.rewardDescription ?? '',
     startDate: instantToFormDate(initiative.startDateUtc),
     expiryDate: instantToFormDate(initiative.expiryDateUtc),
-    status: initiative.status,
   }
 }
 
@@ -74,12 +67,12 @@ export function createInitiativeFormBaseline(values: InitiativeFormValues): Init
   return normalizeInitiativeFormValues(values)
 }
 
-export function buildCreateInitiativeRequest(values: InitiativeFormValues, now = Date.now()): CreateInitiativeRequest {
-  return buildUpsertInitiativeRequest(values, now)
+export function buildCreateInitiativeRequest(values: InitiativeFormValues): CreateInitiativeRequest {
+  return buildUpsertInitiativeRequest(values)
 }
 
-export function buildUpdateInitiativeRequest(values: InitiativeFormValues, now = Date.now()): UpdateInitiativeRequest {
-  return buildUpsertInitiativeRequest(values, now)
+export function buildUpdateInitiativeRequest(values: InitiativeFormValues): UpdateInitiativeRequest {
+  return buildUpsertInitiativeRequest(values)
 }
 
 export function getInitiativeFormFieldErrors(
@@ -144,8 +137,7 @@ export function isInitiativeFormDirty(
     normalized.description !== baseline.description ||
     normalized.rewardDescription !== baseline.rewardDescription ||
     normalized.startDate !== baseline.startDate ||
-    normalized.expiryDate !== baseline.expiryDate ||
-    normalized.status !== baseline.status
+    normalized.expiryDate !== baseline.expiryDate
   )
 }
 
@@ -166,8 +158,8 @@ function shouldValidateStartDateAgainstToday(
   return baseline?.startDate !== startDate
 }
 
-function buildUpsertInitiativeRequest(values: InitiativeFormValues, now = Date.now()): CreateInitiativeRequest {
-  const normalized = applyExpiredStatusRules(normalizeInitiativeFormValues(values), now)
+function buildUpsertInitiativeRequest(values: InitiativeFormValues): CreateInitiativeRequest {
+  const normalized = normalizeInitiativeFormValues(values)
   const rewardDescription = normalized.rewardDescription.length > 0 ? normalized.rewardDescription : null
 
   return {
@@ -175,55 +167,7 @@ function buildUpsertInitiativeRequest(values: InitiativeFormValues, now = Date.n
     expiryDateUtc: utcDateInputToInstant(normalized.expiryDate),
     rewardDescription,
     startDateUtc: utcDateInputToInstant(normalized.startDate),
-    status: normalized.status,
     title: normalized.title,
-  }
-}
-
-export function applyExpiredStatusRules(
-  values: InitiativeFormBaseline,
-  now = Date.now(),
-): InitiativeFormBaseline {
-  if (values.status !== 'EXPIRED') {
-    return values
-  }
-
-  const today = todayUtcDateInput(now)
-  let expiryDate = today
-  let startDate = values.startDate
-
-  if (startDate && isUtcDateBefore(expiryDate, startDate)) {
-    startDate = expiryDate
-  }
-
-  return {
-    ...values,
-    expiryDate,
-    startDate,
-  }
-}
-
-export function applyInitiativeStatusChange<K extends InitiativeFormFieldName>(
-  field: K,
-  value: InitiativeFormValues[K],
-  current: InitiativeFormValues,
-  now = Date.now(),
-): InitiativeFormValues {
-  if (field !== 'status' || value !== 'EXPIRED') {
-    return { ...current, [field]: value }
-  }
-
-  const normalized = applyExpiredStatusRules(
-    {
-      ...normalizeInitiativeFormValues(current),
-      status: 'EXPIRED',
-    },
-    now,
-  )
-
-  return {
-    ...current,
-    ...normalized,
   }
 }
 
@@ -234,7 +178,6 @@ function normalizeInitiativeFormValues(values: InitiativeFormValues): Initiative
     rewardDescription: values.rewardDescription.trim(),
     startDate: values.startDate,
     expiryDate: values.expiryDate,
-    status: values.status,
   }
 }
 

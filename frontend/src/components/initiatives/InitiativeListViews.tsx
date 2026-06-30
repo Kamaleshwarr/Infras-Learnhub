@@ -18,13 +18,14 @@ import {
   Typography,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import type { Initiative } from '../../types/initiatives'
+import type { Initiative, InitiativeLifecycleAction } from '../../types/initiatives'
 import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
 import { SortableTableHead } from '../common/SortableTableHead'
 import type { SortableColumn } from '../common/SortableTableHead'
 import { fixedTableSx, TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 import { formatInitiativeDate } from './initiativeDisplay'
 import { InitiativeExpiryBadge } from './InitiativeExpiryBadge'
+import { InitiativeLifecycleActions } from './InitiativeLifecycleActions'
 import { InitiativeStatusChip } from './InitiativeStatusChip'
 
 interface InitiativeTableProps {
@@ -34,6 +35,7 @@ interface InitiativeTableProps {
   showStatusColumn: boolean
   onSort: (property: string) => void
   onEdit?: (initiative: Initiative) => void
+  onLifecycleSuccess?: (action: InitiativeLifecycleAction, updated: Initiative) => void
 }
 
 const BASE_COLUMNS: SortableColumn[] = [
@@ -66,12 +68,13 @@ export function InitiativeTable({
   initiatives,
   loading,
   onEdit,
+  onLifecycleSuccess,
   sort,
   showStatusColumn,
   onSort,
 }: InitiativeTableProps) {
   const navigate = useNavigate()
-  const showActionsColumn = Boolean(onEdit)
+  const showActionsColumn = Boolean(onEdit || onLifecycleSuccess)
   const columns = buildColumns(showStatusColumn, showActionsColumn)
 
   if (loading) {
@@ -134,19 +137,29 @@ export function InitiativeTable({
                 )}
               </TableCell>
               {showActionsColumn ? (
-                <TableCell align="right" sx={{ width: '10%' }}>
-                  <Tooltip title="Edit initiative">
-                    <IconButton
-                      aria-label={`Edit initiative ${initiative.title}`}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onEdit?.(initiative)
-                      }}
-                      size="small"
-                    >
-                      <EditOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                <TableCell align="right" sx={{ width: showStatusColumn ? '16%' : '18%' }} onClick={(event) => event.stopPropagation()}>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
+                    {onLifecycleSuccess ? (
+                      <InitiativeLifecycleActions
+                        initiative={initiative}
+                        onSuccess={onLifecycleSuccess}
+                      />
+                    ) : null}
+                    {onEdit ? (
+                      <Tooltip title="Edit initiative">
+                        <IconButton
+                          aria-label={`Edit initiative ${initiative.title}`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onEdit(initiative)
+                          }}
+                          size="small"
+                        >
+                          <EditOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    ) : null}
+                  </Stack>
                 </TableCell>
               ) : null}
             </TableRow>
@@ -162,12 +175,14 @@ interface InitiativeCardListProps {
   loading: boolean
   showStatusColumn: boolean
   onEdit?: (initiative: Initiative) => void
+  onLifecycleSuccess?: (action: InitiativeLifecycleAction, updated: Initiative) => void
 }
 
 export function InitiativeCardList({
   initiatives,
   loading,
   onEdit,
+  onLifecycleSuccess,
   showStatusColumn,
 }: InitiativeCardListProps) {
   const navigate = useNavigate()
@@ -213,6 +228,12 @@ export function InitiativeCardList({
                   </Stack>
                 </Box>
                 <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                  {onLifecycleSuccess ? (
+                    <InitiativeLifecycleActions
+                      initiative={initiative}
+                      onSuccess={onLifecycleSuccess}
+                    />
+                  ) : null}
                   {onEdit ? (
                     <Tooltip title="Edit initiative">
                       <IconButton

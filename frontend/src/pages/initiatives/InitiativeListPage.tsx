@@ -17,7 +17,7 @@ import { InitiativeSearchBar } from '../../components/initiatives/InitiativeSear
 import { InitiativeStatusFilterTabs } from '../../components/initiatives/InitiativeStatusFilterTabs'
 import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMessages'
 import type { PageResponse } from '../../types/api'
-import type { Initiative } from '../../types/initiatives'
+import type { Initiative, InitiativeLifecycleAction } from '../../types/initiatives'
 import { DEFAULT_INITIATIVE_LIST_QUERY } from '../../types/initiatives'
 import { resolveApiError } from '../../utils/apiErrors'
 import {
@@ -142,6 +142,17 @@ export function InitiativeListPage() {
     refreshInitiatives()
   }
 
+  function handleLifecycleSuccess(action: InitiativeLifecycleAction) {
+    const message = {
+      publish: INITIATIVE_MESSAGES.publishSuccess,
+      returnToDraft: INITIATIVE_MESSAGES.returnToDraftSuccess,
+      markExpired: INITIATIVE_MESSAGES.markExpiredSuccess,
+      reactivate: INITIATIVE_MESSAGES.reactivateSuccess,
+    }[action]
+    showSuccessNotification(message)
+    refreshInitiatives()
+  }
+
   return (
     <>
       <PageHeader
@@ -224,6 +235,7 @@ export function InitiativeListPage() {
               initiatives={pageData.content}
               loading={loading}
               onEdit={isAdmin ? setEditingInitiative : undefined}
+              onLifecycleSuccess={isAdmin ? handleLifecycleSuccess : undefined}
               showStatusColumn={isAdmin}
             />
           ) : (
@@ -231,6 +243,7 @@ export function InitiativeListPage() {
               initiatives={pageData.content}
               loading={loading}
               onEdit={isAdmin ? setEditingInitiative : undefined}
+              onLifecycleSuccess={isAdmin ? handleLifecycleSuccess : undefined}
               onSort={(property) => updateQuery({ ...appliedQuery, page: 0, sort: toggleSort(appliedQuery.sort, property) })}
               showStatusColumn={isAdmin}
               sort={appliedQuery.sort}

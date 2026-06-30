@@ -61,9 +61,14 @@ export interface UpsertInitiativeRequest {
   rewardDescription?: string | null
   startDateUtc: string
   expiryDateUtc: string
-  status: InitiativeStatus
 }
 
 export type CreateInitiativeRequest = UpsertInitiativeRequest
 
 export type UpdateInitiativeRequest = UpsertInitiativeRequest
+
+export interface ReactivateInitiativeRequest {
+  expiryDateUtc: string
+}
+
+export type InitiativeLifecycleAction = 'publish' | 'returnToDraft' | 'markExpired' | 'reactivate'

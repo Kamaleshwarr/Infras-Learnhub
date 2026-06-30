@@ -41,10 +41,10 @@ describe('CreateInitiativeDialog', () => {
     vi.clearAllMocks()
   })
 
-  it('defaults status to draft', () => {
+  it('does not render a status field', () => {
     render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
 
-    expect(getCreateDialog().getByRole('combobox', { name: /^Status/i })).toHaveTextContent('Draft')
+    expect(getCreateDialog().queryByLabelText(/^Status/i)).not.toBeInTheDocument()
   })
 
   it('keeps create enabled and shows validation on submit', async () => {
@@ -80,7 +80,7 @@ describe('CreateInitiativeDialog', () => {
     vi.useRealTimers()
   })
 
-  it('does not show edit-only status helper text', () => {
+  it('does not show lifecycle helper text', () => {
     render(<CreateInitiativeDialog onClose={onClose} onSuccess={onSuccess} open />)
 
     expect(
@@ -107,7 +107,6 @@ describe('CreateInitiativeDialog', () => {
         rewardDescription: '$500 credit',
         startDateUtc: expect.stringMatching(/T00:00:00\.000Z$/),
         expiryDateUtc: expect.stringMatching(/T00:00:00\.000Z$/),
-        status: 'DRAFT',
       }),
     )
     expect(onSuccess).toHaveBeenCalledTimes(1)
@@ -142,7 +141,6 @@ describe('CreateInitiativeDialog', () => {
         rewardDescription: null,
         startDateUtc: '2026-06-19T00:00:00.000Z',
         expiryDateUtc: '2026-06-19T00:00:00.000Z',
-        status: 'DRAFT',
       }),
     )
     expect(onSuccess).toHaveBeenCalledTimes(1)

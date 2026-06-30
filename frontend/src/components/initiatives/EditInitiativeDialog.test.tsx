@@ -58,19 +58,17 @@ describe('EditInitiativeDialog', () => {
     expect(dialog.getByLabelText(/^Reward \/ Benefits/i)).toHaveValue('$500 credit')
     expect(dialog.getByLabelText(/^Start date \(UTC\)/i)).toHaveValue('2026-07-01')
     expect(dialog.getByLabelText(/^Expiry date \(UTC\)/i)).toHaveValue('2026-12-31')
-    expect(dialog.getByRole('combobox', { name: /^Status/i })).toHaveTextContent('Active')
+    expect(dialog.queryByLabelText(/^Status/i)).not.toBeInTheDocument()
+    expect(dialog.getByText('Active')).toBeInTheDocument()
   })
 
-  it('shows metadata and edit-only status helper text', () => {
+  it('shows metadata panel', () => {
     render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
     const dialog = getEditDialog()
 
     expect(dialog.getByText(/Created by: Admin User/i)).toBeInTheDocument()
     expect(dialog.getByText(/Created on:/i)).toBeInTheDocument()
     expect(dialog.getByText(/Last updated:/i)).toBeInTheDocument()
-    expect(
-      dialog.getByText(/Expired initiatives can be reactivated to Active through Edit/i),
-    ).toBeInTheDocument()
   })
 
   it('keeps save enabled and shows validation on submit', async () => {
@@ -134,7 +132,6 @@ describe('EditInitiativeDialog', () => {
         rewardDescription: '$500 credit',
         startDateUtc: '2026-07-01T00:00:00.000Z',
         expiryDateUtc: '2026-12-31T00:00:00.000Z',
-        status: 'ACTIVE',
       }),
     )
     expect(onSuccess).toHaveBeenCalledTimes(1)
@@ -166,38 +163,6 @@ describe('EditInitiativeDialog', () => {
     expect(initiativesApi.update).not.toHaveBeenCalled()
   })
 
-  it('sets expiry to today when status changes to expired', async () => {
-    const user = userEvent.setup({ delay: null })
-    vi.mocked(initiativesApi.update).mockResolvedValue({
-      ...initiative,
-      expiryDateUtc: '2026-06-27T00:00:00.000Z',
-      startDateUtc: '2026-06-27T00:00:00.000Z',
-      status: 'EXPIRED',
-    })
-
-    render(<EditInitiativeDialog initiative={initiative} onClose={onClose} onSuccess={onSuccess} open />)
-    const dialog = getEditDialog()
-
-    await user.click(dialog.getByRole('combobox', { name: /^Status/i }))
-    await user.click(screen.getByRole('option', { name: 'Expired' }))
-
-    expect(dialog.getByLabelText(/^Expiry date \(UTC\)/i)).toHaveValue('2026-06-27')
-    expect(dialog.getByLabelText(/^Start date \(UTC\)/i)).toHaveValue('2026-06-27')
-
-    await user.click(dialog.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() =>
-      expect(initiativesApi.update).toHaveBeenCalledWith('initiative-1', {
-        title: 'Azure Certification',
-        description: 'Azure certification program',
-        rewardDescription: '$500 credit',
-        startDateUtc: '2026-06-27T00:00:00.000Z',
-        expiryDateUtc: '2026-06-27T00:00:00.000Z',
-        status: 'EXPIRED',
-      }),
-    )
-  })
-
   it('updates an initiative and calls onSuccess', async () => {
     const user = userEvent.setup({ delay: null })
     vi.mocked(initiativesApi.update).mockResolvedValue({
@@ -219,7 +184,6 @@ describe('EditInitiativeDialog', () => {
         rewardDescription: '$500 credit',
         startDateUtc: '2026-07-01T00:00:00.000Z',
         expiryDateUtc: '2026-12-31T00:00:00.000Z',
-        status: 'ACTIVE',
       }),
     )
     expect(onSuccess).toHaveBeenCalledTimes(1)

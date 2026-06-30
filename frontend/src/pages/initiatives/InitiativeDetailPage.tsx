@@ -16,18 +16,32 @@ import { EditInitiativeDialog } from '../../components/initiatives/EditInitiativ
 import { InitiativeDetailAlerts } from '../../components/initiatives/InitiativeDetailAlerts'
 import { InitiativeNotFoundPanel } from '../../components/initiatives/InitiativeNotFoundPanel'
 import { InitiativeRewardCard } from '../../components/initiatives/InitiativeRewardCard'
+import { InitiativeLifecycleActions } from '../../components/initiatives/InitiativeLifecycleActions'
 import { InitiativeStatusChip } from '../../components/initiatives/InitiativeStatusChip'
 import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMessages'
-import { formatInitiativeDateRange } from '../../components/initiatives/initiativeDisplay'
 import { MyProgressCard } from '../../components/initiatives/MyProgressCard'
 import { TopLearnerCard } from '../../components/initiatives/TopLearnerCard'
 import {
   InitiativeManagementSnackbar,
   type InitiativeManagementNotification,
 } from '../../components/initiatives/InitiativeManagementSnackbar'
-import type { Initiative } from '../../types/initiatives'
+import type { Initiative, InitiativeLifecycleAction } from '../../types/initiatives'
+import { formatInitiativeDateRange } from '../../components/initiatives/initiativeDisplay'
 import type { CertificateSubmission } from '../../types/submissions'
 import { isNotFoundError, resolveApiError } from '../../utils/apiErrors'
+
+function lifecycleSuccessMessage(action: InitiativeLifecycleAction) {
+  switch (action) {
+    case 'publish':
+      return INITIATIVE_MESSAGES.publishSuccess
+    case 'returnToDraft':
+      return INITIATIVE_MESSAGES.returnToDraftSuccess
+    case 'markExpired':
+      return INITIATIVE_MESSAGES.markExpiredSuccess
+    case 'reactivate':
+      return INITIATIVE_MESSAGES.reactivateSuccess
+  }
+}
 
 interface SecondaryDetailData {
   submission: CertificateSubmission | null
@@ -224,12 +238,22 @@ export function InitiativeDetailPage() {
         title={initiative.title}
       />
 
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between', mb: 2 }}>
         <InitiativeStatusChip status={initiative.status} />
         {isAdmin ? (
-          <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
-            Edit
-          </Button>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <InitiativeLifecycleActions
+              initiative={initiative}
+              layout="buttons"
+              onSuccess={(action) => {
+                setNotification({ message: lifecycleSuccessMessage(action), severity: 'success' })
+                setRefreshToken((current) => current + 1)
+              }}
+            />
+            <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
+              Edit
+            </Button>
+          </Stack>
         ) : null}
       </Stack>
 

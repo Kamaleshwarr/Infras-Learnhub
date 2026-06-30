@@ -19,7 +19,7 @@ describe('InitiativeFormFields', () => {
     expect(screen.getByLabelText(/^Reward \/ Benefits/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^Start date \(UTC\)/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^Expiry date \(UTC\)/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/^Status/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/^Status/i)).not.toBeInTheDocument()
   })
 
   it('calls onChange when a field is edited', async () => {
@@ -46,18 +46,5 @@ describe('InitiativeFormFields', () => {
     )
 
     expect(screen.getByText('Title is required.')).toBeInTheDocument()
-  })
-
-  it('does not show edit-only status helper by default', () => {
-    render(
-      <InitiativeFormFields
-        onChange={vi.fn()}
-        values={createEmptyInitiativeForm(Date.parse('2026-06-19T12:00:00.000Z'))}
-      />,
-    )
-
-    expect(
-      screen.queryByText(/Expired initiatives can be reactivated to Active through Edit/i),
-    ).not.toBeInTheDocument()
   })
 })

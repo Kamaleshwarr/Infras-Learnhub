@@ -16,7 +16,6 @@ import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { InitiativeFormFields } from './InitiativeFormFields'
 import { todayUtcDateInput } from './initiativeDateUtils'
 import {
-  applyInitiativeStatusChange,
   buildCreateInitiativeRequest,
   createEmptyInitiativeForm,
   createInitiativeFormBaseline,
@@ -58,7 +57,7 @@ export function CreateInitiativeDialog({ open, onClose, onSuccess }: CreateIniti
   const isDirty = useMemo(() => isInitiativeFormDirty(form, baseline), [baseline, form])
 
   function updateField<K extends InitiativeFormFieldName>(field: K, value: InitiativeFormValues[K]) {
-    setForm((current) => applyInitiativeStatusChange(field, value, current))
+    setForm((current) => ({ ...current, [field]: value }))
     setFieldErrors((current) => {
       if (!(field in current)) {
         return current

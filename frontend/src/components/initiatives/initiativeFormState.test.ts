@@ -29,10 +29,9 @@ const initiative: Initiative = {
 }
 
 describe('initiativeFormState', () => {
-  it('creates empty form defaults as draft with UTC dates', () => {
+  it('creates empty form defaults with UTC dates', () => {
     const form = createEmptyInitiativeForm(Date.parse('2026-06-19T12:00:00.000Z'))
 
-    expect(form.status).toBe('DRAFT')
     expect(form.startDate).toBe('2026-06-19')
     expect(form.expiryDate).toBe('2026-09-17')
     expect(form.title).toBe('')
@@ -45,7 +44,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '$500 credit',
       startDate: '2026-01-01',
       expiryDate: '2026-12-31',
-      status: 'ACTIVE',
     })
   })
 
@@ -58,7 +56,6 @@ describe('initiativeFormState', () => {
         rewardDescription: '',
         startDate: '2026-06-18',
         expiryDate: '2026-06-18',
-        status: 'DRAFT',
       },
       { mode: 'create', now },
     )
@@ -73,7 +70,6 @@ describe('initiativeFormState', () => {
         rewardDescription: '',
         startDate: '2026-06-19',
         expiryDate: '2026-06-18',
-        status: 'DRAFT',
       },
       { mode: 'create', now },
     )).toBe(false)
@@ -88,7 +84,6 @@ describe('initiativeFormState', () => {
         rewardDescription: '',
         startDate: '2026-06-19',
         expiryDate: '2026-06-19',
-        status: 'DRAFT',
       },
       { mode: 'create', now },
     )
@@ -104,7 +99,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-07-01',
       expiryDate: '2026-12-31',
-      status: 'ACTIVE' as const,
     }
     const errors = getInitiativeFormFieldErrors(
       {
@@ -125,7 +119,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-07-01',
       expiryDate: '2026-12-31',
-      status: 'ACTIVE' as const,
     }
     const errors = getInitiativeFormFieldErrors(
       {
@@ -146,7 +139,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-07-01',
       expiryDate: '2026-12-31',
-      status: 'ACTIVE' as const,
     }
     const todayErrors = getInitiativeFormFieldErrors(
       {
@@ -167,22 +159,6 @@ describe('initiativeFormState', () => {
     expect(futureErrors.startDate).toBeUndefined()
   })
 
-  it('normalizes expiry to today when status is expired', () => {
-    const now = Date.parse('2026-06-27T12:00:00.000Z')
-    const request = buildUpdateInitiativeRequest({
-      title: 'Azure',
-      description: 'Program',
-      rewardDescription: '',
-      startDate: '2026-07-01',
-      expiryDate: '2026-12-31',
-      status: 'EXPIRED',
-    }, now)
-
-    expect(request.status).toBe('EXPIRED')
-    expect(request.expiryDateUtc).toBe('2026-06-27T00:00:00.000Z')
-    expect(request.startDateUtc).toBe('2026-06-27T00:00:00.000Z')
-  })
-
   it('validates required fields and date range', () => {
     const errors = getInitiativeFormFieldErrors({
       title: '',
@@ -190,7 +166,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-06-20',
       expiryDate: '2026-06-19',
-      status: 'DRAFT',
     })
 
     expect(errors.title).toBeTruthy()
@@ -202,7 +177,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-06-20',
       expiryDate: '2026-06-19',
-      status: 'DRAFT',
     })).toBe(false)
   })
 
@@ -213,7 +187,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '   ',
       startDate: '2026-06-01',
       expiryDate: '2026-12-31',
-      status: 'DRAFT' as const,
     }
 
     expect(buildCreateInitiativeRequest(values)).toEqual({
@@ -222,7 +195,6 @@ describe('initiativeFormState', () => {
       rewardDescription: null,
       startDateUtc: '2026-06-01T00:00:00.000Z',
       expiryDateUtc: '2026-12-31T00:00:00.000Z',
-      status: 'DRAFT',
     })
     expect(buildUpdateInitiativeRequest(values)).toEqual(buildCreateInitiativeRequest(values))
   })
@@ -243,7 +215,6 @@ describe('initiativeFormState', () => {
       rewardDescription: 'r'.repeat(501),
       startDate: '2026-06-01',
       expiryDate: '2026-12-31',
-      status: 'DRAFT',
     })
 
     expect(errors.title).toContain('100')
@@ -260,7 +231,6 @@ describe('initiativeFormState', () => {
         rewardDescription: 'r'.repeat(500),
         startDate: '2026-06-19',
         expiryDate: '2026-12-31',
-        status: 'DRAFT',
       },
       { now },
     )

@@ -1,6 +1,5 @@
 package com.company.learninghub.initiative.dto;
 
-import com.company.learninghub.initiative.domain.InitiativeStatus;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -37,8 +36,7 @@ class InitiativeRequestValidationTest {
                 "Complete the certification.",
                 "Recognition",
                 Instant.parse("2026-06-10T00:00:00Z"),
-                Instant.parse("2026-06-09T00:00:00Z"),
-                InitiativeStatus.ACTIVE
+                Instant.parse("2026-06-09T00:00:00Z")
         );
 
         Set<ConstraintViolation<CreateInitiativeRequest>> violations = validator.validate(request);
@@ -56,8 +54,7 @@ class InitiativeRequestValidationTest {
                 "Single-day learning event.",
                 null,
                 sameDay,
-                sameDay,
-                InitiativeStatus.DRAFT
+                sameDay
         );
 
         Set<ConstraintViolation<CreateInitiativeRequest>> violations = validator.validate(request);
@@ -72,8 +69,7 @@ class InitiativeRequestValidationTest {
                 "Complete the certification.",
                 "Recognition",
                 Instant.parse("2026-06-10T00:00:00Z"),
-                Instant.parse("2026-06-09T00:00:00Z"),
-                InitiativeStatus.ACTIVE
+                Instant.parse("2026-06-09T00:00:00Z")
         );
 
         Set<ConstraintViolation<UpdateInitiativeRequest>> violations = validator.validate(request);
@@ -91,8 +87,7 @@ class InitiativeRequestValidationTest {
                 "Single-day learning event.",
                 null,
                 sameDay,
-                sameDay,
-                InitiativeStatus.DRAFT
+                sameDay
         );
 
         Set<ConstraintViolation<UpdateInitiativeRequest>> violations = validator.validate(request);
@@ -101,14 +96,25 @@ class InitiativeRequestValidationTest {
     }
 
     @Test
-    void updateRequestRequiresTitleDescriptionDatesAndStatus() {
-        UpdateInitiativeRequest request = new UpdateInitiativeRequest(null, "", null, null, null, null);
+    void updateRequestRequiresTitleDescriptionAndDates() {
+        UpdateInitiativeRequest request = new UpdateInitiativeRequest(null, "", null, null, null);
 
         Set<ConstraintViolation<UpdateInitiativeRequest>> violations = validator.validate(request);
 
         assertThat(violations)
                 .extracting(violation -> violation.getPropertyPath().toString())
-                .contains("title", "description", "startDateUtc", "expiryDateUtc", "status");
+                .contains("title", "description", "startDateUtc", "expiryDateUtc");
+    }
+
+    @Test
+    void reactivateRequestRequiresExpiryDate() {
+        ReactivateInitiativeRequest request = new ReactivateInitiativeRequest(null);
+
+        Set<ConstraintViolation<ReactivateInitiativeRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("expiryDateUtc");
     }
 
     @Test
@@ -119,8 +125,7 @@ class InitiativeRequestValidationTest {
                 "d".repeat(2001),
                 "r".repeat(501),
                 sameDay,
-                sameDay,
-                InitiativeStatus.DRAFT
+                sameDay
         );
 
         Set<ConstraintViolation<CreateInitiativeRequest>> violations = validator.validate(request);
@@ -138,8 +143,7 @@ class InitiativeRequestValidationTest {
                 "d".repeat(2000),
                 "r".repeat(500),
                 sameDay,
-                sameDay,
-                InitiativeStatus.DRAFT
+                sameDay
         );
 
         Set<ConstraintViolation<CreateInitiativeRequest>> violations = validator.validate(request);
