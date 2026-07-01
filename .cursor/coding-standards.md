@@ -123,6 +123,15 @@ This can cause PostgreSQL parameter type inference issues.
 - 401 responses clear auth state.
 - Login page must validate email/password and show backend-aware errors.
 
+### Text Display
+
+Use the shared text display utilities in `src/components/common/` for all user-entered or API-returned text.
+
+- **List/table views:** `TruncatedTextWithTooltip` with limits from `TEXT_DISPLAY_LIMITS` in `textDisplay.ts`. Tables use `fixedTableSx`, constrained column widths, and `minWidth: 0` on text cells.
+- **Detail pages, cards, dialogs, and page headers:** `WrappingText` or `longTextWrapSx` so full content wraps without horizontal overflow.
+- **Read-only form values:** `readOnlyTextFieldSlotProps` for profile-style display fields.
+- **Do not** add page-specific truncation helpers; extend the shared utilities instead.
+
 ## Pull Request Standards
 
 - Include summary of changes.

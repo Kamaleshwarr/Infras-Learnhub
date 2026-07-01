@@ -9,9 +9,9 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
-  Typography,
 } from '@mui/material'
 import type { CertificateSubmission } from '../../types/submissions'
+import { WrappingText } from '../common/WrappingText'
 import { CertificateDocumentMetadata } from './CertificateDocumentMetadata'
 import { isImageContentType, isPdfContentType } from './certificateDocumentDisplay'
 
@@ -102,14 +102,14 @@ export function CertificatePreviewDialog({
       open={open}
     >
       <DialogTitle id="certificate-preview-title">Certificate preview</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ pt: 1 }}>
+      <DialogContent sx={{ minWidth: 0 }}>
+        <Stack spacing={2} sx={{ minWidth: 0, pt: 1 }}>
           {submission ? (
-            <Box>
-              <Typography variant="subtitle2">{submission.employee.fullName}</Typography>
-              <Typography color="text.secondary" variant="body2">
+            <Box sx={{ minWidth: 0 }}>
+              <WrappingText variant="subtitle2">{submission.employee.fullName}</WrappingText>
+              <WrappingText color="text.secondary" variant="body2">
                 {submission.initiative.title}
-              </Typography>
+              </WrappingText>
               <Box sx={{ mt: 1 }}>
                 <CertificateDocumentMetadata document={submission.certificateDocument} />
               </Box>

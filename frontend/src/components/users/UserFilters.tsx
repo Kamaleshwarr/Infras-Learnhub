@@ -3,6 +3,12 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
 import { Box, Button, Card, CardContent, InputAdornment, MenuItem, Stack, TextField } from '@mui/material'
 import type { UserListQuery } from '../../types/users'
 
+const USER_FILTER_LIMITS = {
+  fullName: 200,
+  employeeId: 64,
+  email: 320,
+} as const
+
 interface UserFiltersProps {
   draft: UserListQuery
   onDraftChange: (draft: UserListQuery) => void
@@ -29,6 +35,7 @@ export function UserFilters({ draft, onDraftChange, onApply, onClear }: UserFilt
             <TextField
               label="Search by name"
               slotProps={{
+                htmlInput: { maxLength: USER_FILTER_LIMITS.fullName },
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
@@ -44,11 +51,13 @@ export function UserFilters({ draft, onDraftChange, onApply, onClear }: UserFilt
             <TextField
               label="Employee ID"
               onChange={(event) => updateField('employeeId', event.target.value)}
+              slotProps={{ htmlInput: { maxLength: USER_FILTER_LIMITS.employeeId } }}
               value={draft.employeeId}
             />
             <TextField
               label="Email"
               onChange={(event) => updateField('email', event.target.value)}
+              slotProps={{ htmlInput: { maxLength: USER_FILTER_LIMITS.email } }}
               type="email"
               value={draft.email}
             />

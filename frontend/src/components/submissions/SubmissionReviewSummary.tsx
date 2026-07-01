@@ -1,4 +1,5 @@
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Stack } from '@mui/material'
+import { WrappingText } from '../common/WrappingText'
 import type { CertificateSubmission } from '../../types/submissions'
 import { CertificateDocumentMetadata } from './CertificateDocumentMetadata'
 import { CertificateFileActions } from './CertificateFileActions'
@@ -17,26 +18,27 @@ export function SubmissionReviewSummary({ submission }: SubmissionReviewSummaryP
       sx={{
         bgcolor: 'action.hover',
         borderRadius: 1,
+        minWidth: 0,
         p: 2,
       }}
     >
-      <Typography variant="subtitle2">{submission.employee.fullName}</Typography>
-      <Typography color="text.secondary" variant="body2">
+      <WrappingText variant="subtitle2">{submission.employee.fullName}</WrappingText>
+      <WrappingText color="text.secondary" variant="body2">
         {submission.employee.employeeId} · {submission.employee.email}
-      </Typography>
-      <Typography sx={{ mt: 1 }} variant="body2">
+      </WrappingText>
+      <WrappingText sx={{ mt: 1 }} variant="body2">
         Initiative: {submission.initiative.title}
-      </Typography>
-      <Typography color="text.secondary" variant="body2">
+      </WrappingText>
+      <WrappingText color="text.secondary" variant="body2">
         Submitted: {formatDate(submission.submittedAtUtc)}
-      </Typography>
+      </WrappingText>
       {submission.comments ? (
-        <Typography color="text.secondary" sx={{ mt: 1 }} variant="body2">
+        <WrappingText color="text.secondary" sx={{ mt: 1 }} variant="body2">
           Comments: {submission.comments}
-        </Typography>
+        </WrappingText>
       ) : null}
-      <Stack spacing={1} sx={{ mt: 1 }}>
-        <Typography variant="body2">Certificate file</Typography>
+      <Stack spacing={1} sx={{ minWidth: 0, mt: 1 }}>
+        <WrappingText variant="body2">Certificate file</WrappingText>
         <CertificateDocumentMetadata document={submission.certificateDocument} />
         <CertificateFileActions submission={submission} />
       </Stack>

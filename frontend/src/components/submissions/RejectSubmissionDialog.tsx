@@ -92,6 +92,7 @@ export function RejectSubmissionDialog({
                 }
               }}
               required
+              slotProps={{ htmlInput: { maxLength: MAX_REJECTION_REASON_LENGTH } }}
               value={rejectionReason}
             />
             <Alert severity="warning">

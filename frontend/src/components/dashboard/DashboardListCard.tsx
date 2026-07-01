@@ -11,6 +11,8 @@ import {
   Typography,
 } from '@mui/material'
 import type { ReactNode } from 'react'
+import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
+import { TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 
 export interface DashboardListItem {
   id: string
@@ -26,9 +28,17 @@ interface DashboardListCardProps {
   error?: string | null
 }
 
+function renderDashboardListText(value: ReactNode, maxLength: number) {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return <TruncatedTextWithTooltip maxLength={maxLength} text={String(value)} />
+  }
+
+  return value
+}
+
 export function DashboardListCard({ emptyText, error, items, loading = false, title }: DashboardListCardProps) {
   return (
-    <Card sx={{ height: '100%' }} variant="outlined">
+    <Card sx={{ height: '100%', minWidth: 0 }} variant="outlined">
       <CardContent>
         <Stack spacing={2}>
           <Typography variant="h6">{title}</Typography>
@@ -47,8 +57,19 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
             <List disablePadding>
               {items.map((item, index) => (
                 <div key={item.id}>
-                  <ListItem disableGutters>
-                    <ListItemText primary={item.primary} secondary={item.secondary} />
+                  <ListItem disableGutters sx={{ minWidth: 0 }}>
+                    <ListItemText
+                      primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
+                      secondary={
+                        item.secondary
+                          ? renderDashboardListText(item.secondary, TEXT_DISPLAY_LIMITS.listSecondary)
+                          : undefined
+                      }
+                      slotProps={{
+                        primary: { sx: { minWidth: 0 } },
+                        secondary: { sx: { minWidth: 0 } },
+                      }}
+                    />
                   </ListItem>
                   {index < items.length - 1 ? <Divider component="li" /> : null}
                 </div>
@@ -60,4 +81,3 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
     </Card>
   )
 }
-

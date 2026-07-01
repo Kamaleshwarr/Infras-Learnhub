@@ -10,6 +10,8 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
+import { fixedTableSx, TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 import type { CertificateSubmission } from '../../types/submissions'
 import { SubmissionStatusChip } from './SubmissionStatusChip'
 
@@ -45,8 +47,8 @@ export function MySubmissionsTable({ loading, submissions, emptyMessage }: MySub
   }
 
   return (
-    <TableContainer>
-      <Table>
+    <TableContainer sx={{ maxWidth: '100%' }}>
+      <Table sx={fixedTableSx}>
         <TableHead>
           <TableRow>
             <TableCell>Initiative</TableCell>
@@ -60,19 +62,32 @@ export function MySubmissionsTable({ loading, submissions, emptyMessage }: MySub
         <TableBody>
           {submissions.map((submission) => (
             <TableRow key={submission.id} hover>
-              <TableCell>
-                <Typography variant="body2">{submission.initiative.title}</Typography>
+              <TableCell sx={{ maxWidth: 0, width: '22%' }}>
+                <TruncatedTextWithTooltip
+                  maxLength={TEXT_DISPLAY_LIMITS.tableInitiative}
+                  text={submission.initiative.title}
+                />
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ width: '12%' }}>
                 <SubmissionStatusChip status={submission.approvalStatus} />
               </TableCell>
-              <TableCell>{formatDate(submission.submittedAtUtc)}</TableCell>
-              <TableCell>{formatDate(submission.reviewedAtUtc)}</TableCell>
-              <TableCell>{submission.certificateDocument.originalFilename}</TableCell>
-              <TableCell>
-                {submission.approvalStatus === 'REJECTED' && submission.rejectionReason
-                  ? submission.rejectionReason
-                  : '—'}
+              <TableCell sx={{ width: '16%' }}>{formatDate(submission.submittedAtUtc)}</TableCell>
+              <TableCell sx={{ width: '16%' }}>{formatDate(submission.reviewedAtUtc)}</TableCell>
+              <TableCell sx={{ maxWidth: 0, width: '18%' }}>
+                <TruncatedTextWithTooltip
+                  maxLength={TEXT_DISPLAY_LIMITS.tableFilename}
+                  text={submission.certificateDocument.originalFilename}
+                />
+              </TableCell>
+              <TableCell sx={{ maxWidth: 0, width: '16%' }}>
+                {submission.approvalStatus === 'REJECTED' && submission.rejectionReason ? (
+                  <TruncatedTextWithTooltip
+                    maxLength={TEXT_DISPLAY_LIMITS.tableComments}
+                    text={submission.rejectionReason}
+                  />
+                ) : (
+                  <Typography variant="body2">—</Typography>
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -15,6 +15,9 @@ import { notificationsApi } from '../../api/notificationsApi'
 import { useNotifications } from '../../notifications/useNotifications'
 import type { Notification } from '../../types/notifications'
 import { resolveApiError } from '../../utils/apiErrors'
+import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
+import { TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
+import { longTextWrapSx } from '../common/textStyles'
 
 interface NotificationListItemProps {
   notification: Notification
@@ -28,25 +31,35 @@ export function NotificationListItem({ notification, onNavigate }: NotificationL
       onClick={() => onNavigate(notification)}
       sx={{
         bgcolor: notification.read ? 'transparent' : 'action.hover',
+        minWidth: 0,
         py: 1.5,
       }}
     >
       <ListItemText
         primary={
-          <Typography sx={{ fontWeight: notification.read ? 400 : 600 }} variant="body2">
-            {notification.title}
-          </Typography>
+          <TruncatedTextWithTooltip
+            maxLength={TEXT_DISPLAY_LIMITS.notificationTitle}
+            text={notification.title}
+            variant="body2"
+          />
         }
         secondary={
           <>
-            <Typography color="text.secondary" component="span" sx={{ display: 'block' }} variant="body2">
-              {notification.message}
-            </Typography>
-            <Typography color="text.secondary" component="span" sx={{ display: 'block', mt: 0.5 }} variant="caption">
+            <TruncatedTextWithTooltip
+              color="text.secondary"
+              maxLength={TEXT_DISPLAY_LIMITS.notificationMessage}
+              text={notification.message}
+              variant="body2"
+            />
+            <Typography color="text.secondary" component="span" sx={{ display: 'block', mt: 0.5, ...longTextWrapSx }} variant="caption">
               {formatNotificationTimestamp(notification.createdAtUtc)}
             </Typography>
           </>
         }
+        slotProps={{
+          primary: { sx: { fontWeight: notification.read ? 400 : 600, minWidth: 0 } },
+          secondary: { sx: { minWidth: 0 } },
+        }}
       />
     </ListItemButton>
   )

@@ -14,6 +14,8 @@ import {
   Typography,
 } from '@mui/material'
 import type { Initiative } from '../../types/initiatives'
+import { TEXT_DISPLAY_LIMITS, truncateText } from '../common/textDisplay'
+import { WrappingText } from '../common/WrappingText'
 import { resolveApiError } from '../../utils/apiErrors'
 import { getCertificateAcceptAttribute, isAllowedCertificateFile } from './certificateFileValidation'
 import { normalizeInitiativeId, sortInitiativesForSubmitDropdown } from './submissionInitiativeFilter'
@@ -202,7 +204,10 @@ export function SubmitCertificateForm({
               const alreadySubmitted = submittedInitiativeIds.has(normalizeInitiativeId(initiative.id))
               return (
                 <MenuItem key={initiative.id} disabled={alreadySubmitted} value={initiative.id}>
-                  {alreadySubmitted ? `${initiative.title} (already submitted)` : initiative.title}
+                  {truncateText(
+                    alreadySubmitted ? `${initiative.title} (already submitted)` : initiative.title,
+                    TEXT_DISPLAY_LIMITS.menuItem,
+                  )}
                 </MenuItem>
               )
             })}
@@ -229,9 +234,9 @@ export function SubmitCertificateForm({
                 >
                   {selectedFile ? 'Replace file' : 'Choose file'}
                 </Button>
-                <Typography color="text.secondary" variant="body2">
+                <WrappingText color="text.secondary" variant="body2">
                   {selectedFile ? selectedFile.name : 'PDF, JPEG, or PNG up to 25 MB'}
-                </Typography>
+                </WrappingText>
               </Stack>
               {fieldErrors.file ? <FormHelperText error>{fieldErrors.file}</FormHelperText> : null}
             </Stack>
@@ -249,6 +254,7 @@ export function SubmitCertificateForm({
             multiline
             onChange={(event) => updateField('comments', event.target.value)}
             placeholder="Optional notes about your certificate submission"
+            slotProps={{ htmlInput: { maxLength: MAX_SUBMISSION_COMMENTS_LENGTH } }}
             value={form.comments}
           />
 

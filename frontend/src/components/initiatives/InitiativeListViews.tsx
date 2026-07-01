@@ -19,7 +19,8 @@ import type { Initiative } from '../../types/initiatives'
 import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
 import { SortableTableHead } from '../common/SortableTableHead'
 import type { SortableColumn } from '../common/SortableTableHead'
-import { formatInitiativeDate, INITIATIVE_LIST_TRUNCATION } from './initiativeDisplay'
+import { fixedTableSx, TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
+import { formatInitiativeDate } from './initiativeDisplay'
 import { InitiativeExpiryBadge } from './InitiativeExpiryBadge'
 import { InitiativeStatusChip } from './InitiativeStatusChip'
 
@@ -70,8 +71,8 @@ export function InitiativeTable({
   }
 
   return (
-    <TableContainer component={Paper} sx={{ maxWidth: '100%', overflowX: 'auto' }} variant="outlined">
-      <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+    <TableContainer component={Paper} sx={{ maxWidth: '100%' }} variant="outlined">
+      <Table sx={fixedTableSx}>
         <SortableTableHead columns={columns} onSort={onSort} sort={sort} />
         <TableBody>
           {initiatives.map((initiative) => (
@@ -92,7 +93,7 @@ export function InitiativeTable({
               <TableCell sx={{ maxWidth: 0, width: showStatusColumn ? '36%' : '42%' }}>
                 <Stack spacing={0.5} sx={{ minWidth: 0 }}>
                   <TruncatedTextWithTooltip
-                    maxLength={INITIATIVE_LIST_TRUNCATION.tableTitle}
+                    maxLength={TEXT_DISPLAY_LIMITS.tableTitle}
                     text={initiative.title}
                   />
                   <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} />
@@ -109,7 +110,7 @@ export function InitiativeTable({
               <TableCell sx={{ maxWidth: 0, width: showStatusColumn ? '34%' : '36%' }}>
                 {initiative.rewardDescription ? (
                   <TruncatedTextWithTooltip
-                    maxLength={INITIATIVE_LIST_TRUNCATION.tableReward}
+                    maxLength={TEXT_DISPLAY_LIMITS.tableReward}
                     text={initiative.rewardDescription}
                   />
                 ) : (
@@ -152,7 +153,7 @@ export function InitiativeCardList({ initiatives, loading, showStatusColumn }: I
               <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <Box sx={{ minWidth: 0, width: '100%' }}>
                   <TruncatedTextWithTooltip
-                    maxLength={INITIATIVE_LIST_TRUNCATION.cardTitle}
+                    maxLength={TEXT_DISPLAY_LIMITS.cardTitle}
                     text={initiative.title}
                     variant="subtitle1"
                   />
@@ -163,7 +164,7 @@ export function InitiativeCardList({ initiatives, loading, showStatusColumn }: I
                     <Box sx={{ mt: 1 }}>
                       <TruncatedTextWithTooltip
                         color="text.secondary"
-                        maxLength={INITIATIVE_LIST_TRUNCATION.cardReward}
+                        maxLength={TEXT_DISPLAY_LIMITS.cardReward}
                         text={initiative.rewardDescription}
                       />
                     </Box>

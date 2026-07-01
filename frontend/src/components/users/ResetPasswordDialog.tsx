@@ -22,6 +22,7 @@ import {
 import type { UserSummary } from '../../types/users'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { normalizeEmail } from '../../utils/email'
+import { WrappingText } from '../common/WrappingText'
 
 interface ResetPasswordDialogProps {
   open: boolean
@@ -123,13 +124,14 @@ export function ResetPasswordDialog({ open, user, onClose, onSuccess }: ResetPas
                   sx={{
                     bgcolor: 'action.hover',
                     borderRadius: 1,
+                    minWidth: 0,
                     p: 2,
                   }}
                 >
-                  <Typography variant="subtitle2">{user.fullName}</Typography>
-                  <Typography color="text.secondary" variant="body2">
+                  <WrappingText variant="subtitle2">{user.fullName}</WrappingText>
+                  <WrappingText color="text.secondary" variant="body2">
                     {user.employeeId} · {user.email}
-                  </Typography>
+                  </WrappingText>
                 </Box>
               ) : null}
               <Alert severity="info">

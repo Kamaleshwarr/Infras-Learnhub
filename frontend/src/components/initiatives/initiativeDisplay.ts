@@ -33,17 +33,5 @@ export function formatInitiativeDateRange(startDateUtc: string, expiryDateUtc: s
   return `${formatInitiativeDate(startDateUtc)} – ${formatInitiativeDate(expiryDateUtc)} (UTC)`
 }
 
-export function truncateText(text: string, maxLength: number) {
-  if (text.length <= maxLength) {
-    return text
-  }
-
-  return `${text.slice(0, maxLength).trimEnd()}…`
-}
-
-export const INITIATIVE_LIST_TRUNCATION = {
-  tableTitle: 60,
-  tableReward: 60,
-  cardTitle: 80,
-  cardReward: 80,
-} as const
+export { TEXT_DISPLAY_LIMITS as INITIATIVE_LIST_TRUNCATION } from '../common/textDisplay'
+export { truncateText } from '../common/textDisplay'
