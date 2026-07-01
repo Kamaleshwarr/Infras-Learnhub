@@ -7,11 +7,17 @@ import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { InitiativeCardList, InitiativeTable } from '../../components/initiatives/InitiativeListViews'
 import { InitiativeListToolbar } from '../../components/initiatives/InitiativeListToolbar'
+import { CreateInitiativeDialog } from '../../components/initiatives/CreateInitiativeDialog'
+import { EditInitiativeDialog } from '../../components/initiatives/EditInitiativeDialog'
+import {
+  InitiativeManagementSnackbar,
+  type InitiativeManagementNotification,
+} from '../../components/initiatives/InitiativeManagementSnackbar'
 import { InitiativeSearchBar } from '../../components/initiatives/InitiativeSearchBar'
 import { InitiativeStatusFilterTabs } from '../../components/initiatives/InitiativeStatusFilterTabs'
 import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMessages'
 import type { PageResponse } from '../../types/api'
-import type { Initiative } from '../../types/initiatives'
+import type { Initiative, InitiativeLifecycleAction } from '../../types/initiatives'
 import { DEFAULT_INITIATIVE_LIST_QUERY } from '../../types/initiatives'
 import { resolveApiError } from '../../utils/apiErrors'
 import {
@@ -45,6 +51,17 @@ export function InitiativeListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editingInitiative, setEditingInitiative] = useState<Initiative | null>(null)
+  const [notification, setNotification] = useState<InitiativeManagementNotification | null>(null)
+
+  const refreshInitiatives = useCallback(() => {
+    setRefreshToken((current) => current + 1)
+  }, [])
+
+  const showSuccessNotification = useCallback((message: string) => {
+    setNotification({ message, severity: 'success' })
+  }, [])
 
   const updateQuery = useCallback(
     (nextQuery: typeof appliedQuery) => {
@@ -113,6 +130,29 @@ export function InitiativeListPage() {
   const showEmptyState = !loading && !error && pageData.content.length === 0
   const showList = !error && (loading || pageData.content.length > 0)
 
+  function handleCreateSuccess() {
+    setCreateOpen(false)
+    showSuccessNotification(INITIATIVE_MESSAGES.createSuccess)
+    refreshInitiatives()
+  }
+
+  function handleEditSuccess() {
+    setEditingInitiative(null)
+    showSuccessNotification(INITIATIVE_MESSAGES.updateSuccess)
+    refreshInitiatives()
+  }
+
+  function handleLifecycleSuccess(action: InitiativeLifecycleAction) {
+    const message = {
+      publish: INITIATIVE_MESSAGES.publishSuccess,
+      returnToDraft: INITIATIVE_MESSAGES.returnToDraftSuccess,
+      markExpired: INITIATIVE_MESSAGES.markExpiredSuccess,
+      reactivate: INITIATIVE_MESSAGES.reactivateSuccess,
+    }[action]
+    showSuccessNotification(message)
+    refreshInitiatives()
+  }
+
   return (
     <>
       <PageHeader
@@ -124,7 +164,22 @@ export function InitiativeListPage() {
         title="Learning Initiatives"
       />
 
-      {isAdmin ? <InitiativeListToolbar onCreateInitiative={() => undefined} /> : null}
+      {isAdmin ? <InitiativeListToolbar onCreateInitiative={() => setCreateOpen(true)} /> : null}
+
+      <CreateInitiativeDialog
+        onClose={() => setCreateOpen(false)}
+        onSuccess={handleCreateSuccess}
+        open={createOpen}
+      />
+
+      <EditInitiativeDialog
+        initiative={editingInitiative}
+        onClose={() => setEditingInitiative(null)}
+        onSuccess={handleEditSuccess}
+        open={Boolean(editingInitiative)}
+      />
+
+      <InitiativeManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
 
       <Box sx={{ mb: 3 }}>
         <InitiativeSearchBar disabled={Boolean(error) && pageData.content.length === 0} onChange={setDraftSearch} value={draftSearch} />
@@ -179,12 +234,16 @@ export function InitiativeListPage() {
             <InitiativeCardList
               initiatives={pageData.content}
               loading={loading}
+              onEdit={isAdmin ? setEditingInitiative : undefined}
+              onLifecycleSuccess={isAdmin ? handleLifecycleSuccess : undefined}
               showStatusColumn={isAdmin}
             />
           ) : (
             <InitiativeTable
               initiatives={pageData.content}
               loading={loading}
+              onEdit={isAdmin ? setEditingInitiative : undefined}
+              onLifecycleSuccess={isAdmin ? handleLifecycleSuccess : undefined}
               onSort={(property) => updateQuery({ ...appliedQuery, page: 0, sort: toggleSort(appliedQuery.sort, property) })}
               showStatusColumn={isAdmin}
               sort={appliedQuery.sort}

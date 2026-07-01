@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-19 (v0.7.0 — validated, PR #36 ready for merge)
+Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
 
 ## Release Overview
 
@@ -14,10 +14,51 @@ Last updated: 2026-06-19 (v0.7.0 — validated, PR #36 ready for merge)
 | v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
+| **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **In progress — F14 complete** |
 
 Release notes: `docs/releases/release-v0.7.0.md`  
 Prior: `docs/releases/release-v0.6.2.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
+
+---
+
+## In Progress — v0.7.1 Initiative Management
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| F11 / Phase 0 | Initiative management foundation (types, API, shared form state) | **Completed** |
+| F12 | Create Initiative dialog + list integration | **Completed** |
+| F13 | Edit Initiative dialog (list + detail), metadata panel, date/lifecycle rules | **Completed** — manual QA passed |
+| F14 | Initiative Lifecycle Management (dedicated actions, confirmations, backend enforcement) | **Completed** — manual QA passed (PR #42) |
+| F15 | Delete Initiative | **Pending** |
+
+**F13 business rules finalized:**
+
+- **Create:** Start date must be today (UTC) or later; expiry on or after start
+- **Edit — unchanged start date:** Stored start date preserved (even if in the past); other fields editable without forced date change
+- **Edit — modified start date:** New start must be today (UTC) or later; backdating rejected
+- **Expired lifecycle (via Mark Expired action):** Expiry date auto-set to today (UTC); status-aware banners (Draft — none; Active — countdown; Expired — "Expired", never "Expires in X days")
+- **Field limits:** Title 100, description 2000, reward 500 characters
+
+**F14 lifecycle business rules finalized:**
+
+- **Status is read-only** throughout the application; removed from Create/Edit forms
+- **Lifecycle transitions** only via dedicated actions: Publish, Return to Draft, Mark Expired, Reactivate
+- **Transition matrix:**
+  - DRAFT → ACTIVE (Publish)
+  - ACTIVE → DRAFT (Return to Draft)
+  - ACTIVE → EXPIRED (Mark Expired)
+  - EXPIRED → ACTIVE (Reactivate)
+  - **Blocked:** DRAFT → EXPIRED, EXPIRED → DRAFT, any status change via metadata PUT
+- **Publish:** Full metadata validation before transition; employees gain access per configured start date
+- **Return to Draft:** Allowed even with existing submissions; preserves submissions, approvals, leaderboard, and audit history; employees hidden immediately; no new submissions while Draft
+- **Mark Expired:** Expiry set to today (UTC); employees lose access immediately; existing submissions preserved
+- **Reactivate:** Expiry must be ≥ today (UTC) and ≥ start date; intended for reopening the same initiative cohort (not recurring yearly programs)
+- **Backend endpoints:** `POST /publish`, `/return-to-draft`, `/mark-expired`, `/reactivate`
+
+**Also delivered (v0.7.1 stack):** App-wide long-text display standard; Flyway V10/V11 initiative constraints
+
+**Pending:** F15 delete initiative UI and blocked-delete handling
 
 ---
 
@@ -174,15 +215,16 @@ Release notes: `docs/releases/release-v0.6.2.md`
 
 ---
 
-## Backlog (post v0.7.0)
+## Backlog (post v0.7.1)
 
 | ID | Item | Notes |
 |----|------|-------|
-| — | Initiative Management UI (create/edit/delete/lifecycle) | v0.7.1 — backend APIs exist |
+| F15 | Delete Initiative UI | v0.7.1 — backend API exists; blocked when submissions present |
 | — | Rejected submission resubmission workflow | Future — backend `UNIQUE(employee_id, initiative_id)` |
 | — | Initiative leaderboard full page UI | Route exists; placeholder only |
 | — | Top 3 learners on detail + leaderboard navigation | Future release |
 | — | Dashboard initiative drilldowns | Active/Expiring Initiatives, Top Learners |
+| — | Clone Initiative | Future enhancement — deferred from F14 |
 | UM-002 | User Details Drawer | Read-only metadata + action shortcuts |
 | UM-003 | Unified cross-field search | Optional backend `search` param |
 | UM-004 | View User Details | Overlaps UM-002; consolidate when scoped |
@@ -222,3 +264,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 8. **Certificate Workflow UI** — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. **Certificate Review enhancements** — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. **Initiatives Experience UI** — List, detail, submit integration, F2.1 polish (v0.7.0 — PR #36 pending merge)
+11. **Initiative Management UI (partial)** — Create (F12), Edit (F13), Lifecycle (F14) (v0.7.1 — F15 pending)

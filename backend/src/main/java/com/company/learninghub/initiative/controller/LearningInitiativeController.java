@@ -5,6 +5,7 @@ import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.dto.CreateInitiativeRequest;
 import com.company.learninghub.initiative.dto.InitiativeResponse;
+import com.company.learninghub.initiative.dto.ReactivateInitiativeRequest;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.service.LearningInitiativeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,6 +73,33 @@ public class LearningInitiativeController {
     public ResponseEntity<Void> delete(@PathVariable UUID initiativeId) {
         initiativeService.delete(initiativeId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{initiativeId}/publish")
+    @Operation(summary = "Publish a draft initiative", description = "Admin only. Transitions DRAFT to ACTIVE.")
+    public ResponseEntity<InitiativeResponse> publish(@PathVariable UUID initiativeId) {
+        return ResponseEntity.ok(initiativeService.publish(initiativeId));
+    }
+
+    @PostMapping("/{initiativeId}/return-to-draft")
+    @Operation(summary = "Return an active initiative to draft", description = "Admin only. Unpublishes the initiative.")
+    public ResponseEntity<InitiativeResponse> returnToDraft(@PathVariable UUID initiativeId) {
+        return ResponseEntity.ok(initiativeService.returnToDraft(initiativeId));
+    }
+
+    @PostMapping("/{initiativeId}/mark-expired")
+    @Operation(summary = "Mark an active initiative as expired", description = "Admin only. Sets expiry to today (UTC).")
+    public ResponseEntity<InitiativeResponse> markExpired(@PathVariable UUID initiativeId) {
+        return ResponseEntity.ok(initiativeService.markExpired(initiativeId));
+    }
+
+    @PostMapping("/{initiativeId}/reactivate")
+    @Operation(summary = "Reactivate an expired initiative", description = "Admin only. Transitions EXPIRED to ACTIVE.")
+    public ResponseEntity<InitiativeResponse> reactivate(
+            @PathVariable UUID initiativeId,
+            @Valid @RequestBody ReactivateInitiativeRequest request
+    ) {
+        return ResponseEntity.ok(initiativeService.reactivate(initiativeId, request));
     }
 
     @GetMapping("/{initiativeId}")

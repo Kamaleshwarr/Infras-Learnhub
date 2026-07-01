@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import axios from 'axios'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { initiativesApi } from '../../api/initiativesApi'
 import { leaderboardsApi } from '../../api/leaderboardsApi'
 import { submissionsApi } from '../../api/submissionsApi'
@@ -12,6 +12,7 @@ import { InitiativeDetailPage } from './InitiativeDetailPage'
 vi.mock('../../api/initiativesApi', () => ({
   initiativesApi: {
     get: vi.fn(),
+    update: vi.fn(),
   },
 }))
 
@@ -32,13 +33,21 @@ vi.mock('../../auth/useAuth', () => ({
 }))
 
 const initiative = {
+  createdAtUtc: '2025-01-01T10:00:00Z',
+  createdBy: {
+    email: 'admin@example.com',
+    employeeId: 'ADMIN001',
+    fullName: 'Admin User',
+    id: 'admin-1',
+  },
   description: 'Complete the AWS Cloud Practitioner exam and submit your certificate.',
   expiryDateUtc: '2026-12-31T00:00:00Z',
   id: 'initiative-1',
   rewardDescription: '$500 learning credit',
-  startDateUtc: '2026-01-01T00:00:00Z',
+  startDateUtc: '2026-07-01T00:00:00.000Z',
   status: 'ACTIVE' as const,
   title: 'AWS Certification',
+  updatedAtUtc: '2026-06-01T12:00:00Z',
 }
 
 const topLearnerEntry = {
@@ -69,6 +78,7 @@ function renderDetailPage(path = '/initiatives/initiative-1') {
 describe('InitiativeDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.setSystemTime(Date.parse('2026-06-27T12:00:00.000Z'))
     vi.mocked(useAuth).mockReturnValue({
       currentRole: 'EMPLOYEE',
       hasRole: (role) => role === 'EMPLOYEE',
@@ -102,6 +112,10 @@ describe('InitiativeDetailPage', () => {
       totalElements: 0,
       totalPages: 0,
     })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('shows back to initiatives navigation', async () => {
@@ -288,9 +302,55 @@ describe('InitiativeDetailPage', () => {
     renderDetailPage()
 
     expect(await screen.findByRole('heading', { name: 'AWS Certification' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
     expect(screen.queryByText('My Progress')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Submit Certificate/i })).not.toBeInTheDocument()
     expect(submissionsApi.listMine).not.toHaveBeenCalled()
+  })
+
+  it('opens edit dialog from detail page and refreshes after save', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.mocked(useAuth).mockReturnValue({
+      currentRole: 'ADMIN',
+      hasRole: (role) => role === 'ADMIN',
+      isAdmin: true,
+      isAuthenticated: true,
+      isEmployee: false,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshProfile: vi.fn(),
+      user: null,
+    })
+    vi.mocked(initiativesApi.update).mockResolvedValue({
+      ...initiative,
+      title: 'Updated AWS Certification',
+    })
+    vi.mocked(initiativesApi.get)
+      .mockResolvedValueOnce(initiative)
+      .mockResolvedValueOnce({ ...initiative, title: 'Updated AWS Certification' })
+
+    renderDetailPage()
+
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Edit Initiative' }))
+    await user.clear(dialog.getByLabelText(/^Title/i))
+    await user.type(dialog.getByLabelText(/^Title/i), 'Updated AWS Certification')
+    await user.click(dialog.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(initiativesApi.update).toHaveBeenCalled())
+    await waitFor(() => expect(screen.getByText('Initiative updated.')).toBeInTheDocument())
+    await waitFor(() => expect(initiativesApi.get).toHaveBeenCalledTimes(2))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit Initiative' })).not.toBeInTheDocument(),
+    )
+  })
+
+  it('does not show edit button for employees', async () => {
+    renderDetailPage()
+
+    expect(await screen.findByRole('heading', { name: 'AWS Certification' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
   })
 
   it('retries primary load when retry is clicked', async () => {
@@ -305,5 +365,20 @@ describe('InitiativeDetailPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'AWS Certification' })).toBeInTheDocument()
     expect(initiativesApi.get).toHaveBeenCalledTimes(2)
+  })
+
+  it('renders full long title and description without truncation', async () => {
+    const longTitle = 'T'.repeat(100)
+    const longDescription = 'x'.repeat(200)
+    vi.mocked(initiativesApi.get).mockResolvedValue({
+      ...initiative,
+      description: longDescription,
+      title: longTitle,
+    })
+
+    renderDetailPage()
+
+    expect(await screen.findByRole('heading', { name: longTitle })).toBeInTheDocument()
+    expect(screen.getByText(longDescription)).toBeInTheDocument()
   })
 })

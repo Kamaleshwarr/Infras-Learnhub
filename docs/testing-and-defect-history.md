@@ -1,16 +1,100 @@
 # Testing & Defect History
 
-Last updated: 2026-06-19 (v0.7.0 — validated, PR #36 ready for merge)
+Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.7.0) |
-|------|---------|-------------------|
-| Frontend | `cd frontend && npm test` | **292 tests** — 68 files |
-| Frontend (v0.6.2) | `cd frontend && npm test` | **231 tests** — 54 files |
+| Area | Command | Baseline (v0.7.1 — F14) |
+|------|---------|-------------------------|
+| Frontend | `cd frontend && npm test` | **383 tests** — 84 files |
+| Frontend (v0.7.0) | `cd frontend && npm test` | **292 tests** — 68 files |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend | `mvn -f backend/pom.xml test` | **224 tests** run; **12 skipped** (Testcontainers/Docker); **4 pre-existing failures** (unchanged — no backend changes in v0.7.0) |
+| Backend | `mvn -f backend/pom.xml test` | **244 tests** run; **12 skipped** (Testcontainers/Docker); **3 pre-existing failures** (unchanged — unrelated to F14) |
+| Backend (initiative-scoped) | `mvn test -Dtest='com.company.learninghub.initiative.**'` | Pass (F14 lifecycle endpoints, transition matrix, date rules) |
 | Backend (certificate-scoped) | `mvn test -Dtest='Certificate*Test,CertificateFileStorageServiceTest,CertificateContentDispositionTest'` | **34/34 pass** |
+
+---
+
+## Initiative Management — Validation History (v0.7.1)
+
+| Phase | Deliverable | Status | Notes |
+|-------|-------------|--------|-------|
+| F11 / Phase 0 | Initiative management foundation | **Passed** | Types, API client, shared form state, toolbar wiring |
+| F12 | Create Initiative dialog | **Passed** | Validation, date rules, list integration |
+| F13 | Edit Initiative dialog | **Passed** | List + detail entry points, metadata panel, date/lifecycle rules — **manual QA passed** |
+| F14 | Initiative Lifecycle Management | **Passed** | Dedicated lifecycle actions, confirmation dialogs, backend transition enforcement — **manual QA passed** (PR #42) |
+| F15 | Delete Initiative | **Pending** | Not started |
+
+### v0.7.1 F14 — Manual validation checklist
+
+| # | Scenario | Status |
+|---|----------|--------|
+| 1 | Create initiative (DRAFT) — no status dropdown | **Pass** |
+| 2 | Publish draft → ACTIVE with confirmation dialog (title, dates, employee access messaging) | **Pass** |
+| 3 | Employee visibility after publish (per configured start date) | **Pass** |
+| 4 | Return to Draft — employees hidden; existing submissions preserved | **Pass** |
+| 5 | Admin Review still displays existing submissions after unpublish | **Pass** |
+| 6 | Leaderboard unchanged after unpublish | **Pass** |
+| 7 | Employees cannot create new submissions while Draft | **Pass** |
+| 8 | Publish again → employee visibility restored | **Pass** |
+| 9 | Mark as Expired — expiry set to today (UTC); employees lose access | **Pass** |
+| 10 | Reactivate expired initiative — expiry ≥ today required | **Pass** |
+| 11 | Lifecycle buttons shown only for valid transitions | **Pass** |
+| 12 | Edit saves metadata without changing status | **Pass** |
+| 13 | Create/Edit regression (validation, dates, field limits) | **Pass** |
+
+### v0.7.1 F14 — Business rules validated
+
+| Rule | Scope | Validation |
+|------|-------|------------|
+| Status read-only in UI | Create, edit, list, detail | Status dropdown removed; chip display only |
+| Lifecycle via dedicated actions only | Admin list + detail | Publish, Return to Draft, Mark Expired, Reactivate |
+| Transition matrix enforcement | Backend service | DRAFT→ACTIVE, ACTIVE→DRAFT, ACTIVE→EXPIRED, EXPIRED→ACTIVE; blocked paths rejected |
+| No status change via PUT | Backend update | Metadata-only update preserves existing status |
+| Publish — full metadata validation | Backend publish | Enforced before DRAFT→ACTIVE |
+| Return to Draft with submissions | Backend + manual QA | Allowed; history preserved; employees hidden |
+| Mark Expired — expiry = today (UTC) | Backend mark-expired | F13 normalization rule applied |
+| Reactivate — expiry ≥ today (UTC) | Backend reactivate | Enforced; expiry ≥ start date |
+
+### v0.7.1 F13 — Manual validation checklist
+
+| # | Scenario | Status |
+|---|----------|--------|
+| 1 | Edit title/description/reward only — past start date unchanged | **Pass** |
+| 2 | Edit — change start to yesterday | **Pass** (rejected) |
+| 3 | Edit — change start to today or future | **Pass** |
+| 4 | Create — start before today rejected | **Pass** |
+| 5 | Mark initiative EXPIRED — expiry set to today (UTC) | **Pass** (via Mark Expired lifecycle action) |
+| 6 | EXPIRED status — banner shows "Expired", not countdown | **Pass** |
+| 7 | DRAFT — no expiry countdown | **Pass** |
+| 8 | ACTIVE — existing countdown behaviour | **Pass** |
+| 9 | Edit dialog — metadata panel, discard guard, server errors | **Pass** |
+| 10 | Create flow regression | **Pass** |
+
+### v0.7.1 F13 — Business rules validated
+
+| Rule | Scope | Validation |
+|------|-------|------------|
+| Start ≥ today (UTC) | Create | Enforced frontend + backend |
+| Unchanged past start preserved on edit | Edit | Enforced frontend (baseline compare) + backend (stored-date compare) |
+| Modified start ≥ today (UTC) | Edit | Enforced frontend + backend |
+| EXPIRED → expiry = today (UTC) | Mark Expired action / service | Enforced backend; no longer via edit form |
+| Status-aware expiry banners | List + detail | Draft none; Active countdown; Expired label |
+| Expiry ≥ start | Create + edit | Enforced frontend + backend + Flyway V10 |
+
+### v0.7.1 — Test coverage added (cumulative)
+
+| Component / area | Tests |
+|------------------|-------|
+| `initiativeFormState`, `initiativeDateUtils` | Form validation, baseline dirty state, edit start-date rules |
+| `CreateInitiativeDialog`, `EditInitiativeDialog` | Create/edit flows, validation, discard guard |
+| `InitiativeLifecycleActions`, `InitiativeLifecycleConfirmDialog` | Action visibility, confirmation dialogs, lifecycle API calls, reactivate validation |
+| `InitiativeMetadataPanel`, `InitiativeFormFields` | Edit metadata, field limits |
+| `InitiativeExpiryBadge`, `InitiativeDetailAlerts` | Status-aware expiry display |
+| `InitiativeListPage`, `InitiativeDetailPage` | Admin edit + lifecycle entry points, post-action refresh |
+| `initiativesApi` | Lifecycle endpoint clients (publish, return-to-draft, mark-expired, reactivate) |
+| `LearningInitiativeServiceTest` | Lifecycle transitions, transition matrix, start-date validation, reactivate rules |
+| `InitiativeRequestValidationTest` | DTO date-range, field-limit, reactivate request validation |
 
 ---
 
@@ -430,6 +514,6 @@ Run before each phase merge:
 | Dashboard fault isolation | CW-D01 (employee) and CW-D02 (admin) — **Pass** |
 | `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |
 | Initiatives Experience (v0.7.0) | **Validated** — PR #36; list + detail + F10/F2.1 |
-| Initiative Management UI | Not implemented — deferred v0.7.1 |
+| Initiative Management UI (v0.7.1) | **In progress** — F12/F13/F14 complete; F15 pending |
 | Initiative leaderboard page | Placeholder only — route exists |
 | Rejected resubmission | Not supported — backend unique constraint |

@@ -18,6 +18,8 @@ import { usersApi } from '../../api/usersApi'
 import type { UserImportResponse } from '../../types/users'
 import { resolveApiError } from '../../utils/apiErrors'
 import { estimateImportRowCount, isAcceptedImportFile } from '../../utils/userImportPreview'
+import { WrappingText } from '../common/WrappingText'
+import { longTextWrapSx } from '../common/textStyles'
 
 interface BulkImportDialogProps {
   open: boolean
@@ -180,11 +182,12 @@ export function BulkImportDialog({ open, onClose, onComplete, onDownloadTemplate
                 sx={{
                   bgcolor: 'action.hover',
                   borderRadius: 1,
+                  minWidth: 0,
                   p: 2,
                 }}
               >
                 <Typography variant="subtitle2">Selected file</Typography>
-                <Typography variant="body2">{selectedFile.name}</Typography>
+                <WrappingText variant="body2">{selectedFile.name}</WrappingText>
                 <Typography color="text.secondary" sx={{ mt: 1 }} variant="body2">
                   {estimatedRows === null
                     ? 'Row count will be determined during import.'
@@ -235,8 +238,11 @@ export function BulkImportDialog({ open, onClose, onComplete, onDownloadTemplate
                   </Typography>
                   <List dense sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1, maxHeight: 220, overflow: 'auto' }}>
                     {result.errors.map((error) => (
-                      <ListItem key={error}>
-                        <ListItemText primary={error} />
+                      <ListItem key={error} sx={{ minWidth: 0 }}>
+                        <ListItemText
+                          primary={<WrappingText variant="body2">{error}</WrappingText>}
+                          slotProps={{ primary: { sx: longTextWrapSx } }}
+                        />
                       </ListItem>
                     ))}
                   </List>

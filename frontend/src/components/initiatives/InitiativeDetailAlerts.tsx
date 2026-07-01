@@ -8,6 +8,18 @@ interface InitiativeDetailAlertsProps {
 }
 
 export function InitiativeDetailAlerts({ initiative }: InitiativeDetailAlertsProps) {
+  if (initiative.status === 'DRAFT') {
+    return null
+  }
+
+  if (initiative.status === 'EXPIRED') {
+    return (
+      <Alert severity="info" sx={{ mb: 3 }}>
+        {INITIATIVE_MESSAGES.expiredLabel}
+      </Alert>
+    )
+  }
+
   if (!isExpiringSoon(initiative.expiryDateUtc)) {
     return null
   }

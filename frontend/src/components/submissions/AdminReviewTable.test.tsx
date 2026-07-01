@@ -114,4 +114,33 @@ describe('AdminReviewTable', () => {
 
     expect(screen.getByLabelText('Loading pending submissions')).toBeInTheDocument()
   })
+
+  it('truncates long employee, initiative, and comment text', () => {
+    render(
+      <AdminReviewTable
+        emptyMessage="No submissions"
+        loading={false}
+        onApprove={vi.fn()}
+        onReject={vi.fn()}
+        submissions={[
+          {
+            ...submission,
+            comments: 'c'.repeat(100),
+            employee: {
+              ...submission.employee,
+              fullName: 'N'.repeat(80),
+            },
+            initiative: {
+              ...submission.initiative,
+              title: 't'.repeat(80),
+            },
+          },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText(`${'N'.repeat(50)}…`)).toBeInTheDocument()
+    expect(screen.getByText(`${'t'.repeat(60)}…`)).toBeInTheDocument()
+    expect(screen.getByText(`${'c'.repeat(80)}…`)).toBeInTheDocument()
+  })
 })

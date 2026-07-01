@@ -19,7 +19,7 @@ describe('InitiativeFormFields', () => {
     expect(screen.getByLabelText(/^Reward \/ Benefits/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^Start date \(UTC\)/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^Expiry date \(UTC\)/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/^Status/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/^Status/i)).not.toBeInTheDocument()
   })
 
   it('calls onChange when a field is edited', async () => {

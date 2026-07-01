@@ -24,12 +24,11 @@ describe('initiative types compatibility', () => {
       expiryDateUtc: '2026-12-31T00:00:00.000Z',
       rewardDescription: null,
       startDateUtc: '2026-01-01T00:00:00.000Z',
-      status: 'DRAFT',
       title: 'AWS Certification',
     }
 
     const updateRequest: UpdateInitiativeRequest = request
 
-    expect(updateRequest.status).toBe('DRAFT')
+    expect(updateRequest.title).toBe('AWS Certification')
   })
 })

@@ -69,4 +69,26 @@ describe('UserTable', () => {
     await user.click(screen.getByRole('button', { name: 'Reset password for Employee User' }))
     expect(onResetPassword).toHaveBeenCalledWith(users[1])
   })
+
+  it('truncates long user fields in the table', () => {
+    render(
+      <UserTable
+        {...baseProps}
+        currentUserId="admin-1"
+        showMustChangePasswordColumn={false}
+        users={[
+          {
+            ...users[0],
+            email: `${'e'.repeat(80)}@example.com`,
+            employeeId: 'E'.repeat(80),
+            fullName: 'N'.repeat(80),
+          },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText(`${'E'.repeat(40)}…`)).toBeInTheDocument()
+    expect(screen.getByText(`${'N'.repeat(50)}…`)).toBeInTheDocument()
+    expect(screen.getByText(`${'e'.repeat(60)}…`)).toBeInTheDocument()
+  })
 })

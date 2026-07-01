@@ -12,6 +12,8 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
+import { fixedTableSx, TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 import type { CertificateSubmission } from '../../types/submissions'
 import { CertificateDocumentMetadata } from './CertificateDocumentMetadata'
 import { CertificateFileActions } from './CertificateFileActions'
@@ -27,14 +29,6 @@ interface AdminReviewTableProps {
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
-}
-
-function truncateComments(comments: string | null | undefined) {
-  if (!comments) {
-    return '—'
-  }
-
-  return comments.length > 120 ? `${comments.slice(0, 117)}...` : comments
 }
 
 export function AdminReviewTable({
@@ -62,8 +56,8 @@ export function AdminReviewTable({
   }
 
   return (
-    <TableContainer>
-      <Table>
+    <TableContainer sx={{ maxWidth: '100%' }}>
+      <Table sx={fixedTableSx}>
         <TableHead>
           <TableRow>
             <TableCell>Employee</TableCell>
@@ -77,26 +71,44 @@ export function AdminReviewTable({
         <TableBody>
           {submissions.map((submission) => (
             <TableRow key={submission.id} hover>
-              <TableCell>
-                <Stack spacing={0.25}>
-                  <Typography variant="body2">{submission.employee.fullName}</Typography>
-                  <Typography color="text.secondary" variant="caption">
-                    {submission.employee.employeeId}
-                  </Typography>
+              <TableCell sx={{ maxWidth: 0, width: '18%' }}>
+                <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                  <TruncatedTextWithTooltip
+                    maxLength={TEXT_DISPLAY_LIMITS.tableName}
+                    text={submission.employee.fullName}
+                  />
+                  <TruncatedTextWithTooltip
+                    color="text.secondary"
+                    maxLength={TEXT_DISPLAY_LIMITS.tableEmployeeId}
+                    text={submission.employee.employeeId}
+                    variant="caption"
+                  />
                 </Stack>
               </TableCell>
-              <TableCell>
-                <Typography variant="body2">{submission.initiative.title}</Typography>
+              <TableCell sx={{ maxWidth: 0, width: '18%' }}>
+                <TruncatedTextWithTooltip
+                  maxLength={TEXT_DISPLAY_LIMITS.tableInitiative}
+                  text={submission.initiative.title}
+                />
               </TableCell>
-              <TableCell>{formatDate(submission.submittedAtUtc)}</TableCell>
-              <TableCell>{truncateComments(submission.comments)}</TableCell>
-              <TableCell>
-                <Stack spacing={1}>
-                  <CertificateDocumentMetadata document={submission.certificateDocument} />
+              <TableCell sx={{ width: '14%' }}>{formatDate(submission.submittedAtUtc)}</TableCell>
+              <TableCell sx={{ maxWidth: 0, width: '18%' }}>
+                {submission.comments ? (
+                  <TruncatedTextWithTooltip
+                    maxLength={TEXT_DISPLAY_LIMITS.tableComments}
+                    text={submission.comments}
+                  />
+                ) : (
+                  <Typography variant="body2">—</Typography>
+                )}
+              </TableCell>
+              <TableCell sx={{ maxWidth: 0, width: '18%' }}>
+                <Stack spacing={1} sx={{ minWidth: 0 }}>
+                  <CertificateDocumentMetadata document={submission.certificateDocument} truncate />
                   <CertificateFileActions disabled={actionDisabled} submission={submission} />
                 </Stack>
               </TableCell>
-              <TableCell align="right">
+              <TableCell align="right" sx={{ width: '14%' }}>
                 <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
                   <Button
                     color="success"

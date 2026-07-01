@@ -1,6 +1,5 @@
 package com.company.learninghub.initiative.dto;
 
-import com.company.learninghub.initiative.domain.InitiativeStatus;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,29 +9,25 @@ import java.time.Instant;
 
 public record UpdateInitiativeRequest(
         @NotBlank
-        @Size(max = 200)
+        @Size(max = 100)
         String title,
 
         @NotBlank
-        @Size(max = 5000)
+        @Size(max = 2000)
         String description,
 
-        @Size(max = 2000)
+        @Size(max = 500)
         String rewardDescription,
 
         @NotNull
         Instant startDateUtc,
 
         @NotNull
-        Instant expiryDateUtc,
-
-        @NotNull
-        InitiativeStatus status
+        Instant expiryDateUtc
 ) {
 
-    @AssertTrue(message = "expiryDateUtc must be after startDateUtc")
+    @AssertTrue(message = "expiryDateUtc must be on or after startDateUtc")
     public boolean isDateRangeValid() {
-        return startDateUtc == null || expiryDateUtc == null || expiryDateUtc.isAfter(startDateUtc);
+        return startDateUtc == null || expiryDateUtc == null || !expiryDateUtc.isBefore(startDateUtc);
     }
 }
-

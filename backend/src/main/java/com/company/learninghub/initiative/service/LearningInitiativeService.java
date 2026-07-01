@@ -6,6 +6,7 @@ import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.dto.CreateInitiativeRequest;
 import com.company.learninghub.initiative.dto.InitiativeResponse;
+import com.company.learninghub.initiative.dto.ReactivateInitiativeRequest;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.mapper.LearningInitiativeMapper;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
@@ -32,6 +33,10 @@ import java.util.UUID;
 
 @Service
 public class LearningInitiativeService {
+
+    private static final int TITLE_MAX_LENGTH = 100;
+    private static final int DESCRIPTION_MAX_LENGTH = 2000;
+    private static final int REWARD_MAX_LENGTH = 500;
 
     private final LearningInitiativeRepository initiativeRepository;
     private final UserRepository userRepository;
@@ -65,13 +70,23 @@ public class LearningInitiativeService {
         User createdBy = userRepository.findById(authenticatedUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Authenticated user was not found"));
 
+        validateMetadata(
+                request.title(),
+                request.description(),
+                request.rewardDescription(),
+                request.startDateUtc(),
+                request.expiryDateUtc(),
+                true,
+                null
+        );
+
         LearningInitiative initiative = new LearningInitiative(
                 request.title(),
                 request.description(),
                 request.rewardDescription(),
                 request.startDateUtc(),
                 request.expiryDateUtc(),
-                request.status(),
+                InitiativeStatus.DRAFT,
                 createdBy
         );
 
@@ -82,13 +97,113 @@ public class LearningInitiativeService {
     @Transactional
     public InitiativeResponse update(UUID initiativeId, UpdateInitiativeRequest request) {
         LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        boolean startDateChanged = isStartDateChanged(initiative.getStartDateUtc(), request.startDateUtc());
+        validateMetadata(
+                request.title(),
+                request.description(),
+                request.rewardDescription(),
+                request.startDateUtc(),
+                request.expiryDateUtc(),
+                startDateChanged,
+                initiative.getStartDateUtc()
+        );
         initiative.updateDetails(
                 request.title(),
                 request.description(),
                 request.rewardDescription(),
                 request.startDateUtc(),
                 request.expiryDateUtc(),
-                request.status()
+                initiative.getStatus()
+        );
+        return initiativeMapper.toResponse(initiative);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public InitiativeResponse publish(UUID initiativeId) {
+        LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        assertTransition(initiative.getStatus(), InitiativeStatus.ACTIVE);
+        validateMetadata(
+                initiative.getTitle(),
+                initiative.getDescription(),
+                initiative.getRewardDescription(),
+                initiative.getStartDateUtc(),
+                initiative.getExpiryDateUtc(),
+                true,
+                null
+        );
+        initiative.updateDetails(
+                initiative.getTitle(),
+                initiative.getDescription(),
+                initiative.getRewardDescription(),
+                initiative.getStartDateUtc(),
+                initiative.getExpiryDateUtc(),
+                InitiativeStatus.ACTIVE
+        );
+        return initiativeMapper.toResponse(initiative);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public InitiativeResponse returnToDraft(UUID initiativeId) {
+        LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        assertTransition(initiative.getStatus(), InitiativeStatus.DRAFT);
+        initiative.updateDetails(
+                initiative.getTitle(),
+                initiative.getDescription(),
+                initiative.getRewardDescription(),
+                initiative.getStartDateUtc(),
+                initiative.getExpiryDateUtc(),
+                InitiativeStatus.DRAFT
+        );
+        return initiativeMapper.toResponse(initiative);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public InitiativeResponse markExpired(UUID initiativeId) {
+        LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        assertTransition(initiative.getStatus(), InitiativeStatus.EXPIRED);
+        NormalizedInitiativeDates dates = normalizeExpiredDates(
+                initiative.getStartDateUtc(),
+                initiative.getExpiryDateUtc()
+        );
+        initiative.updateDetails(
+                initiative.getTitle(),
+                initiative.getDescription(),
+                initiative.getRewardDescription(),
+                dates.startDateUtc(),
+                dates.expiryDateUtc(),
+                InitiativeStatus.EXPIRED
+        );
+        return initiativeMapper.toResponse(initiative);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public InitiativeResponse reactivate(UUID initiativeId, ReactivateInitiativeRequest request) {
+        LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        assertTransition(initiative.getStatus(), InitiativeStatus.ACTIVE);
+        validateMetadata(
+                initiative.getTitle(),
+                initiative.getDescription(),
+                initiative.getRewardDescription(),
+                initiative.getStartDateUtc(),
+                request.expiryDateUtc(),
+                false,
+                initiative.getStartDateUtc()
+        );
+        validateExpiryOnOrAfterToday(request.expiryDateUtc());
+        if (request.expiryDateUtc().isBefore(initiative.getStartDateUtc())) {
+            throw new IllegalArgumentException("expiryDateUtc must be on or after startDateUtc");
+        }
+        initiative.updateDetails(
+                initiative.getTitle(),
+                initiative.getDescription(),
+                initiative.getRewardDescription(),
+                initiative.getStartDateUtc(),
+                request.expiryDateUtc(),
+                InitiativeStatus.ACTIVE
         );
         return initiativeMapper.toResponse(initiative);
     }
@@ -131,6 +246,105 @@ public class LearningInitiativeService {
     private LearningInitiative findInitiativeOrThrow(UUID initiativeId) {
         return initiativeRepository.findById(initiativeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning initiative was not found"));
+    }
+
+    private void assertTransition(InitiativeStatus currentStatus, InitiativeStatus targetStatus) {
+        boolean allowed = switch (currentStatus) {
+            case DRAFT -> targetStatus == InitiativeStatus.ACTIVE;
+            case ACTIVE -> targetStatus == InitiativeStatus.DRAFT || targetStatus == InitiativeStatus.EXPIRED;
+            case EXPIRED -> targetStatus == InitiativeStatus.ACTIVE;
+        };
+        if (!allowed) {
+            throw new IllegalArgumentException(
+                    "Cannot transition initiative from " + currentStatus + " to " + targetStatus
+            );
+        }
+    }
+
+    private void validateMetadata(
+            String title,
+            String description,
+            String rewardDescription,
+            Instant startDateUtc,
+            Instant expiryDateUtc,
+            boolean validateStartAgainstToday,
+            Instant storedStartDateUtc
+    ) {
+        if (!StringUtils.hasText(title)) {
+            throw new IllegalArgumentException("title is required");
+        }
+        if (title.trim().length() > TITLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("title must be 100 characters or fewer");
+        }
+        if (!StringUtils.hasText(description)) {
+            throw new IllegalArgumentException("description is required");
+        }
+        if (description.trim().length() > DESCRIPTION_MAX_LENGTH) {
+            throw new IllegalArgumentException("description must be 2000 characters or fewer");
+        }
+        if (rewardDescription != null && rewardDescription.length() > REWARD_MAX_LENGTH) {
+            throw new IllegalArgumentException("rewardDescription must be 500 characters or fewer");
+        }
+        if (startDateUtc == null) {
+            throw new IllegalArgumentException("startDateUtc is required");
+        }
+        if (expiryDateUtc == null) {
+            throw new IllegalArgumentException("expiryDateUtc is required");
+        }
+        if (expiryDateUtc.isBefore(startDateUtc)) {
+            throw new IllegalArgumentException("expiryDateUtc must be on or after startDateUtc");
+        }
+        if (validateStartAgainstToday) {
+            validateStartDateOnOrAfterToday(startDateUtc);
+        } else if (storedStartDateUtc != null && isStartDateChanged(storedStartDateUtc, startDateUtc)) {
+            validateStartDateOnOrAfterToday(startDateUtc);
+        }
+    }
+
+    private NormalizedInitiativeDates normalizeExpiredDates(Instant startDateUtc, Instant expiryDateUtc) {
+        Instant normalizedStart = startDateUtc;
+        Instant normalizedExpiry = startOfTodayUtc();
+        if (normalizedStart.isAfter(normalizedExpiry)) {
+            normalizedStart = normalizedExpiry;
+        }
+        if (normalizedExpiry.isBefore(normalizedStart)) {
+            throw new IllegalArgumentException("expiryDateUtc must be on or after startDateUtc");
+        }
+        return new NormalizedInitiativeDates(normalizedStart, normalizedExpiry);
+    }
+
+    private boolean isStartDateChanged(Instant storedStartDateUtc, Instant requestedStartDateUtc) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate storedDate = LocalDate.ofInstant(storedStartDateUtc, utc);
+        LocalDate requestedDate = LocalDate.ofInstant(requestedStartDateUtc, utc);
+        return !storedDate.equals(requestedDate);
+    }
+
+    private void validateStartDateOnOrAfterToday(Instant startDateUtc) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate today = LocalDate.ofInstant(clock.instant(), utc);
+        LocalDate startDate = LocalDate.ofInstant(startDateUtc, utc);
+        if (startDate.isBefore(today)) {
+            throw new IllegalArgumentException("startDateUtc cannot be earlier than today (UTC)");
+        }
+    }
+
+    private void validateExpiryOnOrAfterToday(Instant expiryDateUtc) {
+        ZoneOffset utc = ZoneOffset.UTC;
+        LocalDate today = LocalDate.ofInstant(clock.instant(), utc);
+        LocalDate expiryDate = LocalDate.ofInstant(expiryDateUtc, utc);
+        if (expiryDate.isBefore(today)) {
+            throw new IllegalArgumentException("expiryDateUtc cannot be earlier than today (UTC)");
+        }
+    }
+
+    private Instant startOfTodayUtc() {
+        return LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant();
+    }
+
+    private record NormalizedInitiativeDates(Instant startDateUtc, Instant expiryDateUtc) {
     }
 
     private boolean isAdmin(AuthenticatedUser authenticatedUser) {
@@ -211,4 +425,3 @@ public class LearningInitiativeService {
         return order.isIgnoreCase() ? translated.ignoreCase() : translated;
     }
 }
-

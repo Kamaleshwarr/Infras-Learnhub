@@ -4,7 +4,7 @@ Enterprise-grade internal web application for managing learning initiatives, cer
 programs, study materials, project knowledge, KT documents, leaderboards, user administration,
 and in-app notifications.
 
-**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) (shipped) — [v0.7.0 Initiatives Experience](docs/releases/release-v0.7.0.md) validated, PR #36 ready for merge
+**Current release:** [v0.6.2](docs/releases/release-v0.6.2.md) (shipped) · [v0.7.0 Initiatives Experience](docs/releases/release-v0.7.0.md) (validated, PR #36) · **v0.7.1 Initiative Management** (in progress — F14 complete)
 
 ## Quick start
 
@@ -103,11 +103,11 @@ cd frontend && npm test
 The default JWT secret is only for local development. Set `JWT_SECRET` to a strong Base64-encoded
 secret in shared or production environments.
 
-## Project status (v0.7.0)
+## Project status (v0.7.1)
 
 High-level snapshot. Detailed release notes, validation history, and backlog live under `docs/`.
 
-**Shipped:** v0.6.2 · **Validated (pending merge):** v0.7.0 Initiatives Experience — PR #36
+**Shipped:** v0.6.2 · **Validated (pending merge):** v0.7.0 Initiatives Experience — PR #36 · **In progress:** v0.7.1 Initiative Management — F14 **Completed** (manual QA passed); F15 pending
 
 ### Shipped platform modules (backend)
 
@@ -132,8 +132,16 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
 - **Certificate review enhancements** — admin preview/download in review queue; Pending Reviews
   dashboard drilldown to `/submissions/review` (v0.6.2)
 - **Initiatives Experience UI** — list, detail, submit pre-selection, F2.1 polish (v0.7.0 — PR #36)
+- **Initiative Management UI (partial)** — create (F12), edit (F13), lifecycle actions (F14) (v0.7.1 — in progress)
 
-### Recent release highlights (v0.7.0 — validated)
+### Recent release highlights (v0.7.1 — in progress)
+
+- **F12 — Create Initiative** — admin create dialog, validation, list integration
+- **F13 — Edit Initiative** — admin edit dialog (list + detail), metadata panel, date/lifecycle business rules (manual QA passed)
+- **F14 — Initiative Lifecycle Management** — dedicated lifecycle actions (Publish, Return to Draft, Mark Expired, Reactivate), confirmation dialogs, backend transition enforcement (manual QA passed)
+- App-wide long-text display standard (truncation, wrapping, tooltips)
+
+### Prior release highlights (v0.7.0 — validated)
 
 - Initiative list at `/initiatives` — search, sort, pagination, admin status filters
 - Initiative detail at `/initiatives/:initiativeId` — progress, top learner, submit CTA
@@ -148,7 +156,7 @@ High-level snapshot. Detailed release notes, validation history, and backlog liv
 
 ### Post-v0.7.0 backlog (summary)
 
-- Initiative Management UI (create/edit/delete/lifecycle) — v0.7.1
+- Initiative Management UI — **F15** delete initiative (v0.7.1)
 - Initiative leaderboard full page; top 3 learners; dashboard initiative drilldowns
 - Rejected submission resubmission workflow
 - Global search

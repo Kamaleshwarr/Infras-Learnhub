@@ -17,6 +17,8 @@ import {
 } from '@mui/material'
 import { SortableTableHead } from '../common/SortableTableHead'
 import type { SortableColumn } from '../common/SortableTableHead'
+import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
+import { fixedTableSx, TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 import type { UserSummary } from '../../types/users'
 import { UserRoleChip } from './UserRoleChip'
 import { UserStatusChip } from './UserStatusChip'
@@ -76,8 +78,8 @@ export function UserTable({
   if (loading) {
     return (
       <Paper variant="outlined">
-        <TableContainer>
-          <Table>
+        <TableContainer sx={{ maxWidth: '100%' }}>
+          <Table sx={fixedTableSx}>
             <SortableTableHead columns={columns} onSort={onSort} sort={sort} />
             <TableBody>
               {Array.from({ length: 5 }).map((_, index) => (
@@ -108,8 +110,8 @@ export function UserTable({
 
   return (
     <Paper variant="outlined">
-      <TableContainer>
-        <Table>
+      <TableContainer sx={{ maxWidth: '100%' }}>
+        <Table sx={fixedTableSx}>
           <SortableTableHead columns={columns} onSort={onSort} sort={sort} />
           <TableBody>
             {users.map((user) => {
@@ -117,19 +119,34 @@ export function UserTable({
 
               return (
                 <TableRow hover key={user.id}>
-                  <TableCell>{user.employeeId}</TableCell>
-                  <TableCell>{user.fullName}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ maxWidth: 0, width: '12%' }}>
+                    <TruncatedTextWithTooltip
+                      maxLength={TEXT_DISPLAY_LIMITS.tableEmployeeId}
+                      text={user.employeeId}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 0, width: '18%' }}>
+                    <TruncatedTextWithTooltip
+                      maxLength={TEXT_DISPLAY_LIMITS.tableName}
+                      text={user.fullName}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 0, width: '24%' }}>
+                    <TruncatedTextWithTooltip
+                      maxLength={TEXT_DISPLAY_LIMITS.tableEmail}
+                      text={user.email}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ width: '10%' }}>
                     <UserRoleChip role={user.role} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '10%' }}>
                     <UserStatusChip active={user.active} />
                   </TableCell>
                   {showMustChangePasswordColumn ? (
-                    <TableCell>{user.mustChangePassword ? 'Yes' : 'No'}</TableCell>
+                    <TableCell sx={{ width: '12%' }}>{user.mustChangePassword ? 'Yes' : 'No'}</TableCell>
                   ) : null}
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ width: showMustChangePasswordColumn ? '14%' : '26%' }}>
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
                       {user.active ? (
                         <Tooltip

@@ -29,10 +29,9 @@ const initiative: Initiative = {
 }
 
 describe('initiativeFormState', () => {
-  it('creates empty form defaults as draft with UTC dates', () => {
+  it('creates empty form defaults with UTC dates', () => {
     const form = createEmptyInitiativeForm(Date.parse('2026-06-19T12:00:00.000Z'))
 
-    expect(form.status).toBe('DRAFT')
     expect(form.startDate).toBe('2026-06-19')
     expect(form.expiryDate).toBe('2026-09-17')
     expect(form.title).toBe('')
@@ -45,8 +44,119 @@ describe('initiativeFormState', () => {
       rewardDescription: '$500 credit',
       startDate: '2026-01-01',
       expiryDate: '2026-12-31',
-      status: 'ACTIVE',
     })
+  })
+
+  it('validates required fields and date range for create mode', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: '',
+        description: '',
+        rewardDescription: '',
+        startDate: '2026-06-18',
+        expiryDate: '2026-06-18',
+      },
+      { mode: 'create', now },
+    )
+
+    expect(errors.title).toBeTruthy()
+    expect(errors.description).toBeTruthy()
+    expect(errors.startDate).toContain('today')
+    expect(isInitiativeFormValid(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-19',
+        expiryDate: '2026-06-18',
+      },
+      { mode: 'create', now },
+    )).toBe(false)
+  })
+
+  it('allows expiry on the same day as start for create mode', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-19',
+        expiryDate: '2026-06-19',
+      },
+      { mode: 'create', now },
+    )
+
+    expect(errors.expiryDate).toBeUndefined()
+  })
+
+  it('allows unchanged past start dates in edit mode', () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z')
+    const baseline = {
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+    }
+    const errors = getInitiativeFormFieldErrors(
+      {
+        ...baseline,
+        description: 'Updated program details',
+      },
+      { mode: 'edit', now, baseline },
+    )
+
+    expect(errors.startDate).toBeUndefined()
+  })
+
+  it('rejects modified start dates before today in edit mode', () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z')
+    const baseline = {
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+    }
+    const errors = getInitiativeFormFieldErrors(
+      {
+        ...baseline,
+        startDate: '2026-07-10',
+      },
+      { mode: 'edit', now, baseline },
+    )
+
+    expect(errors.startDate).toContain('today')
+  })
+
+  it('allows modified start dates on or after today in edit mode', () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z')
+    const baseline = {
+      title: 'Azure',
+      description: 'Program',
+      rewardDescription: '',
+      startDate: '2026-07-01',
+      expiryDate: '2026-12-31',
+    }
+    const todayErrors = getInitiativeFormFieldErrors(
+      {
+        ...baseline,
+        startDate: '2026-07-20',
+      },
+      { mode: 'edit', now, baseline },
+    )
+    const futureErrors = getInitiativeFormFieldErrors(
+      {
+        ...baseline,
+        startDate: '2026-07-21',
+      },
+      { mode: 'edit', now, baseline },
+    )
+
+    expect(todayErrors.startDate).toBeUndefined()
+    expect(futureErrors.startDate).toBeUndefined()
   })
 
   it('validates required fields and date range', () => {
@@ -56,7 +166,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-06-20',
       expiryDate: '2026-06-19',
-      status: 'DRAFT',
     })
 
     expect(errors.title).toBeTruthy()
@@ -68,7 +177,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '',
       startDate: '2026-06-20',
       expiryDate: '2026-06-19',
-      status: 'DRAFT',
     })).toBe(false)
   })
 
@@ -79,7 +187,6 @@ describe('initiativeFormState', () => {
       rewardDescription: '   ',
       startDate: '2026-06-01',
       expiryDate: '2026-12-31',
-      status: 'DRAFT' as const,
     }
 
     expect(buildCreateInitiativeRequest(values)).toEqual({
@@ -88,7 +195,6 @@ describe('initiativeFormState', () => {
       rewardDescription: null,
       startDateUtc: '2026-06-01T00:00:00.000Z',
       expiryDateUtc: '2026-12-31T00:00:00.000Z',
-      status: 'DRAFT',
     })
     expect(buildUpdateInitiativeRequest(values)).toEqual(buildCreateInitiativeRequest(values))
   })
@@ -100,5 +206,35 @@ describe('initiativeFormState', () => {
 
     expect(isInitiativeFormDirty(unchanged, baseline)).toBe(false)
     expect(isInitiativeFormDirty(changed, baseline)).toBe(true)
+  })
+
+  it('rejects values that exceed field length limits', () => {
+    const errors = getInitiativeFormFieldErrors({
+      title: 't'.repeat(101),
+      description: 'd'.repeat(2001),
+      rewardDescription: 'r'.repeat(501),
+      startDate: '2026-06-01',
+      expiryDate: '2026-12-31',
+    })
+
+    expect(errors.title).toContain('100')
+    expect(errors.description).toContain('2000')
+    expect(errors.rewardDescription).toContain('500')
+  })
+
+  it('accepts values at the maximum field length limits', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 't'.repeat(100),
+        description: 'd'.repeat(2000),
+        rewardDescription: 'r'.repeat(500),
+        startDate: '2026-06-19',
+        expiryDate: '2026-12-31',
+      },
+      { now },
+    )
+
+    expect(errors).toEqual({})
   })
 })

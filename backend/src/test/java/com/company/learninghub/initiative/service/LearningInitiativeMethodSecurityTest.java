@@ -98,8 +98,7 @@ class LearningInitiativeMethodSecurityTest {
                 "Description",
                 "Reward",
                 NOW,
-                NOW.plusSeconds(3600),
-                InitiativeStatus.ACTIVE
+                NOW.plusSeconds(3600)
         );
     }
 

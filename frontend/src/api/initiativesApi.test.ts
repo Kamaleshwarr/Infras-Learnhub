@@ -83,7 +83,6 @@ describe('initiativesApi', () => {
       expiryDateUtc: '2026-12-31T00:00:00.000Z',
       rewardDescription: '$500 credit',
       startDateUtc: '2026-01-01T00:00:00.000Z',
-      status: 'DRAFT' as const,
       title: 'New Initiative',
     }
     vi.mocked(httpClient.post).mockResolvedValue({ data: initiative })
@@ -100,7 +99,6 @@ describe('initiativesApi', () => {
       expiryDateUtc: '2026-12-31T00:00:00.000Z',
       rewardDescription: null,
       startDateUtc: '2026-01-01T00:00:00.000Z',
-      status: 'ACTIVE' as const,
       title: 'Updated Initiative',
     }
     vi.mocked(httpClient.put).mockResolvedValue({ data: { ...initiative, ...request, status: 'ACTIVE' } })
@@ -109,6 +107,43 @@ describe('initiativesApi', () => {
 
     expect(httpClient.put).toHaveBeenCalledWith(`/initiatives/${initiative.id}`, request)
     expect(result.title).toBe('Updated Initiative')
+  })
+
+  it('publishes an initiative', async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ data: { ...initiative, status: 'ACTIVE' } })
+
+    const result = await initiativesApi.publish(initiative.id)
+
+    expect(httpClient.post).toHaveBeenCalledWith(`/initiatives/${initiative.id}/publish`)
+    expect(result.status).toBe('ACTIVE')
+  })
+
+  it('returns an initiative to draft', async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ data: { ...initiative, status: 'DRAFT' } })
+
+    const result = await initiativesApi.returnToDraft(initiative.id)
+
+    expect(httpClient.post).toHaveBeenCalledWith(`/initiatives/${initiative.id}/return-to-draft`)
+    expect(result.status).toBe('DRAFT')
+  })
+
+  it('marks an initiative as expired', async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ data: { ...initiative, status: 'EXPIRED' } })
+
+    const result = await initiativesApi.markExpired(initiative.id)
+
+    expect(httpClient.post).toHaveBeenCalledWith(`/initiatives/${initiative.id}/mark-expired`)
+    expect(result.status).toBe('EXPIRED')
+  })
+
+  it('reactivates an initiative', async () => {
+    const request = { expiryDateUtc: '2026-12-31T00:00:00.000Z' }
+    vi.mocked(httpClient.post).mockResolvedValue({ data: { ...initiative, status: 'ACTIVE' } })
+
+    const result = await initiativesApi.reactivate(initiative.id, request)
+
+    expect(httpClient.post).toHaveBeenCalledWith(`/initiatives/${initiative.id}/reactivate`, request)
+    expect(result.status).toBe('ACTIVE')
   })
 
   it('deletes an initiative', async () => {

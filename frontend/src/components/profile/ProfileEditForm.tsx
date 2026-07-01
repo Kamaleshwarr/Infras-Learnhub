@@ -16,6 +16,7 @@ import { profileApi } from '../../api/profileApi'
 import { UserStatusChip } from '../users/UserStatusChip'
 import { ProfileAvatar } from './ProfileAvatar'
 import type { Profile } from '../../types/profile'
+import { WrappingText } from '../common/WrappingText'
 import { getValidationErrors, resolveApiError } from '../../utils/apiErrors'
 import { normalizeEmail } from '../../utils/email'
 import type { ProfileFormBaseline, ProfileFormState } from './profileFormState'
@@ -91,7 +92,7 @@ export function ProfileEditForm({ profile, onCancel, onSuccess }: ProfileEditFor
   }
 
   return (
-    <Card>
+    <Card sx={{ minWidth: 0 }}>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={3}>
@@ -99,11 +100,13 @@ export function ProfileEditForm({ profile, onCancel, onSuccess }: ProfileEditFor
 
             <Stack spacing={2} sx={{ alignItems: 'center' }}>
               <ProfileAvatar fullName={form.fullName.trim() || profile.fullName} />
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h5">{profile.fullName}</Typography>
-                <Typography color="text.secondary" variant="body2">
+              <Box sx={{ minWidth: 0, textAlign: 'center', width: '100%' }}>
+                <WrappingText component="h2" variant="h5">
+                  {profile.fullName}
+                </WrappingText>
+                <WrappingText color="text.secondary" variant="body2">
                   {profile.email}
-                </Typography>
+                </WrappingText>
               </Box>
             </Stack>
 

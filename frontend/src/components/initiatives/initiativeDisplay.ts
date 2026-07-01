@@ -29,14 +29,13 @@ export function formatInitiativeDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value))
 }
 
+export function formatInitiativeTimestamp(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+}
+
 export function formatInitiativeDateRange(startDateUtc: string, expiryDateUtc: string) {
   return `${formatInitiativeDate(startDateUtc)} – ${formatInitiativeDate(expiryDateUtc)} (UTC)`
 }
 
-export function truncateText(text: string, maxLength: number) {
-  if (text.length <= maxLength) {
-    return text
-  }
-
-  return `${text.slice(0, maxLength).trimEnd()}…`
-}
+export { TEXT_DISPLAY_LIMITS as INITIATIVE_LIST_TRUNCATION } from '../common/textDisplay'
+export { truncateText } from '../common/textDisplay'
