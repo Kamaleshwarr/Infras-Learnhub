@@ -24,6 +24,7 @@ import { SortableTableHead } from '../common/SortableTableHead'
 import type { SortableColumn } from '../common/SortableTableHead'
 import { fixedTableSx, TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 import { formatInitiativeDate } from './initiativeDisplay'
+import { InitiativeDeleteAction } from './InitiativeDeleteAction'
 import { InitiativeExpiryBadge } from './InitiativeExpiryBadge'
 import { InitiativeLifecycleActions } from './InitiativeLifecycleActions'
 import { InitiativeStatusChip } from './InitiativeStatusChip'
@@ -36,6 +37,7 @@ interface InitiativeTableProps {
   onSort: (property: string) => void
   onEdit?: (initiative: Initiative) => void
   onLifecycleSuccess?: (action: InitiativeLifecycleAction, updated: Initiative) => void
+  onDeleteSuccess?: () => void
 }
 
 const BASE_COLUMNS: SortableColumn[] = [
@@ -69,12 +71,13 @@ export function InitiativeTable({
   loading,
   onEdit,
   onLifecycleSuccess,
+  onDeleteSuccess,
   sort,
   showStatusColumn,
   onSort,
 }: InitiativeTableProps) {
   const navigate = useNavigate()
-  const showActionsColumn = Boolean(onEdit || onLifecycleSuccess)
+  const showActionsColumn = Boolean(onEdit || onLifecycleSuccess || onDeleteSuccess)
   const columns = buildColumns(showStatusColumn, showActionsColumn)
 
   if (loading) {
@@ -145,6 +148,9 @@ export function InitiativeTable({
                         onSuccess={onLifecycleSuccess}
                       />
                     ) : null}
+                    {onDeleteSuccess ? (
+                      <InitiativeDeleteAction initiative={initiative} onSuccess={onDeleteSuccess} />
+                    ) : null}
                     {onEdit ? (
                       <Tooltip title="Edit initiative">
                         <IconButton
@@ -176,6 +182,7 @@ interface InitiativeCardListProps {
   showStatusColumn: boolean
   onEdit?: (initiative: Initiative) => void
   onLifecycleSuccess?: (action: InitiativeLifecycleAction, updated: Initiative) => void
+  onDeleteSuccess?: () => void
 }
 
 export function InitiativeCardList({
@@ -183,6 +190,7 @@ export function InitiativeCardList({
   loading,
   onEdit,
   onLifecycleSuccess,
+  onDeleteSuccess,
   showStatusColumn,
 }: InitiativeCardListProps) {
   const navigate = useNavigate()
@@ -233,6 +241,9 @@ export function InitiativeCardList({
                       initiative={initiative}
                       onSuccess={onLifecycleSuccess}
                     />
+                  ) : null}
+                  {onDeleteSuccess ? (
+                    <InitiativeDeleteAction initiative={initiative} onSuccess={onDeleteSuccess} />
                   ) : null}
                   {onEdit ? (
                     <Tooltip title="Edit initiative">

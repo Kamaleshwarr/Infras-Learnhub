@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { Alert, Box, Button, Stack } from '@mui/material'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { initiativesApi } from '../../api/initiativesApi'
 import type { InitiativeLeaderboardEntry } from '../../api/leaderboardsApi'
 import { leaderboardsApi } from '../../api/leaderboardsApi'
@@ -16,6 +16,7 @@ import { EditInitiativeDialog } from '../../components/initiatives/EditInitiativ
 import { InitiativeDetailAlerts } from '../../components/initiatives/InitiativeDetailAlerts'
 import { InitiativeNotFoundPanel } from '../../components/initiatives/InitiativeNotFoundPanel'
 import { InitiativeRewardCard } from '../../components/initiatives/InitiativeRewardCard'
+import { InitiativeDeleteAction } from '../../components/initiatives/InitiativeDeleteAction'
 import { InitiativeLifecycleActions } from '../../components/initiatives/InitiativeLifecycleActions'
 import { InitiativeStatusChip } from '../../components/initiatives/InitiativeStatusChip'
 import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMessages'
@@ -58,6 +59,7 @@ const EMPTY_SECONDARY: SecondaryDetailData = {
 }
 
 export function InitiativeDetailPage() {
+  const navigate = useNavigate()
   const { initiativeId } = useParams()
   const { isAdmin, isEmployee } = useAuth()
   const [initiative, setInitiative] = useState<Initiative | null>(null)
@@ -253,6 +255,14 @@ export function InitiativeDetailPage() {
             <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
               Edit
             </Button>
+            <InitiativeDeleteAction
+              initiative={initiative}
+              layout="button"
+              onSuccess={() => {
+                setNotification({ message: INITIATIVE_MESSAGES.deleteSuccess, severity: 'success' })
+                navigate('/initiatives')
+              }}
+            />
           </Stack>
         ) : null}
       </Stack>

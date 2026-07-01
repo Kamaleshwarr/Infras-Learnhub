@@ -1,6 +1,7 @@
 package com.company.learninghub.initiative.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import com.company.learninghub.common.exception.BusinessConflictException;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.domain.LearningInitiative;
@@ -10,6 +11,7 @@ import com.company.learninghub.initiative.dto.ReactivateInitiativeRequest;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.mapper.LearningInitiativeMapper;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
+import com.company.learninghub.submission.repository.CertificateSubmissionRepository;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -39,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +52,9 @@ class LearningInitiativeServiceTest {
 
     @Mock
     private LearningInitiativeRepository initiativeRepository;
+
+    @Mock
+    private CertificateSubmissionRepository submissionRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -64,6 +70,7 @@ class LearningInitiativeServiceTest {
     void setUp() {
         initiativeService = new LearningInitiativeService(
                 initiativeRepository,
+                submissionRepository,
                 userRepository,
                 new LearningInitiativeMapper(),
                 Clock.fixed(NOW, ZoneOffset.UTC)
@@ -522,14 +529,39 @@ class LearningInitiativeServiceTest {
     }
 
     @Test
-    void deleteRemovesExistingInitiative() {
+    void deleteRemovesExistingInitiativeWhenNoSubmissionsExist() {
         UUID initiativeId = UUID.randomUUID();
         LearningInitiative initiative = initiative("To delete", InitiativeStatus.DRAFT, adminUser);
         when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+        when(submissionRepository.countByInitiativeId(initiativeId)).thenReturn(0L);
 
-        initiativeService.delete(initiativeId);
+        initiativeService.delete(initiativeId, adminPrincipal);
 
         verify(initiativeRepository).delete(initiative);
+    }
+
+    @Test
+    void deleteRejectsInitiativeWithSubmissions() {
+        UUID initiativeId = UUID.randomUUID();
+        LearningInitiative initiative = initiative("Blocked", InitiativeStatus.ACTIVE, adminUser);
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+        when(submissionRepository.countByInitiativeId(initiativeId)).thenReturn(2L);
+
+        assertThatThrownBy(() -> initiativeService.delete(initiativeId, adminPrincipal))
+                .isInstanceOf(BusinessConflictException.class)
+                .hasMessage(LearningInitiativeService.INITIATIVE_DELETE_BLOCKED_MESSAGE);
+
+        verify(initiativeRepository, never()).delete(initiative);
+    }
+
+    @Test
+    void countSubmissionsReturnsRepositoryCount() {
+        UUID initiativeId = UUID.randomUUID();
+        LearningInitiative initiative = initiative("Counted", InitiativeStatus.DRAFT, adminUser);
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+        when(submissionRepository.countByInitiativeId(initiativeId)).thenReturn(3L);
+
+        assertThat(initiativeService.countSubmissions(initiativeId)).isEqualTo(3L);
     }
 
     private User user(String employeeId, String email, String fullName, RoleName roleName) {

@@ -142,6 +142,11 @@ export function InitiativeListPage() {
     refreshInitiatives()
   }
 
+  function handleDeleteSuccess() {
+    showSuccessNotification(INITIATIVE_MESSAGES.deleteSuccess)
+    refreshInitiatives()
+  }
+
   function handleLifecycleSuccess(action: InitiativeLifecycleAction) {
     const message = {
       publish: INITIATIVE_MESSAGES.publishSuccess,
@@ -234,6 +239,7 @@ export function InitiativeListPage() {
             <InitiativeCardList
               initiatives={pageData.content}
               loading={loading}
+              onDeleteSuccess={isAdmin ? handleDeleteSuccess : undefined}
               onEdit={isAdmin ? setEditingInitiative : undefined}
               onLifecycleSuccess={isAdmin ? handleLifecycleSuccess : undefined}
               showStatusColumn={isAdmin}
@@ -242,6 +248,7 @@ export function InitiativeListPage() {
             <InitiativeTable
               initiatives={pageData.content}
               loading={loading}
+              onDeleteSuccess={isAdmin ? handleDeleteSuccess : undefined}
               onEdit={isAdmin ? setEditingInitiative : undefined}
               onLifecycleSuccess={isAdmin ? handleLifecycleSuccess : undefined}
               onSort={(property) => updateQuery({ ...appliedQuery, page: 0, sort: toggleSort(appliedQuery.sort, property) })}

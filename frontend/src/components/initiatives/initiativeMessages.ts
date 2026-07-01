@@ -87,7 +87,31 @@ export const INITIATIVE_MESSAGES = {
   reactivateExpiryDateRequired: 'Expiry date is required.',
   reactivateExpiryDateBeforeToday: 'Expiry date cannot be earlier than today (UTC).',
   confirmDeleteTitle: 'Delete initiative',
+  confirmDeletePermanentWarning: 'This action permanently deletes this initiative.',
   confirmDeleteBody: 'This action cannot be undone.',
-  confirmDeleteBlockedBody:
-    'This initiative cannot be deleted because certificate submissions already exist.',
+  confirmDeleteActiveWarning:
+    'This initiative is currently published. Deleting it will immediately remove it from employee access.',
+  confirmDeleteExpiredNote:
+    'This initiative has already ended. Deleting it permanently removes the historical initiative record.',
+  confirmDeleteLabel: 'Delete initiative',
+  confirmDeleteBlockedTitle: 'Delete initiative',
+  confirmDeleteBlockedSummary: 'This initiative cannot be deleted.',
+  confirmDeleteBlockedReason: 'Certificate submissions already exist for this initiative.',
+  confirmDeleteBlockedImpact:
+    'To preserve reporting, approvals, leaderboard history, and audit records, deletion is not allowed.',
+  confirmDeleteBlockedAlternativesHeading: 'Instead you can:',
+  confirmDeleteBlockedAlternativesActive: [
+    'Return to Draft (hide from employees)',
+    'Mark as Expired (close the initiative)',
+  ],
+  confirmDeleteBlockedAlternativesDraft: [
+    'Keep as draft — submissions and history remain',
+    'Employees cannot submit while the initiative is in draft',
+  ],
+  confirmDeleteBlockedAlternativesExpired: [
+    'Leave as historical record',
+    'Reactivate if reopening the same cohort',
+  ],
+  confirmDeleteClose: 'Close',
+  deleteEligibilityError: 'Unable to check delete eligibility. Please try again.',
 } as const

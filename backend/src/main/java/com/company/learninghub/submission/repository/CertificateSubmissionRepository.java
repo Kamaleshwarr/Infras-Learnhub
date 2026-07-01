@@ -16,6 +16,8 @@ public interface CertificateSubmissionRepository extends JpaRepository<Certifica
 
     boolean existsByEmployeeIdAndInitiativeId(UUID employeeId, UUID initiativeId);
 
+    long countByInitiativeId(UUID initiativeId);
+
     @Override
     @EntityGraph(attributePaths = {
             "employee",
@@ -65,4 +67,3 @@ public interface CertificateSubmissionRepository extends JpaRepository<Certifica
             Pageable pageable
     );
 }
-

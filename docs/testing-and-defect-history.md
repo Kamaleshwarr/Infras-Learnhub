@@ -1,16 +1,17 @@
 # Testing & Defect History
 
-Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
+Last updated: 2026-06-19 (v0.7.1 — F15 implemented)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.7.1 — F14) |
+| Area | Command | Baseline (v0.7.1 — F15) |
 |------|---------|-------------------------|
-| Frontend | `cd frontend && npm test` | **383 tests** — 84 files |
+| Frontend | `cd frontend && npm test` | **388 tests** — 85 files |
+| Frontend (v0.7.1 — F14) | `cd frontend && npm test` | **383 tests** — 84 files |
 | Frontend (v0.7.0) | `cd frontend && npm test` | **292 tests** — 68 files |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend | `mvn -f backend/pom.xml test` | **244 tests** run; **12 skipped** (Testcontainers/Docker); **3 pre-existing failures** (unchanged — unrelated to F14) |
-| Backend (initiative-scoped) | `mvn test -Dtest='com.company.learninghub.initiative.**'` | Pass (F14 lifecycle endpoints, transition matrix, date rules) |
+| Backend | `mvn -f backend/pom.xml test` | **247 tests** run; **12 skipped** (Testcontainers/Docker); **3 pre-existing failures** (unchanged — unrelated to F15) |
+| Backend (initiative-scoped) | `mvn test -Dtest='com.company.learninghub.initiative.**'` | Pass (F14 lifecycle + F15 delete eligibility, 409 handling) |
 | Backend (certificate-scoped) | `mvn test -Dtest='Certificate*Test,CertificateFileStorageServiceTest,CertificateContentDispositionTest'` | **34/34 pass** |
 
 ---
@@ -23,7 +24,39 @@ Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
 | F12 | Create Initiative dialog | **Passed** | Validation, date rules, list integration |
 | F13 | Edit Initiative dialog | **Passed** | List + detail entry points, metadata panel, date/lifecycle rules — **manual QA passed** |
 | F14 | Initiative Lifecycle Management | **Passed** | Dedicated lifecycle actions, confirmation dialogs, backend transition enforcement — **manual QA passed** (PR #42) |
-| F15 | Delete Initiative | **Pending** | Not started |
+| F15 | Delete Initiative | **Implemented** | Hard delete, submission-count eligibility, blocked/confirm dialogs — manual QA pending |
+
+### v0.7.1 F15 — Manual validation checklist
+
+| # | Scenario | Status |
+|---|----------|--------|
+| 1 | Create Draft initiative → Delete → succeeds | **Pending** |
+| 2 | After delete, create another initiative with same title → succeeds | **Pending** |
+| 3 | Delete allowed (0 submissions) — confirmation dialog with title, status, submissions: 0 | **Pending** |
+| 4 | Delete blocked (>0 submissions) — informational dialog, no delete button, Close only | **Pending** |
+| 5 | Blocked dialog shows status-specific lifecycle alternatives (Active / Expired) | **Pending** |
+| 6 | Active delete confirmation warns employees lose access immediately | **Pending** |
+| 7 | Expired delete confirmation explains historical record removal | **Pending** |
+| 8 | List page delete action (compact icon) | **Pending** |
+| 9 | Detail page delete action (button) → navigates to list on success | **Pending** |
+| 10 | Backend returns HTTP 409 when delete blocked (not 500) | **Pending** |
+| 11 | Employee list — no delete controls | **Pending** |
+| 12 | Employee detail — no delete controls | **Pending** |
+| 13 | Lifecycle regression — Publish, Return to Draft, Mark Expired, Reactivate unchanged | **Pending** |
+| 14 | Edit initiative regression after delete feature | **Pending** |
+| 15 | Race condition: frontend shows confirm but backend returns 409 → switches to blocked dialog | **Pending** |
+
+### v0.7.1 F15 — Business rules validated (automated)
+
+| Rule | Scope | Validation |
+|------|-------|------------|
+| submissionCount == 0 → delete allowed | Service | `deleteRemovesExistingInitiativeWhenNoSubmissionsExist` |
+| submissionCount > 0 → HTTP 409 | Service + handler | `deleteRejectsInitiativeWithSubmissions`, `handleBusinessConflictReturns409` |
+| Hard delete only | Service | `repository.delete()` after pre-check; no soft-delete fields |
+| INFO structured log on success | Service | Log output in service test run |
+| Admin-only delete UI | List + detail pages | `onDeleteSuccess` gated by `isAdmin` |
+| Blocked dialog — Close only | `InitiativeDeleteAction` | Test asserts no delete button in blocked mode |
+| 409 race handling | `InitiativeDeleteAction` | Test switches to blocked dialog on conflict |
 
 ### v0.7.1 F14 — Manual validation checklist
 
@@ -93,7 +126,11 @@ Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
 | `InitiativeExpiryBadge`, `InitiativeDetailAlerts` | Status-aware expiry display |
 | `InitiativeListPage`, `InitiativeDetailPage` | Admin edit + lifecycle entry points, post-action refresh |
 | `initiativesApi` | Lifecycle endpoint clients (publish, return-to-draft, mark-expired, reactivate) |
-| `LearningInitiativeServiceTest` | Lifecycle transitions, transition matrix, start-date validation, reactivate rules |
+| `InitiativeDeleteAction`, `InitiativeLifecycleConfirmDialog` | Delete eligibility check, blocked/confirm dialogs, 409 race handling, status-specific messaging |
+| `apiErrors` | `isConflictError()` for HTTP 409 |
+| `LearningInitiativeServiceTest` | Delete allowed/blocked, `countSubmissions` |
+| `GlobalExceptionHandlerTest` | `BusinessConflictException` → 409 |
+| `BusinessConflictException` | New conflict exception type for business-rule violations |
 | `InitiativeRequestValidationTest` | DTO date-range, field-limit, reactivate request validation |
 
 ---
@@ -514,6 +551,6 @@ Run before each phase merge:
 | Dashboard fault isolation | CW-D01 (employee) and CW-D02 (admin) — **Pass** |
 | `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |
 | Initiatives Experience (v0.7.0) | **Validated** — PR #36; list + detail + F10/F2.1 |
-| Initiative Management UI (v0.7.1) | **In progress** — F12/F13/F14 complete; F15 pending |
+| Initiative Management UI (v0.7.1) | **Complete** — F12–F15 implemented |
 | Initiative leaderboard page | Placeholder only — route exists |
 | Rejected resubmission | Not supported — backend unique constraint |

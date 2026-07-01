@@ -70,8 +70,11 @@ public class LearningInitiativeController {
 
     @DeleteMapping("/{initiativeId}")
     @Operation(summary = "Delete a learning initiative", description = "Admin only.")
-    public ResponseEntity<Void> delete(@PathVariable UUID initiativeId) {
-        initiativeService.delete(initiativeId);
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID initiativeId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+        initiativeService.delete(initiativeId, authenticatedUser);
         return ResponseEntity.noContent().build();
     }
 
