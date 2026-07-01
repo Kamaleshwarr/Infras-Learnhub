@@ -1,16 +1,67 @@
 # Testing & Defect History
 
-Last updated: 2026-06-19 (v0.7.0 — validated, PR #36 ready for merge)
+Last updated: 2026-06-30 (v0.7.1 — F13 completed, manual QA passed)
 
 ## Test Baselines
 
-| Area | Command | Baseline (v0.7.0) |
-|------|---------|-------------------|
-| Frontend | `cd frontend && npm test` | **292 tests** — 68 files |
-| Frontend (v0.6.2) | `cd frontend && npm test` | **231 tests** — 54 files |
+| Area | Command | Baseline (v0.7.1 — F13) |
+|------|---------|-------------------------|
+| Frontend | `cd frontend && npm test` | **374 tests** — 83 files |
+| Frontend (v0.7.0) | `cd frontend && npm test` | **292 tests** — 68 files |
 | Frontend build | `cd frontend && npm run build` | Pass |
-| Backend | `mvn -f backend/pom.xml test` | **224 tests** run; **12 skipped** (Testcontainers/Docker); **4 pre-existing failures** (unchanged — no backend changes in v0.7.0) |
+| Backend | `mvn -f backend/pom.xml test` | **234 tests** run; **12 skipped** (Testcontainers/Docker); **4 pre-existing failures** (unchanged — unrelated to F13) |
+| Backend (initiative-scoped) | `mvn test -Dtest='LearningInitiativeServiceTest,InitiativeRequestValidationTest'` | Pass (F13 lifecycle + start-date rules) |
 | Backend (certificate-scoped) | `mvn test -Dtest='Certificate*Test,CertificateFileStorageServiceTest,CertificateContentDispositionTest'` | **34/34 pass** |
+
+---
+
+## Initiative Management — Validation History (v0.7.1)
+
+| Phase | Deliverable | Status | Notes |
+|-------|-------------|--------|-------|
+| F11 / Phase 0 | Initiative management foundation | **Passed** | Types, API client, shared form state, toolbar wiring |
+| F12 | Create Initiative dialog | **Passed** | Validation, date rules, list integration |
+| F13 | Edit Initiative dialog | **Passed** | List + detail entry points, metadata panel, lifecycle rules — **manual QA passed** |
+| F14 | Lifecycle status confirmations | **Pending** | Not started |
+| F15 | Delete Initiative | **Pending** | Not started |
+
+### v0.7.1 F13 — Manual validation checklist
+
+| # | Scenario | Status |
+|---|----------|--------|
+| 1 | Edit title/description/reward only — past start date unchanged | **Pass** |
+| 2 | Edit — change start to yesterday | **Pass** (rejected) |
+| 3 | Edit — change start to today or future | **Pass** |
+| 4 | Create — start before today rejected | **Pass** |
+| 5 | Mark initiative EXPIRED — expiry set to today (UTC) | **Pass** |
+| 6 | EXPIRED status — banner shows "Expired", not countdown | **Pass** |
+| 7 | DRAFT — no expiry countdown | **Pass** |
+| 8 | ACTIVE — existing countdown behaviour | **Pass** |
+| 9 | Edit dialog — metadata panel, discard guard, server errors | **Pass** |
+| 10 | Create flow regression | **Pass** |
+
+### v0.7.1 F13 — Business rules validated
+
+| Rule | Scope | Validation |
+|------|-------|------------|
+| Start ≥ today (UTC) | Create | Enforced frontend + backend |
+| Unchanged past start preserved on edit | Edit | Enforced frontend (baseline compare) + backend (stored-date compare) |
+| Modified start ≥ today (UTC) | Edit | Enforced frontend + backend |
+| EXPIRED → expiry = today (UTC) | Edit / service | Enforced frontend + backend |
+| Status-aware expiry banners | List + detail | Draft none; Active countdown; Expired label |
+| Expiry ≥ start | Create + edit | Enforced frontend + backend + Flyway V10 |
+
+### v0.7.1 — Test coverage added (cumulative)
+
+| Component / area | Tests |
+|------------------|-------|
+| `initiativeFormState`, `initiativeDateUtils` | Form validation, baseline dirty state, EXPIRED normalization, edit start-date rules |
+| `CreateInitiativeDialog`, `EditInitiativeDialog` | Create/edit flows, validation, discard guard, lifecycle side effects |
+| `InitiativeMetadataPanel`, `InitiativeFormFields` | Edit metadata, field limits, status helper |
+| `InitiativeExpiryBadge`, `InitiativeDetailAlerts` | Status-aware expiry display |
+| `InitiativeListPage`, `InitiativeDetailPage` | Admin edit entry points, post-save refresh |
+| `LearningInitiativeServiceTest` | Start-date validation, EXPIRED normalization, unchanged-past-start edit |
+| `InitiativeRequestValidationTest` | DTO date-range and field-limit validation |
 
 ---
 
@@ -430,6 +481,6 @@ Run before each phase merge:
 | Dashboard fault isolation | CW-D01 (employee) and CW-D02 (admin) — **Pass** |
 | `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |
 | Initiatives Experience (v0.7.0) | **Validated** — PR #36; list + detail + F10/F2.1 |
-| Initiative Management UI | Not implemented — deferred v0.7.1 |
+| Initiative Management UI (v0.7.1) | **In progress** — F12/F13 complete; F14/F15 pending |
 | Initiative leaderboard page | Placeholder only — route exists |
 | Rejected resubmission | Not supported — backend unique constraint |

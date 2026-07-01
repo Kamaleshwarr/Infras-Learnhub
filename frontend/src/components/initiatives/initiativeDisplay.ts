@@ -29,6 +29,10 @@ export function formatInitiativeDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value))
 }
 
+export function formatInitiativeTimestamp(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+}
+
 export function formatInitiativeDateRange(startDateUtc: string, expiryDateUtc: string) {
   return `${formatInitiativeDate(startDateUtc)} – ${formatInitiativeDate(expiryDateUtc)} (UTC)`
 }

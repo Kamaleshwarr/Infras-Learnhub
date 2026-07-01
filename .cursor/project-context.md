@@ -37,13 +37,32 @@
 
 ## Current Release
 
-**v0.7.0** — Initiatives Experience (validated, PR #36 ready for merge)  
+**v0.7.1** — Initiative Management (in progress — F13 **Completed**, manual QA passed)  
+**Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
 
 Release notes: `docs/releases/release-v0.7.0.md`  
 Prior release: `docs/releases/release-v0.6.2.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
 Roadmap: `docs/project-roadmap.md`
+
+### v0.7.1 Highlights (in progress)
+
+| Phase | Status | Deliverable |
+|-------|--------|-------------|
+| F11 / Phase 0 | **Completed** | Initiative management foundation — types, API, shared form state |
+| F12 | **Completed** | Create Initiative dialog + admin list integration |
+| F13 | **Completed** | Edit Initiative dialog (list + detail), metadata panel, lifecycle business rules |
+| F14 | **Pending** | Lifecycle status confirmations (publish, return to draft, mark expired) |
+| F15 | **Pending** | Delete Initiative |
+
+**F13 business rules (finalized, manual QA passed):**
+
+- Create: start date ≥ today (UTC)
+- Edit, start unchanged: preserve stored start (even if past)
+- Edit, start modified: new start ≥ today (UTC) — no backdating
+- EXPIRED: expiry auto-set to today (UTC); banners status-aware (never "Expires in X days" when expired)
+- Field limits: title 100, description 2000, reward 500
 
 ### v0.7.0 Highlights (PR #36 — pending merge)
 
@@ -126,6 +145,7 @@ Roadmap: `docs/project-roadmap.md`
 8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
+11. Initiative Management UI (partial) — Create (F12), Edit (F13) (v0.7.1 — F14/F15 pending)
 
 ## Completed Features
 
@@ -177,18 +197,19 @@ Roadmap: `docs/project-roadmap.md`
 
 ## Pending Features
 
-1. Initiative Management UI — create/edit/delete/lifecycle (v0.7.1; backend APIs exist)
-2. Initiative leaderboard full page UI (`InitiativeLeaderboardPage` — placeholder)
-3. Top 3 learners + leaderboard navigation from detail (future)
-4. Rejected submission resubmission workflow (future — backend constraint)
-5. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
-6. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
-7. Dashboard status chips / filtering (deferred from v0.6.1)
-8. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-9. Study materials and projects full UI surfaces (placeholder pages remain)
-10. Global Search
-11. Email notifications (account lifecycle)
-12. AI Features
+1. **F14** — Initiative lifecycle status confirmations (publish, return to draft, mark expired) — v0.7.1
+2. **F15** — Delete Initiative UI (backend API exists) — v0.7.1
+3. Initiative leaderboard full page UI (`InitiativeLeaderboardPage` — placeholder)
+4. Top 3 learners + leaderboard navigation from detail (future)
+5. Rejected submission resubmission workflow (future — backend constraint)
+6. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
+7. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
+8. Dashboard status chips / filtering (deferred from v0.6.1)
+9. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
+10. Study materials and projects full UI surfaces (placeholder pages remain)
+11. Global Search
+12. Email notifications (account lifecycle)
+13. AI Features
 
 ## Current Backend Package Pattern
 
@@ -234,6 +255,8 @@ frontend/src/
 - Password Management schema is in `V7__password_management.sql` (`must_change_password`, `password_changed_at`, `password_reset_tokens`).
 - Profile avatar metadata is in `V8__profile_avatar.sql` (nullable avatar columns on `users`).
 - Notifications schema is in `V9__create_notifications.sql` (`notifications` table).
+- Learning initiative date constraint: `V10__relax_learning_initiative_date_constraint.sql` (`expiry_date_utc >= start_date_utc`).
+- Learning initiative text limits: `V11__tighten_learning_initiative_text_limits.sql` (title `VARCHAR(100)`).
 - Reuse `PasswordService` for all password mutations (change, admin reset, email reset).
 - Store only hashed reset tokens (SHA-256); never persist raw tokens.
 - Use `app.mail.mode=log` for local development (reset URL logged); use `smtp` in production.

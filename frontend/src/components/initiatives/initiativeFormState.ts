@@ -44,6 +44,7 @@ export type InitiativeFormFieldName = keyof InitiativeFormValues
 export interface InitiativeFormValidationOptions {
   now?: number
   mode?: 'create' | 'edit'
+  baseline?: InitiativeFormBaseline
 }
 
 export function createEmptyInitiativeForm(now = Date.now()): InitiativeFormValues {
@@ -73,12 +74,12 @@ export function createInitiativeFormBaseline(values: InitiativeFormValues): Init
   return normalizeInitiativeFormValues(values)
 }
 
-export function buildCreateInitiativeRequest(values: InitiativeFormValues): CreateInitiativeRequest {
-  return buildUpsertInitiativeRequest(values)
+export function buildCreateInitiativeRequest(values: InitiativeFormValues, now = Date.now()): CreateInitiativeRequest {
+  return buildUpsertInitiativeRequest(values, now)
 }
 
-export function buildUpdateInitiativeRequest(values: InitiativeFormValues): UpdateInitiativeRequest {
-  return buildUpsertInitiativeRequest(values)
+export function buildUpdateInitiativeRequest(values: InitiativeFormValues, now = Date.now()): UpdateInitiativeRequest {
+  return buildUpsertInitiativeRequest(values, now)
 }
 
 export function getInitiativeFormFieldErrors(
@@ -88,6 +89,7 @@ export function getInitiativeFormFieldErrors(
   const errors: Partial<Record<InitiativeFormFieldName, string>> = {}
   const now = options.now ?? Date.now()
   const mode = options.mode ?? 'edit'
+  const baseline = options.baseline
 
   if (!values.title.trim()) {
     errors.title = INITIATIVE_MESSAGES.formTitleRequired
@@ -107,7 +109,7 @@ export function getInitiativeFormFieldErrors(
 
   if (!values.startDate) {
     errors.startDate = INITIATIVE_MESSAGES.formStartDateRequired
-  } else if (mode === 'create' && isUtcDateBefore(values.startDate, todayUtcDateInput(now))) {
+  } else if (shouldValidateStartDateAgainstToday(values.startDate, mode, baseline, now)) {
     errors.startDate = INITIATIVE_MESSAGES.formStartDateBeforeToday
   }
 
@@ -147,8 +149,25 @@ export function isInitiativeFormDirty(
   )
 }
 
-function buildUpsertInitiativeRequest(values: InitiativeFormValues): CreateInitiativeRequest {
-  const normalized = normalizeInitiativeFormValues(values)
+function shouldValidateStartDateAgainstToday(
+  startDate: string,
+  mode: 'create' | 'edit',
+  baseline: InitiativeFormBaseline | undefined,
+  now: number,
+) {
+  if (!isUtcDateBefore(startDate, todayUtcDateInput(now))) {
+    return false
+  }
+
+  if (mode === 'create') {
+    return true
+  }
+
+  return baseline?.startDate !== startDate
+}
+
+function buildUpsertInitiativeRequest(values: InitiativeFormValues, now = Date.now()): CreateInitiativeRequest {
+  const normalized = applyExpiredStatusRules(normalizeInitiativeFormValues(values), now)
   const rewardDescription = normalized.rewardDescription.length > 0 ? normalized.rewardDescription : null
 
   return {
@@ -158,6 +177,53 @@ function buildUpsertInitiativeRequest(values: InitiativeFormValues): CreateIniti
     startDateUtc: utcDateInputToInstant(normalized.startDate),
     status: normalized.status,
     title: normalized.title,
+  }
+}
+
+export function applyExpiredStatusRules(
+  values: InitiativeFormBaseline,
+  now = Date.now(),
+): InitiativeFormBaseline {
+  if (values.status !== 'EXPIRED') {
+    return values
+  }
+
+  const today = todayUtcDateInput(now)
+  let expiryDate = today
+  let startDate = values.startDate
+
+  if (startDate && isUtcDateBefore(expiryDate, startDate)) {
+    startDate = expiryDate
+  }
+
+  return {
+    ...values,
+    expiryDate,
+    startDate,
+  }
+}
+
+export function applyInitiativeStatusChange<K extends InitiativeFormFieldName>(
+  field: K,
+  value: InitiativeFormValues[K],
+  current: InitiativeFormValues,
+  now = Date.now(),
+): InitiativeFormValues {
+  if (field !== 'status' || value !== 'EXPIRED') {
+    return { ...current, [field]: value }
+  }
+
+  const normalized = applyExpiredStatusRules(
+    {
+      ...normalizeInitiativeFormValues(current),
+      status: 'EXPIRED',
+    },
+    now,
+  )
+
+  return {
+    ...current,
+    ...normalized,
   }
 }
 

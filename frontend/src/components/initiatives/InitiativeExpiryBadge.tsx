@@ -1,13 +1,32 @@
+import EventBusyOutlinedIcon from '@mui/icons-material/EventBusyOutlined'
 import TimelapseOutlinedIcon from '@mui/icons-material/TimelapseOutlined'
 import Chip from '@mui/material/Chip'
+import type { InitiativeStatus } from '../../types/initiatives'
 import { daysUntilExpiry, isExpiringCritical, isExpiringSoon } from './initiativeDisplay'
 import { INITIATIVE_MESSAGES } from './initiativeMessages'
 
 interface InitiativeExpiryBadgeProps {
   expiryDateUtc: string
+  status: InitiativeStatus
 }
 
-export function InitiativeExpiryBadge({ expiryDateUtc }: InitiativeExpiryBadgeProps) {
+export function InitiativeExpiryBadge({ expiryDateUtc, status }: InitiativeExpiryBadgeProps) {
+  if (status === 'DRAFT') {
+    return null
+  }
+
+  if (status === 'EXPIRED') {
+    return (
+      <Chip
+        color="default"
+        icon={<EventBusyOutlinedIcon />}
+        label={INITIATIVE_MESSAGES.expiredLabel}
+        size="small"
+        variant="outlined"
+      />
+    )
+  }
+
   if (!isExpiringSoon(expiryDateUtc)) {
     return null
   }

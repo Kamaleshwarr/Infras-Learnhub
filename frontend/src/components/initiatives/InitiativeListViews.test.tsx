@@ -120,4 +120,25 @@ describe('InitiativeListViews', () => {
 
     expect(await screen.findByRole('tooltip')).toHaveTextContent(longTitle)
   })
+
+  it('shows edit action for admin table view', async () => {
+    const user = userEvent.setup()
+    const onEdit = vi.fn()
+
+    render(
+      <MemoryRouter>
+        <InitiativeTable
+          initiatives={[initiative]}
+          loading={false}
+          onEdit={onEdit}
+          onSort={vi.fn()}
+          showStatusColumn
+          sort="expiryDateUtc,asc"
+        />
+      </MemoryRouter>,
+    )
+
+    await user.click(screen.getByRole('button', { name: /Edit initiative AWS Certification/i }))
+    expect(onEdit).toHaveBeenCalledWith(initiative)
+  })
 })
