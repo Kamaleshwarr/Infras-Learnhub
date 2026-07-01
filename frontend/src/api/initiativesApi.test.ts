@@ -5,7 +5,10 @@ import type { Initiative } from '../types/initiatives'
 
 vi.mock('./httpClient', () => ({
   httpClient: {
+    delete: vi.fn(),
     get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
   },
 }))
 
@@ -72,5 +75,47 @@ describe('initiativesApi', () => {
 
     expect(httpClient.get).toHaveBeenCalledWith(`/initiatives/${initiative.id}`)
     expect(result).toEqual(initiative)
+  })
+
+  it('creates an initiative', async () => {
+    const request = {
+      description: 'New program',
+      expiryDateUtc: '2026-12-31T00:00:00.000Z',
+      rewardDescription: '$500 credit',
+      startDateUtc: '2026-01-01T00:00:00.000Z',
+      status: 'DRAFT' as const,
+      title: 'New Initiative',
+    }
+    vi.mocked(httpClient.post).mockResolvedValue({ data: initiative })
+
+    const result = await initiativesApi.create(request)
+
+    expect(httpClient.post).toHaveBeenCalledWith('/initiatives', request)
+    expect(result).toEqual(initiative)
+  })
+
+  it('updates an initiative', async () => {
+    const request = {
+      description: 'Updated program',
+      expiryDateUtc: '2026-12-31T00:00:00.000Z',
+      rewardDescription: null,
+      startDateUtc: '2026-01-01T00:00:00.000Z',
+      status: 'ACTIVE' as const,
+      title: 'Updated Initiative',
+    }
+    vi.mocked(httpClient.put).mockResolvedValue({ data: { ...initiative, ...request, status: 'ACTIVE' } })
+
+    const result = await initiativesApi.update(initiative.id, request)
+
+    expect(httpClient.put).toHaveBeenCalledWith(`/initiatives/${initiative.id}`, request)
+    expect(result.title).toBe('Updated Initiative')
+  })
+
+  it('deletes an initiative', async () => {
+    vi.mocked(httpClient.delete).mockResolvedValue({})
+
+    await initiativesApi.delete(initiative.id)
+
+    expect(httpClient.delete).toHaveBeenCalledWith(`/initiatives/${initiative.id}`)
   })
 })

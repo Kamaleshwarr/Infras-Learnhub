@@ -111,6 +111,32 @@ describe('InitiativeListPage', () => {
     })
   })
 
+  it('shows admin create toolbar', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      currentRole: 'ADMIN',
+      hasRole: (role) => role === 'ADMIN',
+      isAdmin: true,
+      isAuthenticated: true,
+      isEmployee: false,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshProfile: vi.fn(),
+      user: null,
+    })
+
+    renderListPage()
+
+    expect(await screen.findByRole('button', { name: 'Create Initiative' })).toBeInTheDocument()
+  })
+
+  it('does not show admin create toolbar for employees', async () => {
+    renderListPage()
+
+    await waitFor(() => expect(screen.getByText('AWS Certification')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Create Initiative' })).not.toBeInTheDocument()
+  })
+
   it('shows admin status filter and passes status to API', async () => {
     vi.mocked(useAuth).mockReturnValue({
       currentRole: 'ADMIN',

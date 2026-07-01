@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/useAuth'
 import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { InitiativeCardList, InitiativeTable } from '../../components/initiatives/InitiativeListViews'
+import { InitiativeListToolbar } from '../../components/initiatives/InitiativeListToolbar'
 import { InitiativeSearchBar } from '../../components/initiatives/InitiativeSearchBar'
 import { InitiativeStatusFilterTabs } from '../../components/initiatives/InitiativeStatusFilterTabs'
 import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMessages'
@@ -122,6 +123,8 @@ export function InitiativeListPage() {
         }
         title="Learning Initiatives"
       />
+
+      {isAdmin ? <InitiativeListToolbar onCreateInitiative={() => undefined} /> : null}
 
       <Box sx={{ mb: 3 }}>
         <InitiativeSearchBar disabled={Boolean(error) && pageData.content.length === 0} onChange={setDraftSearch} value={draftSearch} />
