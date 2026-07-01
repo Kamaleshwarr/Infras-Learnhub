@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-19 (v0.7.1 — F15 implemented)
+Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
 
 ## Release Overview
 
@@ -14,23 +14,23 @@ Last updated: 2026-06-19 (v0.7.1 — F15 implemented)
 | v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
-| **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Complete — F15 implemented** |
+| **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
 
-Release notes: `docs/releases/release-v0.7.0.md`  
-Prior: `docs/releases/release-v0.6.2.md`  
+Release notes: `docs/releases/release-v0.7.1.md`  
+Prior: `docs/releases/release-v0.7.0.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ---
 
-## In Progress — v0.7.1 Initiative Management
+## Shipped — v0.7.1 Initiative Management
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | F11 / Phase 0 | Initiative management foundation (types, API, shared form state) | **Completed** |
-| F12 | Create Initiative dialog + list integration | **Completed** |
+| F12 | Create Initiative dialog + list integration | **Completed** — manual QA passed |
 | F13 | Edit Initiative dialog (list + detail), metadata panel, date/lifecycle rules | **Completed** — manual QA passed |
 | F14 | Initiative Lifecycle Management (dedicated actions, confirmations, backend enforcement) | **Completed** — manual QA passed (PR #42) |
-| F15 | Delete Initiative | **Completed** |
+| F15 | Delete Initiative | **Completed** — manual QA passed (PR #43) |
 
 **F13 business rules finalized:**
 

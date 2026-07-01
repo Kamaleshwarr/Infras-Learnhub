@@ -1,6 +1,6 @@
 # Testing & Defect History
 
-Last updated: 2026-06-19 (v0.7.1 — F15 implemented)
+Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
 
 ## Test Baselines
 
@@ -24,27 +24,27 @@ Last updated: 2026-06-19 (v0.7.1 — F15 implemented)
 | F12 | Create Initiative dialog | **Passed** | Validation, date rules, list integration |
 | F13 | Edit Initiative dialog | **Passed** | List + detail entry points, metadata panel, date/lifecycle rules — **manual QA passed** |
 | F14 | Initiative Lifecycle Management | **Passed** | Dedicated lifecycle actions, confirmation dialogs, backend transition enforcement — **manual QA passed** (PR #42) |
-| F15 | Delete Initiative | **Implemented** | Hard delete, submission-count eligibility, blocked/confirm dialogs — manual QA pending |
+| F15 | Delete Initiative | **Passed** | Hard delete, submission-count eligibility, blocked/confirm dialogs — **manual QA passed** (PR #43) |
 
 ### v0.7.1 F15 — Manual validation checklist
 
 | # | Scenario | Status |
 |---|----------|--------|
-| 1 | Create Draft initiative → Delete → succeeds | **Pending** |
-| 2 | After delete, create another initiative with same title → succeeds | **Pending** |
-| 3 | Delete allowed (0 submissions) — confirmation dialog with title, status, submissions: 0 | **Pending** |
-| 4 | Delete blocked (>0 submissions) — informational dialog, no delete button, Close only | **Pending** |
-| 5 | Blocked dialog shows status-specific lifecycle alternatives (Active / Expired) | **Pending** |
-| 6 | Active delete confirmation warns employees lose access immediately | **Pending** |
-| 7 | Expired delete confirmation explains historical record removal | **Pending** |
-| 8 | List page delete action (compact icon) | **Pending** |
-| 9 | Detail page delete action (button) → navigates to list on success | **Pending** |
-| 10 | Backend returns HTTP 409 when delete blocked (not 500) | **Pending** |
-| 11 | Employee list — no delete controls | **Pending** |
-| 12 | Employee detail — no delete controls | **Pending** |
-| 13 | Lifecycle regression — Publish, Return to Draft, Mark Expired, Reactivate unchanged | **Pending** |
-| 14 | Edit initiative regression after delete feature | **Pending** |
-| 15 | Race condition: frontend shows confirm but backend returns 409 → switches to blocked dialog | **Pending** |
+| 1 | Create Draft initiative → Delete → succeeds | **Pass** |
+| 2 | After delete, create another initiative with same title → succeeds | **Pass** |
+| 3 | Delete allowed (0 submissions) — confirmation dialog with title, status, submissions: 0 | **Pass** |
+| 4 | Delete blocked (>0 submissions) — informational dialog, no delete button, Close only | **Pass** |
+| 5 | Blocked dialog shows status-specific lifecycle alternatives (Active / Expired) | **Pass** |
+| 6 | Active delete confirmation warns employees lose access immediately | **Pass** |
+| 7 | Expired delete confirmation explains historical record removal | **Pass** |
+| 8 | List page delete action (compact icon) | **Pass** |
+| 9 | Detail page delete action (button) → navigates to list on success | **Pass** |
+| 10 | Backend returns HTTP 409 when delete blocked (not 500) | **Pass** |
+| 11 | Employee list — no delete controls | **Pass** |
+| 12 | Employee detail — no delete controls | **Pass** |
+| 13 | Lifecycle regression — Publish, Return to Draft, Mark Expired, Reactivate unchanged | **Pass** |
+| 14 | Edit initiative regression after delete feature | **Pass** |
+| 15 | Race condition: frontend shows confirm but backend returns 409 → switches to blocked dialog | **Pass** |
 
 ### v0.7.1 F15 — Business rules validated (automated)
 
@@ -551,6 +551,6 @@ Run before each phase merge:
 | Dashboard fault isolation | CW-D01 (employee) and CW-D02 (admin) — **Pass** |
 | `CERTIFICATE_SUBMITTED` actionPath | `/submissions/review` (updated in Phase 3) |
 | Initiatives Experience (v0.7.0) | **Validated** — PR #36; list + detail + F10/F2.1 |
-| Initiative Management UI (v0.7.1) | **Complete** — F12–F15 implemented |
+| Initiative Management UI (v0.7.1) | **Complete** — F11–F15 implemented; manual QA passed |
 | Initiative leaderboard page | Placeholder only — route exists |
 | Rejected resubmission | Not supported — backend unique constraint |

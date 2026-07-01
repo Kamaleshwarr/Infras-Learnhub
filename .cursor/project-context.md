@@ -37,16 +37,16 @@
 
 ## Current Release
 
-**v0.7.1** — Initiative Management (**Completed** — F15 implemented; manual QA pending)  
-**Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36)  
+**v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
+**Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
 
-Release notes: `docs/releases/release-v0.7.0.md`  
-Prior release: `docs/releases/release-v0.6.2.md`  
+Release notes: `docs/releases/release-v0.7.1.md`  
+Prior release: `docs/releases/release-v0.7.0.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
 Roadmap: `docs/project-roadmap.md`
 
-### v0.7.1 Highlights (in progress)
+### v0.7.1 Highlights (complete)
 
 | Phase | Status | Deliverable |
 |-------|--------|-------------|
@@ -54,7 +54,7 @@ Roadmap: `docs/project-roadmap.md`
 | F12 | **Completed** | Create Initiative dialog + admin list integration |
 | F13 | **Completed** | Edit Initiative dialog (list + detail), metadata panel, date/lifecycle business rules |
 | F14 | **Completed** | Initiative Lifecycle Management — dedicated actions, confirmations, backend transition enforcement (PR #42) |
-| F15 | **Completed** | Delete Initiative — hard delete, submission-count eligibility, blocked/confirm dialogs (PR pending) |
+| F15 | **Completed** | Delete Initiative — hard delete, submission-count eligibility, blocked/confirm dialogs (PR #43) |
 
 **F13 business rules (finalized, manual QA passed):**
 
@@ -75,7 +75,7 @@ Roadmap: `docs/project-roadmap.md`
 - Reactivate: expiry ≥ today (UTC) and ≥ start date; same-cohort reopen only (not recurring yearly programs)
 - Backend: `POST /publish`, `/return-to-draft`, `/mark-expired`, `/reactivate`
 
-**F15 delete business rules (finalized, implementation complete):**
+**F15 delete business rules (finalized, manual QA passed):**
 
 - Delete eligibility depends **only** on certificate submission count (`0` = allowed, `>0` = blocked)
 - Hard delete only; no soft delete, cascade delete, clone, or typed confirmation
@@ -166,7 +166,7 @@ Roadmap: `docs/project-roadmap.md`
 8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
-11. Initiative Management UI — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — **complete**)
+11. Initiative Management UI — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — complete, PR #43 pending merge)
 
 ## Completed Features
 
