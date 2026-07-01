@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -9,6 +9,7 @@ import { InitiativeDetailPage } from './InitiativeDetailPage'
 
 vi.mock('../../api/initiativesApi', () => ({
   initiativesApi: {
+    create: vi.fn(),
     get: vi.fn(),
     list: vi.fn(),
   },
@@ -109,6 +110,51 @@ describe('InitiativeListPage', () => {
       size: 20,
       sort: 'expiryDateUtc,asc',
     })
+  })
+
+  it('opens create dialog from admin toolbar and refreshes list after success', async () => {
+    const user = userEvent.setup({ delay: null })
+    vi.mocked(useAuth).mockReturnValue({
+      currentRole: 'ADMIN',
+      hasRole: (role) => role === 'ADMIN',
+      isAdmin: true,
+      isAuthenticated: true,
+      isEmployee: false,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshProfile: vi.fn(),
+      user: null,
+    })
+    vi.mocked(initiativesApi.create).mockResolvedValue({
+      ...initiative,
+      id: 'initiative-new',
+      title: 'New Initiative',
+    })
+    vi.mocked(initiativesApi.list)
+      .mockResolvedValueOnce(pageResponse)
+      .mockResolvedValueOnce({
+        ...pageResponse,
+        content: [{ ...initiative, id: 'initiative-new', title: 'New Initiative' }],
+        totalElements: 2,
+      })
+
+    renderListPage()
+
+    await user.click(await screen.findByRole('button', { name: 'Create Initiative' }))
+    expect(screen.getByRole('dialog', { name: 'Create Initiative' })).toBeInTheDocument()
+
+    const dialog = within(screen.getByRole('dialog', { name: 'Create Initiative' }))
+    await user.type(dialog.getByLabelText(/^Title/i), 'New Initiative')
+    await user.type(dialog.getByLabelText(/^Description/i), 'New certification program')
+    await user.click(dialog.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() => expect(initiativesApi.create).toHaveBeenCalled())
+    await waitFor(() => expect(screen.getByText('Initiative created.')).toBeInTheDocument())
+    await waitFor(() => expect(initiativesApi.list).toHaveBeenCalledTimes(2))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Create Initiative' })).not.toBeInTheDocument(),
+    )
   })
 
   it('shows admin create toolbar', async () => {

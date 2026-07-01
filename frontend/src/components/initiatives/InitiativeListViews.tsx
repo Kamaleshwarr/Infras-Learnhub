@@ -16,9 +16,10 @@ import {
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import type { Initiative } from '../../types/initiatives'
+import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
 import { SortableTableHead } from '../common/SortableTableHead'
 import type { SortableColumn } from '../common/SortableTableHead'
-import { formatInitiativeDate, truncateText } from './initiativeDisplay'
+import { formatInitiativeDate, INITIATIVE_LIST_TRUNCATION } from './initiativeDisplay'
 import { InitiativeExpiryBadge } from './InitiativeExpiryBadge'
 import { InitiativeStatusChip } from './InitiativeStatusChip'
 
@@ -69,8 +70,8 @@ export function InitiativeTable({
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined">
-      <Table>
+    <TableContainer component={Paper} sx={{ maxWidth: '100%', overflowX: 'auto' }} variant="outlined">
+      <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
         <SortableTableHead columns={columns} onSort={onSort} sort={sort} />
         <TableBody>
           {initiatives.map((initiative) => (
@@ -88,22 +89,32 @@ export function InitiativeTable({
               sx={{ cursor: 'pointer' }}
               tabIndex={0}
             >
-              <TableCell>
-                <Stack spacing={0.5}>
-                  <Typography variant="body2">{initiative.title}</Typography>
+              <TableCell sx={{ maxWidth: 0, width: showStatusColumn ? '36%' : '42%' }}>
+                <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                  <TruncatedTextWithTooltip
+                    maxLength={INITIATIVE_LIST_TRUNCATION.tableTitle}
+                    text={initiative.title}
+                  />
                   <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} />
                 </Stack>
               </TableCell>
               {showStatusColumn ? (
-                <TableCell>
+                <TableCell sx={{ width: '12%' }}>
                   <InitiativeStatusChip status={initiative.status} />
                 </TableCell>
               ) : null}
-              <TableCell>{formatInitiativeDate(initiative.expiryDateUtc)}</TableCell>
-              <TableCell>
-                {initiative.rewardDescription
-                  ? truncateText(initiative.rewardDescription, 60)
-                  : '—'}
+              <TableCell sx={{ width: showStatusColumn ? '18%' : '22%' }}>
+                {formatInitiativeDate(initiative.expiryDateUtc)}
+              </TableCell>
+              <TableCell sx={{ maxWidth: 0, width: showStatusColumn ? '34%' : '36%' }}>
+                {initiative.rewardDescription ? (
+                  <TruncatedTextWithTooltip
+                    maxLength={INITIATIVE_LIST_TRUNCATION.tableReward}
+                    text={initiative.rewardDescription}
+                  />
+                ) : (
+                  <Typography variant="body2">—</Typography>
+                )}
               </TableCell>
             </TableRow>
           ))}
@@ -139,22 +150,30 @@ export function InitiativeCardList({ initiatives, loading, showStatusColumn }: I
           <CardActionArea onClick={() => navigate(`/initiatives/${initiative.id}`)}>
             <CardContent>
               <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="subtitle1">{initiative.title}</Typography>
+                <Box sx={{ minWidth: 0, width: '100%' }}>
+                  <TruncatedTextWithTooltip
+                    maxLength={INITIATIVE_LIST_TRUNCATION.cardTitle}
+                    text={initiative.title}
+                    variant="subtitle1"
+                  />
                   <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
                     Expires {formatInitiativeDate(initiative.expiryDateUtc)}
                   </Typography>
                   {initiative.rewardDescription ? (
-                    <Typography color="text.secondary" sx={{ mt: 1 }} variant="body2">
-                      {truncateText(initiative.rewardDescription, 80)}
-                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <TruncatedTextWithTooltip
+                        color="text.secondary"
+                        maxLength={INITIATIVE_LIST_TRUNCATION.cardReward}
+                        text={initiative.rewardDescription}
+                      />
+                    </Box>
                   ) : null}
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
                     {showStatusColumn ? <InitiativeStatusChip status={initiative.status} /> : null}
                     <InitiativeExpiryBadge expiryDateUtc={initiative.expiryDateUtc} />
                   </Stack>
                 </Box>
-                <ChevronRightOutlinedIcon color="action" />
+                <ChevronRightOutlinedIcon color="action" sx={{ flexShrink: 0 }} />
               </Stack>
             </CardContent>
           </CardActionArea>

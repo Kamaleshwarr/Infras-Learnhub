@@ -306,4 +306,19 @@ describe('InitiativeDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'AWS Certification' })).toBeInTheDocument()
     expect(initiativesApi.get).toHaveBeenCalledTimes(2)
   })
+
+  it('renders full long title and description without truncation', async () => {
+    const longTitle = 'T'.repeat(100)
+    const longDescription = 'x'.repeat(200)
+    vi.mocked(initiativesApi.get).mockResolvedValue({
+      ...initiative,
+      description: longDescription,
+      title: longTitle,
+    })
+
+    renderDetailPage()
+
+    expect(await screen.findByRole('heading', { name: longTitle })).toBeInTheDocument()
+    expect(screen.getByText(longDescription)).toBeInTheDocument()
+  })
 })

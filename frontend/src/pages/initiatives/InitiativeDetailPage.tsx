@@ -227,6 +227,7 @@ export function InitiativeDetailPage() {
           display: 'grid',
           gap: 2,
           gridTemplateColumns: { md: '2fr 1fr', xs: '1fr' },
+          minWidth: 0,
         }}
       >
         {isEmployee ? (

@@ -32,7 +32,7 @@ public class LearningInitiative extends AuditableEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "title", nullable = false, length = 200)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")

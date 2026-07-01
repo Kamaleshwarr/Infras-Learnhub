@@ -49,6 +49,69 @@ describe('initiativeFormState', () => {
     })
   })
 
+  it('validates required fields and date range for create mode', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: '',
+        description: '',
+        rewardDescription: '',
+        startDate: '2026-06-18',
+        expiryDate: '2026-06-18',
+        status: 'DRAFT',
+      },
+      { mode: 'create', now },
+    )
+
+    expect(errors.title).toBeTruthy()
+    expect(errors.description).toBeTruthy()
+    expect(errors.startDate).toContain('today')
+    expect(isInitiativeFormValid(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-19',
+        expiryDate: '2026-06-18',
+        status: 'DRAFT',
+      },
+      { mode: 'create', now },
+    )).toBe(false)
+  })
+
+  it('allows expiry on the same day as start for create mode', () => {
+    const now = Date.parse('2026-06-19T12:00:00.000Z')
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2026-06-19',
+        expiryDate: '2026-06-19',
+        status: 'DRAFT',
+      },
+      { mode: 'create', now },
+    )
+
+    expect(errors.expiryDate).toBeUndefined()
+  })
+
+  it('does not enforce start-date minimum in edit mode', () => {
+    const errors = getInitiativeFormFieldErrors(
+      {
+        title: 'Azure',
+        description: 'Program',
+        rewardDescription: '',
+        startDate: '2020-01-01',
+        expiryDate: '2026-12-31',
+        status: 'ACTIVE',
+      },
+      { mode: 'edit', now: Date.parse('2026-06-19T12:00:00.000Z') },
+    )
+
+    expect(errors.startDate).toBeUndefined()
+  })
+
   it('validates required fields and date range', () => {
     const errors = getInitiativeFormFieldErrors({
       title: '',
@@ -100,5 +163,33 @@ describe('initiativeFormState', () => {
 
     expect(isInitiativeFormDirty(unchanged, baseline)).toBe(false)
     expect(isInitiativeFormDirty(changed, baseline)).toBe(true)
+  })
+
+  it('rejects values that exceed field length limits', () => {
+    const errors = getInitiativeFormFieldErrors({
+      title: 't'.repeat(101),
+      description: 'd'.repeat(2001),
+      rewardDescription: 'r'.repeat(501),
+      startDate: '2026-06-01',
+      expiryDate: '2026-12-31',
+      status: 'DRAFT',
+    })
+
+    expect(errors.title).toContain('100')
+    expect(errors.description).toContain('2000')
+    expect(errors.rewardDescription).toContain('500')
+  })
+
+  it('accepts values at the maximum field length limits', () => {
+    const errors = getInitiativeFormFieldErrors({
+      title: 't'.repeat(100),
+      description: 'd'.repeat(2000),
+      rewardDescription: 'r'.repeat(500),
+      startDate: '2026-06-01',
+      expiryDate: '2026-12-31',
+      status: 'DRAFT',
+    })
+
+    expect(errors).toEqual({})
   })
 })

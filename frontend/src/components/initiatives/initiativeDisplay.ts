@@ -40,3 +40,10 @@ export function truncateText(text: string, maxLength: number) {
 
   return `${text.slice(0, maxLength).trimEnd()}…`
 }
+
+export const INITIATIVE_LIST_TRUNCATION = {
+  tableTitle: 60,
+  tableReward: 60,
+  cardTitle: 80,
+  cardReward: 80,
+} as const

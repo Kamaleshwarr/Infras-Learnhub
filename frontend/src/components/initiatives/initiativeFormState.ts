@@ -6,15 +6,17 @@ import type {
 } from '../../types/initiatives'
 import {
   defaultExpiryUtcDateInput,
+  isUtcDateBefore,
+  isUtcDateOnOrAfter,
   todayUtcDateInput,
   utcDateInputToInstant,
 } from './initiativeDateUtils'
 import { INITIATIVE_MESSAGES } from './initiativeMessages'
 
 export const INITIATIVE_FORM_LIMITS = {
-  title: 200,
-  description: 5000,
-  rewardDescription: 2000,
+  title: 100,
+  description: 2000,
+  rewardDescription: 500,
 } as const
 
 export const INITIATIVE_STATUS_OPTIONS: InitiativeStatus[] = ['DRAFT', 'ACTIVE', 'EXPIRED']
@@ -38,6 +40,11 @@ export interface InitiativeFormBaseline {
 }
 
 export type InitiativeFormFieldName = keyof InitiativeFormValues
+
+export interface InitiativeFormValidationOptions {
+  now?: number
+  mode?: 'create' | 'edit'
+}
 
 export function createEmptyInitiativeForm(now = Date.now()): InitiativeFormValues {
   const startDate = todayUtcDateInput(now)
@@ -74,8 +81,13 @@ export function buildUpdateInitiativeRequest(values: InitiativeFormValues): Upda
   return buildUpsertInitiativeRequest(values)
 }
 
-export function getInitiativeFormFieldErrors(values: InitiativeFormValues): Partial<Record<InitiativeFormFieldName, string>> {
+export function getInitiativeFormFieldErrors(
+  values: InitiativeFormValues,
+  options: InitiativeFormValidationOptions = {},
+): Partial<Record<InitiativeFormFieldName, string>> {
   const errors: Partial<Record<InitiativeFormFieldName, string>> = {}
+  const now = options.now ?? Date.now()
+  const mode = options.mode ?? 'edit'
 
   if (!values.title.trim()) {
     errors.title = INITIATIVE_MESSAGES.formTitleRequired
@@ -95,21 +107,25 @@ export function getInitiativeFormFieldErrors(values: InitiativeFormValues): Part
 
   if (!values.startDate) {
     errors.startDate = INITIATIVE_MESSAGES.formStartDateRequired
+  } else if (mode === 'create' && isUtcDateBefore(values.startDate, todayUtcDateInput(now))) {
+    errors.startDate = INITIATIVE_MESSAGES.formStartDateBeforeToday
   }
 
   if (!values.expiryDate) {
     errors.expiryDate = INITIATIVE_MESSAGES.formExpiryDateRequired
-  }
-
-  if (values.startDate && values.expiryDate && !isExpiryAfterStart(values.startDate, values.expiryDate)) {
+  } else if (
+    values.startDate &&
+    values.expiryDate &&
+    !isUtcDateOnOrAfter(values.expiryDate, values.startDate)
+  ) {
     errors.expiryDate = INITIATIVE_MESSAGES.formDateRangeInvalid
   }
 
   return errors
 }
 
-export function isInitiativeFormValid(values: InitiativeFormValues) {
-  return Object.keys(getInitiativeFormFieldErrors(values)).length === 0
+export function isInitiativeFormValid(values: InitiativeFormValues, options: InitiativeFormValidationOptions = {}) {
+  return Object.keys(getInitiativeFormFieldErrors(values, options)).length === 0
 }
 
 export function isInitiativeFormDirty(
@@ -167,14 +183,4 @@ function instantToFormDate(instant: string) {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0')
   const day = String(date.getUTCDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
-}
-
-function isExpiryAfterStart(startDate: string, expiryDate: string) {
-  const startInstant = utcDateInputToInstant(startDate)
-  const expiryInstant = utcDateInputToInstant(expiryDate)
-  if (!startInstant || !expiryInstant) {
-    return false
-  }
-
-  return Date.parse(expiryInstant) > Date.parse(startInstant)
 }

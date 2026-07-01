@@ -7,6 +7,11 @@ import { PageHeader } from '../../components/common/PageHeader'
 import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import { InitiativeCardList, InitiativeTable } from '../../components/initiatives/InitiativeListViews'
 import { InitiativeListToolbar } from '../../components/initiatives/InitiativeListToolbar'
+import { CreateInitiativeDialog } from '../../components/initiatives/CreateInitiativeDialog'
+import {
+  InitiativeManagementSnackbar,
+  type InitiativeManagementNotification,
+} from '../../components/initiatives/InitiativeManagementSnackbar'
 import { InitiativeSearchBar } from '../../components/initiatives/InitiativeSearchBar'
 import { InitiativeStatusFilterTabs } from '../../components/initiatives/InitiativeStatusFilterTabs'
 import { INITIATIVE_MESSAGES } from '../../components/initiatives/initiativeMessages'
@@ -45,6 +50,16 @@ export function InitiativeListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [notification, setNotification] = useState<InitiativeManagementNotification | null>(null)
+
+  const refreshInitiatives = useCallback(() => {
+    setRefreshToken((current) => current + 1)
+  }, [])
+
+  const showSuccessNotification = useCallback((message: string) => {
+    setNotification({ message, severity: 'success' })
+  }, [])
 
   const updateQuery = useCallback(
     (nextQuery: typeof appliedQuery) => {
@@ -113,6 +128,12 @@ export function InitiativeListPage() {
   const showEmptyState = !loading && !error && pageData.content.length === 0
   const showList = !error && (loading || pageData.content.length > 0)
 
+  function handleCreateSuccess() {
+    setCreateOpen(false)
+    showSuccessNotification(INITIATIVE_MESSAGES.createSuccess)
+    refreshInitiatives()
+  }
+
   return (
     <>
       <PageHeader
@@ -124,7 +145,15 @@ export function InitiativeListPage() {
         title="Learning Initiatives"
       />
 
-      {isAdmin ? <InitiativeListToolbar onCreateInitiative={() => undefined} /> : null}
+      {isAdmin ? <InitiativeListToolbar onCreateInitiative={() => setCreateOpen(true)} /> : null}
+
+      <CreateInitiativeDialog
+        onClose={() => setCreateOpen(false)}
+        onSuccess={handleCreateSuccess}
+        open={createOpen}
+      />
+
+      <InitiativeManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
 
       <Box sx={{ mb: 3 }}>
         <InitiativeSearchBar disabled={Boolean(error) && pageData.content.length === 0} onChange={setDraftSearch} value={draftSearch} />

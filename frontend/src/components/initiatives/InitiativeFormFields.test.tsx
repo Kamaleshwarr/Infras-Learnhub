@@ -47,4 +47,17 @@ describe('InitiativeFormFields', () => {
 
     expect(screen.getByText('Title is required.')).toBeInTheDocument()
   })
+
+  it('does not show edit-only status helper by default', () => {
+    render(
+      <InitiativeFormFields
+        onChange={vi.fn()}
+        values={createEmptyInitiativeForm(Date.parse('2026-06-19T12:00:00.000Z'))}
+      />,
+    )
+
+    expect(
+      screen.queryByText(/Expired initiatives can be reactivated to Active through Edit/i),
+    ).not.toBeInTheDocument()
+  })
 })
