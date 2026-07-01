@@ -1,6 +1,6 @@
 # Learning Hub Architecture
 
-**Current release:** v0.5 (Profile Management)
+**Current release:** v0.7.1 (Initiative Management)
 
 ## Backend Architecture
 
@@ -81,6 +81,27 @@ api -> auth -> routes -> layout -> pages -> components -> types
 - Pages must implement loading, error, and empty states.
 - Material UI should be used consistently.
 - `ProfilePage` at `/profile` — self-service profile view, edit, and avatar management.
+- `InitiativeListPage` at `/initiatives` — searchable initiative list with admin management actions.
+- `InitiativeDetailPage` at `/initiatives/:initiativeId` — initiative detail with role-aware content.
+
+### Shared Component Patterns (v0.7.1)
+
+Initiative Management uses consistent patterns across create, edit, lifecycle, and delete:
+
+| Pattern | Component | Usage |
+|---------|-----------|-------|
+| Form dialogs | `CreateInitiativeDialog`, `EditInitiativeDialog` | `maxWidth="md"`, inline `Alert`, discard-unsaved nested dialog |
+| Confirm dialogs | `InitiativeLifecycleConfirmDialog` | `maxWidth="sm"`; `variant: confirm \| info` |
+| Mutation actions | `InitiativeLifecycleActions`, `InitiativeDeleteAction` | Compact icons (list) or outlined buttons (detail) |
+| Success feedback | `InitiativeManagementSnackbar` | Bottom-center, 5s auto-hide, success only |
+| Status display | `InitiativeStatusChip` | List, detail, dialog summaries |
+| Long text (list) | `TruncatedTextWithTooltip` | Title/reward truncation with tooltip |
+| Long text (detail/dialog) | `WrappingText`, `longTextWrapSx` | Full text with pre-wrap |
+| Form state | `initiativeFormState` | Shared validation, dirty baseline, API payload builders |
+| Copy | `initiativeMessages` | Centralized user-facing strings |
+
+**Role gating:** Admin management controls (`isAdmin`) are passed as optional callbacks from pages to list views. Employees never receive edit, lifecycle, or delete callbacks.
+
 
 ## Database Architecture
 
@@ -92,9 +113,10 @@ Core schemas/tables:
 - `roles`
 - `user_roles`
 - `password_reset_tokens` (v0.2)
-- `learning_initiatives`
+- `learning_initiatives` (constraints tightened in V10, V11)
 - `certificate_documents`
-- `certificate_submissions`
+- `certificate_submissions` (`initiative_id` FK `ON DELETE RESTRICT`)
+- `notifications` (v0.6)
 - `study_material_folders`
 - `study_materials`
 - `study_material_download_events`
@@ -345,6 +367,137 @@ When a user updates their email via `PUT /api/v1/profile`:
 
 **Frontend:** `ProfilePage`, `ProfileAvatar`, `ProfileAvatarUpload`, `ProfileEditForm`.
 
+## Initiative Management Architecture (v0.7.1)
+
+Initiative Management extends the existing `initiative` backend module and v0.7.0 frontend experience. Business logic is centralized in `LearningInitiativeService`; authorization uses `@PreAuthorize` on service methods.
+
+### Initiative APIs
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/v1/initiatives` | Admin, Employee | Paginated list; employees see visible ACTIVE only |
+| `GET` | `/api/v1/initiatives/{id}` | Admin, Employee | Detail; employees get 404 for non-visible |
+| `POST` | `/api/v1/initiatives` | Admin | Create (always DRAFT) |
+| `PUT` | `/api/v1/initiatives/{id}` | Admin | Update metadata (status preserved) |
+| `DELETE` | `/api/v1/initiatives/{id}` | Admin | Hard delete when no submissions |
+| `POST` | `/api/v1/initiatives/{id}/publish` | Admin | DRAFT → ACTIVE |
+| `POST` | `/api/v1/initiatives/{id}/return-to-draft` | Admin | ACTIVE → DRAFT |
+| `POST` | `/api/v1/initiatives/{id}/mark-expired` | Admin | ACTIVE → EXPIRED |
+| `POST` | `/api/v1/initiatives/{id}/reactivate` | Admin | EXPIRED → ACTIVE |
+
+### Employee Visibility
+
+`LearningInitiative.isVisibleToEmployeesAt(instant)` enforces:
+
+- Status must be **ACTIVE**
+- Start date ≤ today (UTC calendar day)
+- Expiry date ≥ today (UTC calendar day)
+
+Non-visible initiatives return **404** to employees (not 403).
+
+### Frontend Module Structure
+
+```text
+frontend/src/
+├── api/initiativesApi.ts
+├── types/initiatives.ts
+├── pages/initiatives/
+│   ├── InitiativeListPage.tsx
+│   ├── InitiativeDetailPage.tsx
+│   └── initiativeListParams.ts
+└── components/initiatives/
+    ├── CreateInitiativeDialog.tsx
+    ├── EditInitiativeDialog.tsx
+    ├── InitiativeLifecycleActions.tsx
+    ├── InitiativeDeleteAction.tsx
+    ├── InitiativeLifecycleConfirmDialog.tsx
+    ├── InitiativeListViews.tsx
+    ├── initiativeFormState.ts
+    └── initiativeMessages.ts
+```
+
+## Lifecycle Management Architecture (F14)
+
+Lifecycle transitions are **never** performed via metadata PUT. Dedicated service methods enforce a transition matrix:
+
+```text
+DRAFT   → ACTIVE   (publish)
+ACTIVE  → DRAFT    (returnToDraft)
+ACTIVE  → EXPIRED  (markExpired)
+EXPIRED → ACTIVE   (reactivate)
+```
+
+`assertTransition(from, to)` throws `IllegalArgumentException` (400) for blocked paths.
+
+| Action | Pre-validation |
+|--------|--------------|
+| Publish | Full metadata validation; start ≥ today |
+| Return to Draft | None (metadata unchanged) |
+| Mark Expired | Expiry set to today (UTC); start clamped if future |
+| Reactivate | Expiry ≥ today (UTC) and ≥ start date |
+
+**Frontend:** `InitiativeLifecycleActions` renders only valid actions per status. `InitiativeLifecycleConfirmDialog` shows status-specific messaging before API call.
+
+## Delete Workflow Architecture (F15)
+
+Delete eligibility depends **only** on certificate submission count.
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Frontend
+    participant SubmissionsAPI
+    participant InitiativeAPI
+    participant Service
+    participant DB
+
+    Admin->>Frontend: Click Delete
+    Frontend->>SubmissionsAPI: listAll({ initiativeId, size: 1 })
+    SubmissionsAPI-->>Frontend: totalElements
+
+    alt totalElements > 0
+        Frontend->>Admin: Blocked info dialog (Close only)
+    else totalElements == 0
+        Frontend->>Admin: Confirm dialog
+        Admin->>Frontend: Confirm
+        Frontend->>InitiativeAPI: DELETE /initiatives/{id}
+        InitiativeAPI->>Service: delete(id, user)
+        Service->>Service: assertDeletable (countByInitiativeId)
+        alt submissions exist
+            Service-->>InitiativeAPI: BusinessConflictException
+            InitiativeAPI-->>Frontend: HTTP 409
+            Frontend->>Admin: Switch to blocked dialog
+        else no submissions
+            Service->>DB: repository.delete()
+            Service->>Service: INFO structured log
+            InitiativeAPI-->>Frontend: 204
+            Frontend->>Admin: Navigate/refresh
+        end
+    end
+```
+
+**Backend layers:**
+
+1. `assertDeletable()` — `CertificateSubmissionRepository.countByInitiativeId() > 0` → `BusinessConflictException`
+2. `initiativeRepository.delete()` — hard delete
+3. DB FK `certificate_submissions.initiative_id ON DELETE RESTRICT` — defence in depth
+4. `GlobalExceptionHandler` — `BusinessConflictException` and `DataIntegrityViolationException` → HTTP 409
+
+**Frontend:** `InitiativeDeleteAction` handles eligibility pre-check, confirm/blocked dialogs, and 409 race handling via `isConflictError()`.
+
+## Notifications Architecture (v0.6)
+
+In-app notifications persist in the `notifications` table (Flyway `V9__create_notifications.sql`).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/notifications` | Paginated inbox |
+| `GET` | `/api/v1/notifications/unread-count` | Badge count |
+| `PATCH` | `/api/v1/notifications/{id}/read` | Mark single read |
+| `POST` | `/api/v1/notifications/mark-all-read` | Mark all read |
+
+Certificate workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`, etc.) are wired in `CertificateSubmissionService`. Frontend: bell, dropdown, `/notifications` page.
+
 ## Authorization Model
 
 ### Global Roles
@@ -418,9 +571,15 @@ com.company.learninghub.<module>/
 ```text
 V1__create_identity_schema.sql
 V2__seed_default_users.sql
-...
+V3__create_learning_initiatives.sql
+V4__create_certificate_submissions.sql
+V5__create_study_material_repository.sql
+V6__create_project_knowledge_repository.sql
 V7__password_management.sql
 V8__profile_avatar.sql
+V9__create_notifications.sql
+V10__relax_learning_initiative_date_constraint.sql
+V11__tighten_learning_initiative_text_limits.sql
 ```
 
 - Add migrations only for schema changes.
@@ -445,10 +604,11 @@ Required test types:
 - Authenticated APIs should use `@SecurityRequirement(name = "bearerAuth")`.
 - Swagger sections should match business module names:
   - Authentication (`/auth/login`, `/auth/me`, `/auth/change-password`, `/auth/forgot-password`, `/auth/reset-password`)
-  - Learning Initiatives
+  - Learning Initiatives (CRUD, lifecycle, delete)
   - Certificate Submissions
   - Leaderboards
   - Study Materials
   - Project Knowledge
   - Users
   - Profile
+  - Notifications

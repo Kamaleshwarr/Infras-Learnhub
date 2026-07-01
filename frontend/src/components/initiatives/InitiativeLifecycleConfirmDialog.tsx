@@ -8,32 +8,41 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
+  Typography,
 } from '@mui/material'
+import type { InitiativeStatus } from '../../types/initiatives'
 import { WrappingText } from '../common/WrappingText'
+import { InitiativeStatusChip } from './InitiativeStatusChip'
 
 interface InitiativeLifecycleConfirmDialogProps {
   open: boolean
   title: string
-  confirmLabel: string
+  confirmLabel?: string
   confirmColor?: 'primary' | 'success' | 'warning' | 'error'
   submitting?: boolean
   confirmDisabled?: boolean
+  variant?: 'confirm' | 'info'
+  closeLabel?: string
   onClose: () => void
-  onConfirm: () => void
+  onConfirm?: () => void
   children?: ReactNode
 }
 
 export function InitiativeLifecycleConfirmDialog({
   open,
   title,
-  confirmLabel,
+  confirmLabel = 'Confirm',
   confirmColor = 'primary',
   submitting = false,
   confirmDisabled = false,
+  variant = 'confirm',
+  closeLabel = 'Cancel',
   onClose,
   onConfirm,
   children,
 }: InitiativeLifecycleConfirmDialogProps) {
+  const isInfo = variant === 'info'
+
   return (
     <Dialog
       aria-labelledby="initiative-lifecycle-confirm-title"
@@ -49,19 +58,57 @@ export function InitiativeLifecycleConfirmDialog({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button disabled={submitting} onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          color={confirmColor}
-          disabled={submitting || confirmDisabled}
-          onClick={onConfirm}
-          variant="contained"
-        >
-          {submitting ? <CircularProgress color="inherit" size={24} /> : confirmLabel}
-        </Button>
+        {isInfo ? (
+          <Button disabled={submitting} onClick={onClose} variant="contained">
+            {closeLabel}
+          </Button>
+        ) : (
+          <>
+            <Button disabled={submitting} onClick={onClose}>
+              {closeLabel}
+            </Button>
+            <Button
+              color={confirmColor}
+              disabled={submitting || confirmDisabled}
+              onClick={onConfirm}
+              variant="contained"
+            >
+              {submitting ? <CircularProgress color="inherit" size={24} /> : confirmLabel}
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
+  )
+}
+
+interface InitiativeDeleteDetailsProps {
+  title: string
+  status: InitiativeStatus
+  submissionCount: number
+}
+
+export function InitiativeDeleteDetails({ title, status, submissionCount }: InitiativeDeleteDetailsProps) {
+  return (
+    <Box
+      sx={{
+        bgcolor: 'action.hover',
+        borderRadius: 1,
+        minWidth: 0,
+        p: 2,
+      }}
+    >
+      <WrappingText variant="subtitle2">{title}</WrappingText>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1 }}>
+        <Typography color="text.secondary" variant="body2">
+          Status:
+        </Typography>
+        <InitiativeStatusChip status={status} />
+      </Stack>
+      <WrappingText color="text.secondary" sx={{ mt: 1 }} variant="body2">
+        Certificate submissions: {submissionCount}
+      </WrappingText>
+    </Box>
   )
 }
 

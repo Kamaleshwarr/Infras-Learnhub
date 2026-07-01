@@ -6,6 +6,7 @@ import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.dto.CreateInitiativeRequest;
 import com.company.learninghub.initiative.mapper.LearningInitiativeMapper;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
+import com.company.learninghub.submission.repository.CertificateSubmissionRepository;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -120,15 +121,22 @@ class LearningInitiativeMethodSecurityTest {
         @Bean
         LearningInitiativeService learningInitiativeService(
                 LearningInitiativeRepository initiativeRepository,
+                CertificateSubmissionRepository submissionRepository,
                 UserRepository userRepository,
                 LearningInitiativeMapper initiativeMapper
         ) {
             return new LearningInitiativeService(
                     initiativeRepository,
+                    submissionRepository,
                     userRepository,
                     initiativeMapper,
                     Clock.fixed(NOW, ZoneOffset.UTC)
             );
+        }
+
+        @Bean
+        CertificateSubmissionRepository certificateSubmissionRepository() {
+            return mock(CertificateSubmissionRepository.class);
         }
 
         @Bean

@@ -20,3 +20,7 @@ export function getValidationErrors(error: unknown) {
 export function isNotFoundError(error: unknown) {
   return axios.isAxiosError(error) && error.response?.status === 404
 }
+
+export function isConflictError(error: unknown) {
+  return axios.isAxiosError(error) && error.response?.status === 409
+}

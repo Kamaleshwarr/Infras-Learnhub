@@ -1,6 +1,7 @@
 package com.company.learninghub.initiative.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import com.company.learninghub.common.exception.BusinessConflictException;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.domain.InitiativeStatus;
 import com.company.learninghub.initiative.domain.LearningInitiative;
@@ -10,9 +11,12 @@ import com.company.learninghub.initiative.dto.ReactivateInitiativeRequest;
 import com.company.learninghub.initiative.dto.UpdateInitiativeRequest;
 import com.company.learninghub.initiative.mapper.LearningInitiativeMapper;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
+import com.company.learninghub.submission.repository.CertificateSubmissionRepository;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,11 +38,17 @@ import java.util.UUID;
 @Service
 public class LearningInitiativeService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LearningInitiativeService.class);
+
+    static final String INITIATIVE_DELETE_BLOCKED_MESSAGE =
+            "This initiative cannot be deleted because certificate submissions already exist.";
+
     private static final int TITLE_MAX_LENGTH = 100;
     private static final int DESCRIPTION_MAX_LENGTH = 2000;
     private static final int REWARD_MAX_LENGTH = 500;
 
     private final LearningInitiativeRepository initiativeRepository;
+    private final CertificateSubmissionRepository submissionRepository;
     private final UserRepository userRepository;
     private final LearningInitiativeMapper initiativeMapper;
     private final Clock clock;
@@ -46,19 +56,22 @@ public class LearningInitiativeService {
     @Autowired
     public LearningInitiativeService(
             LearningInitiativeRepository initiativeRepository,
+            CertificateSubmissionRepository submissionRepository,
             UserRepository userRepository,
             LearningInitiativeMapper initiativeMapper
     ) {
-        this(initiativeRepository, userRepository, initiativeMapper, Clock.systemUTC());
+        this(initiativeRepository, submissionRepository, userRepository, initiativeMapper, Clock.systemUTC());
     }
 
     LearningInitiativeService(
             LearningInitiativeRepository initiativeRepository,
+            CertificateSubmissionRepository submissionRepository,
             UserRepository userRepository,
             LearningInitiativeMapper initiativeMapper,
             Clock clock
     ) {
         this.initiativeRepository = initiativeRepository;
+        this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
         this.initiativeMapper = initiativeMapper;
         this.clock = clock;
@@ -210,9 +223,31 @@ public class LearningInitiativeService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public void delete(UUID initiativeId) {
+    public void delete(UUID initiativeId, AuthenticatedUser authenticatedUser) {
         LearningInitiative initiative = findInitiativeOrThrow(initiativeId);
+        assertDeletable(initiativeId);
         initiativeRepository.delete(initiative);
+        LOGGER.info(
+                "Deleted learning initiative id={} title=\"{}\" status={} deletedByUserId={} deletedByEmail={}",
+                initiative.getId(),
+                initiative.getTitle(),
+                initiative.getStatus(),
+                authenticatedUser.getId(),
+                authenticatedUser.getEmail()
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
+    public long countSubmissions(UUID initiativeId) {
+        findInitiativeOrThrow(initiativeId);
+        return submissionRepository.countByInitiativeId(initiativeId);
+    }
+
+    private void assertDeletable(UUID initiativeId) {
+        if (submissionRepository.countByInitiativeId(initiativeId) > 0) {
+            throw new BusinessConflictException(INITIATIVE_DELETE_BLOCKED_MESSAGE);
+        }
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")

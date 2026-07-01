@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
+Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
 
 ## Release Overview
 
@@ -14,23 +14,23 @@ Last updated: 2026-06-30 (v0.7.1 — F14 completed, manual QA passed)
 | v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
-| **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **In progress — F14 complete** |
+| **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
 
-Release notes: `docs/releases/release-v0.7.0.md`  
-Prior: `docs/releases/release-v0.6.2.md`  
+Release notes: `docs/releases/release-v0.7.1.md`  
+Prior: `docs/releases/release-v0.7.0.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ---
 
-## In Progress — v0.7.1 Initiative Management
+## Shipped — v0.7.1 Initiative Management
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | F11 / Phase 0 | Initiative management foundation (types, API, shared form state) | **Completed** |
-| F12 | Create Initiative dialog + list integration | **Completed** |
+| F12 | Create Initiative dialog + list integration | **Completed** — manual QA passed |
 | F13 | Edit Initiative dialog (list + detail), metadata panel, date/lifecycle rules | **Completed** — manual QA passed |
 | F14 | Initiative Lifecycle Management (dedicated actions, confirmations, backend enforcement) | **Completed** — manual QA passed (PR #42) |
-| F15 | Delete Initiative | **Pending** |
+| F15 | Delete Initiative | **Completed** — manual QA passed (PR #43) |
 
 **F13 business rules finalized:**
 
@@ -58,7 +58,12 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 **Also delivered (v0.7.1 stack):** App-wide long-text display standard; Flyway V10/V11 initiative constraints
 
-**Pending:** F15 delete initiative UI and blocked-delete handling
+**F15 delete business rules finalized:**
+
+- Delete eligibility depends only on certificate submission count (`0` = allowed, `>0` = blocked)
+- Hard delete only; backend validates before delete; HTTP 409 when blocked
+- Admin list + detail delete actions; blocked informational dialog or confirmation dialog
+- Employees never see delete controls; lifecycle actions unchanged
 
 ---
 
@@ -219,7 +224,6 @@ Release notes: `docs/releases/release-v0.6.2.md`
 
 | ID | Item | Notes |
 |----|------|-------|
-| F15 | Delete Initiative UI | v0.7.1 — backend API exists; blocked when submissions present |
 | — | Rejected submission resubmission workflow | Future — backend `UNIQUE(employee_id, initiative_id)` |
 | — | Initiative leaderboard full page UI | Route exists; placeholder only |
 | — | Top 3 learners on detail + leaderboard navigation | Future release |
@@ -264,4 +268,4 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 8. **Certificate Workflow UI** — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. **Certificate Review enhancements** — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. **Initiatives Experience UI** — List, detail, submit integration, F2.1 polish (v0.7.0 — PR #36 pending merge)
-11. **Initiative Management UI (partial)** — Create (F12), Edit (F13), Lifecycle (F14) (v0.7.1 — F15 pending)
+11. **Initiative Management UI** — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — **complete**)
