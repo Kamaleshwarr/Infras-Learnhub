@@ -1,9 +1,9 @@
 # v0.8.0 Learn Module — Implementation Plan v2
 
-**Status:** **DRAFT — pending approval** (supersedes v1 admin-authoring model)  
+**Status:** **FINAL — FROZEN** (approved; supersedes v1 admin-authoring model)  
 **Feature numbering:** F16-R, F17–F22 (F16 shipped; original F19 eliminated)  
-**Depends on:** F16 complete; architecture revision `08-navigation-platform-revision.md` approved  
-**Classification:** Implementation planning — **no production code until approved**
+**Depends on:** F16 complete; [08-navigation-platform-revision.md](./08-navigation-platform-revision.md) + [10-catalog-specification.md](./10-catalog-specification.md) (both frozen)  
+**Classification:** Implementation planning — **F16-R ready to begin**
 
 ---
 
@@ -11,7 +11,7 @@
 
 This plan replaces the admin-authoring phases in `07-implementation-plan.md` with a **catalog-first, curation-only** model aligned with the Learning Navigation Platform vision.
 
-**Reference:** [08-navigation-platform-revision.md](./08-navigation-platform-revision.md)
+**Reference:** [08-navigation-platform-revision.md](./08-navigation-platform-revision.md), [10-catalog-specification.md](./10-catalog-specification.md)
 
 ---
 
@@ -54,8 +54,11 @@ Refactor F16 from Technology CRUD to **catalog import + org curation** without r
 
 ## In scope
 
-- Catalog package structure (`catalog/technologies.v1.json`, `manifest.json`)
-- `CatalogImportService` — idempotent upsert by `slug`
+- Catalog package structure per [10-catalog-specification.md](./10-catalog-specification.md):
+  - `catalog/manifest.json`
+  - `catalog/technologies/wave-1.json`
+  - `catalog/schemas/technology.schema.json`
+- `CatalogImportService` — idempotent upsert by `slug`; lifecycle per spec §3
 - Schema migration `V13__learn_catalog_foundation.sql`:
   - Add `slug`, `estimated_duration`, `official_website`, `official_documentation`, `tags`, `org_notes`, `catalog_version`, `source`
   - Migrate existing F16 rows to slugs
@@ -248,7 +251,8 @@ Adjustments:
 
 | Gate | Required before |
 |------|-----------------|
-| Architecture revision v2 approved | F16-R start |
+| Architecture revision v2 + catalog spec | **Approved — frozen** |
+| F16-R start | **Ready now** |
 | F16-R merged | Revised F17 start |
 | Each subsequent phase | Prior phase merged |
 

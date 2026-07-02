@@ -52,13 +52,13 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 ## Current Release
 
 **v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
-**v0.8.0** — Learn module (**In progress** — F16 Technology Discovery & Search implemented)  
+**v0.8.0** — Learn module (**F16 shipped**; **F16-R ready to begin**)  
+**Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*  
 **Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
 
 Release notes: `docs/releases/release-v0.7.1.md`  
-v0.8.0 implementation report: `docs/releases/release-v0.8.0-f16-implementation-report.md`  
-v0.8.0 product design: `docs/v0.8.0/`  
+v0.8.0 catalog specification: `docs/v0.8.0/10-catalog-specification.md`
 Roadmap: `docs/project-roadmap.md`
 
 ### v0.7.1 Highlights (complete)
@@ -163,19 +163,18 @@ Roadmap: `docs/project-roadmap.md`
 - Flyway `V12__learn_technologies.sql` with dev seed technologies
 - Sidebar: Learn (position 2), Projects retained; My Certifications / Review Submissions renames
 
-### v0.8.0 Architecture Revision v2 (pending approval)
+### v0.8.0 Architecture Revision v2 (APPROVED — FROZEN)
 
-F16 review identified LMS-like drift. Revision proposes:
+> **Engineering Learning Hub owns guidance, not knowledge.**
 
-- **Built-in Technology Catalog** (~100 technologies) — metadata only, no hosted content
-- **Catalog-sourced roadmaps** — platform team ships seed data, not admin authors
-- **Admin as curator** — publish/feature/hide/org notes/project links; no educational content authoring
-- **F16-R refactor** before revised F17
-- **Original F17 admin CRUD cancelled**
+- Built-in Technology Catalog (~100 technologies) — metadata only
+- Catalog-sourced roadmaps — platform ships seed data
+- Admin as curator — publish/feature/hide/org notes/project links
+- Catalog spec: directory structure, JSON schemas, import lifecycle
 
-See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implementation-plan-v2.md`
+See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implementation-plan-v2.md`, `docs/v0.8.0/10-catalog-specification.md`
 
-**F17 and all implementation blocked until revision approved.**
+**F16-R is ready to begin. F17 blocked until F16-R complete.**
 
 ## Completed Backend Modules
 

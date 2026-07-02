@@ -1,10 +1,11 @@
 # v0.8.0 — Learning Navigation Platform Architecture Revision
 
-**Version:** 2.0 (architecture revision)  
+**Version:** 2.1 (final documentation refinement)  
 **Date:** 2026-07-02  
-**Status:** **Pending product owner approval** — documentation only  
+**Status:** **APPROVED — FROZEN**  
 **Triggers:** F16 implementation review — design still resembled an LMS  
-**Supersedes (when approved):** Admin-authoring assumptions in `07-implementation-plan.md` v1
+**Supersedes:** Admin-authoring assumptions in `07-implementation-plan.md` v1  
+**Catalog detail:** [10-catalog-specification.md](./10-catalog-specification.md)
 
 ---
 
@@ -19,7 +20,22 @@ Engineering Learning Hub Learn must evolve from an **admin-authored curriculum m
 
 This revision preserves the approved product vision (guidance, not LMS) and simplifies long-term maintenance by shipping a **built-in Technology Catalog** (~100 technologies) and **catalog-sourced roadmaps** as seed data.
 
-**No F17 implementation should begin until this revision is approved.**
+**No F17 implementation until F16-R is complete.**
+
+---
+
+## Product philosophy (canonical)
+
+> **Engineering Learning Hub owns guidance, not knowledge.**
+
+| Platform owns | External / org owns |
+|---------------|---------------------|
+| Navigation structure (catalog, roadmaps, stages, sequencing) | Lessons, videos, courses, hosted material |
+| Curated references (URLs, titles, types, providers) | Content at those URLs |
+| Progress and enrollment state | Certification exam delivery |
+| Org curation (visibility, featured, notes, project links) | Organizational project knowledge (Projects module) |
+
+See [10-catalog-specification.md](./10-catalog-specification.md) for full ownership matrix.
 
 ---
 
@@ -269,19 +285,30 @@ NEW:  Platform → Import Catalog → Admin → Feature / Hide / Add org notes /
 
 ### 4.2 Recommendation: **Option C — Hybrid catalog packages**
 
+Canonical directory structure (authoritative detail in [10-catalog-specification.md](./10-catalog-specification.md)):
+
 ```text
 backend/src/main/resources/catalog/
-├── manifest.json                 # catalog version, package list
-├── technologies.v1.json          # ~100 technology records
+├── manifest.json
+├── schemas/
+│   ├── technology.schema.json
+│   ├── roadmap.schema.json
+│   ├── career-path.schema.json
+│   └── certification.schema.json
+├── technologies/
+│   ├── wave-1.json
+│   └── wave-2.json
 ├── roadmaps/
-│   ├── spring-boot.v1.json
-│   ├── aws.v1.json
+│   ├── spring-boot.json
+│   ├── aws.json
 │   └── ...
-├── career-paths.v1.json
-└── certifications.v1.json
+├── career-paths/
+│   └── wave-1.json
+└── certifications/
+    └── wave-1.json
 ```
 
-**Import pipeline:**
+**Import pipeline** (see [10-catalog-specification.md §3](./10-catalog-specification.md#3-catalog-import-lifecycle)):
 
 1. Flyway manages **schema** (`learn_technologies`, `learn_roadmaps`, etc.)
 2. `learn_catalog_imports` table records applied catalog version
@@ -534,8 +561,9 @@ F16 shipped before this revision. It is **directionally correct** (browse, searc
 
 | Gate | Status |
 |------|--------|
-| Architecture revision v2.0 | **Pending approval** |
-| F16-R implementation | Blocked until approval |
+| Architecture revision v2.0 | **Approved — frozen** |
+| Catalog specification v1.0 | **Approved — frozen** |
+| F16-R implementation | **Ready to begin** |
 | Revised F17 implementation | Blocked until F16-R complete |
 | Original F17 (admin CRUD) | **Cancelled** |
 
@@ -543,6 +571,7 @@ F16 shipped before this revision. It is **directionally correct** (browse, searc
 
 ## Related documents
 
+- [10-catalog-specification.md](./10-catalog-specification.md) — Directory structure, JSON schemas, import lifecycle
 - [09-implementation-plan-v2.md](./09-implementation-plan-v2.md) — Revised F16-R through F22 detail
-- [07-implementation-plan.md](./07-implementation-plan.md) — Original plan (frozen; superseded on approval)
+- [07-implementation-plan.md](./07-implementation-plan.md) — Original plan (superseded)
 - [F16 implementation report](../releases/release-v0.8.0-f16-implementation-report.md)

@@ -26,26 +26,27 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ## In design — v0.8.0 Learn (Learning Navigation Platform)
 
-**Status:** F16 **shipped** · Architecture revision v2 **pending approval** (`docs/v0.8.0/08-navigation-platform-revision.md`)
+**Status:** F16 **shipped** · Architecture revision v2 + catalog spec **APPROVED — FROZEN**
 
-**Objective:** Introduce the **Learn** module as a **Learning Navigation Platform** — catalog-first, curation-only admin model.
+**Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
+
+**Objective:** Learn module as a **Learning Navigation Platform** — catalog-first, curation-only admin model.
 
 **Product design:** `docs/v0.8.0/00-product-design.md` (vision frozen)  
 **Architecture revision:** `docs/v0.8.0/08-navigation-platform-revision.md`  
+**Catalog specification:** `docs/v0.8.0/10-catalog-specification.md`  
 **Implementation plan v2:** `docs/v0.8.0/09-implementation-plan-v2.md`
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| F16 | Technology Discovery & Search (+ Projects cross-nav) | **Shipped** — refactor planned (F16-R) |
-| F16-R | Catalog Foundation Refactor | **Blocked** — pending revision approval |
-| F17 | Roadmap Viewer & Catalog Roadmaps | **Blocked** — not original admin CRUD plan |
+| F16 | Technology Discovery & Search (+ Projects cross-nav) | **Shipped** |
+| **F16-R** | Catalog Foundation Refactor | **Ready to begin** |
+| F17 | Roadmap Viewer & Catalog Roadmaps | Blocked until F16-R |
 | F18 | Progress & Learning Journey | Not started |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |
 | F21 | Optional Initiative Association | Not started |
 | F22 | Dashboard, Unified Search & Release | Not started |
-
-**Key revision:** Replace admin Technology/Roadmap/Resource CRUD with **built-in catalog (~100 technologies)** and **admin curation only**. Original F19 (Practice Resource CRUD) eliminated — practice links in roadmap catalog.
 
 ---
 
