@@ -62,7 +62,7 @@ AI is **optional and future-ready** in v0.8.0. No core Learn flow depends on AI.
 
 ### 1.5 Smart certification readiness
 
-**Concept:** Beyond Stage completion, estimate readiness using project completion, resource visits, and time spent.
+**Concept:** Beyond Stage completion, estimate readiness using practice resource completion, resource visits, and time spent.
 
 | Aspect | Detail |
 |--------|--------|
@@ -163,6 +163,10 @@ Reusable Roadmap templates (e.g., "Language fundamentals" pattern) for faster ad
 Optional "Also in Study Materials" badge when a Learn Resource URL matches a Study Material link.
 
 **Scope:** Read-only deduplication hint; no sync.
+
+### 3.6 Projects module enhancements (independent release)
+
+Full Projects module UI for organizational knowledge (overview, BRD, FRD, architecture, KT, deployment guides, team info) ships independently of Learn. Learn provides cross-navigation to Projects only — it does not own or duplicate project content.
 
 ---
 

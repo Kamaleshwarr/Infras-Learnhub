@@ -1,9 +1,9 @@
 # v0.8.0 Learn Module — Comprehensive Product Design
 
-**Version:** 1.0 (draft for approval)  
+**Version:** 1.1 (design refinement)  
 **Last updated:** 2026-07-02  
 **Authors:** Product Discovery phase  
-**Status:** Awaiting product owner approval
+**Status:** Design refinement — awaiting product owner approval
 
 ---
 
@@ -17,17 +17,18 @@
 6. [Technology Concept](#6-technology-concept)
 7. [Roadmap Concept](#7-roadmap-concept)
 8. [Learning Resources Concept](#8-learning-resources-concept)
-9. [Project Integration](#9-project-integration)
-10. [Industry Certification Integration](#10-industry-certification-integration)
-11. [Initiative Integration](#11-initiative-integration)
-12. [Progress Tracking](#12-progress-tracking)
-13. [Admin Responsibilities](#13-admin-responsibilities)
-14. [Employee Experience](#14-employee-experience)
-15. [Business Rules](#15-business-rules)
-16. [Non-Functional Considerations](#16-non-functional-considerations)
-17. [Risks](#17-risks)
-18. [Future AI Opportunities](#18-future-ai-opportunities)
-19. [Product Roadmap for Implementation](#19-product-roadmap-for-implementation)
+9. [Practice Resources Concept](#9-practice-resources-concept)
+10. [Projects Module & Cross-Navigation](#10-projects-module--cross-navigation)
+11. [Industry Certification Integration](#11-industry-certification-integration)
+12. [Initiative Integration](#12-initiative-integration)
+13. [Progress Tracking](#13-progress-tracking)
+14. [Admin Responsibilities](#14-admin-responsibilities)
+15. [Employee Experience](#15-employee-experience)
+16. [Business Rules](#16-business-rules)
+17. [Non-Functional Considerations](#17-non-functional-considerations)
+18. [Risks](#18-risks)
+19. [Future AI Opportunities](#19-future-ai-opportunities)
+20. [Product Roadmap for Implementation](#20-product-roadmap-for-implementation)
 
 Detailed sections are also split into focused documents under `docs/v0.8.0/`. This document is the authoritative master reference.
 
@@ -42,7 +43,7 @@ Many engineers know **what they want to become** but lack clarity on:
 - Where to start
 - What to learn first and what comes next
 - Which external resources are trustworthy
-- When they are ready for hands-on projects
+- When they are ready for hands-on practice
 - When they are ready to pursue industry certification
 
 Existing enterprise learning tools tend to be either content repositories (file dumps) or full LMS platforms (courses, quizzes, grading). Neither solves the *navigation* problem.
@@ -54,9 +55,10 @@ Existing enterprise learning tools tend to be either content repositories (file 
 - Structured **Career Paths** for professional directions
 - **Technology**-scoped **Roadmaps** with ordered **Stages**
 - Curated **Learning Resources** (external links only)
-- Recommended **Projects** for hands-on practice
+- Curated **Practice Resources** for hands-on exercises and labs (external links only)
 - **Certification** readiness guidance pointing to official providers
 - **Progress** tracking across the learner's journey
+- Optional cross-links to the **Projects** module for organizational context
 - Optional ties to **Company Initiatives** when administrators run internal campaigns
 
 ### 1.3 Positioning metaphor
@@ -76,6 +78,7 @@ Existing enterprise learning tools tend to be either content repositories (file 
 | Quizzes and graded assessments | Progress is self-reported in v1 |
 | Certification exam delivery | Direct users to official providers |
 | Mandatory learning tied to initiatives | Initiatives are optional encouragement |
+| Learn owning or managing Projects | Projects is an independent module |
 | AI tutor (v1) | Future-ready architecture; not required for launch |
 
 ### 1.5 Success metrics (post-launch)
@@ -93,6 +96,21 @@ Existing enterprise learning tools tend to be either content repositories (file 
 
 ## 2. Information Architecture
 
+### 2.0 Platform module architecture
+
+Engineering Learning Hub is composed of independent modules. Each module has a single, clear responsibility:
+
+```text
+Learn          →  "How do I learn this technology?"
+Projects       →  "How does our organization build and maintain real systems?"
+Initiatives    →  "What is the company encouraging right now?"
+Leaderboards   →  Recognition and competition
+Users          →  Identity and administration
+Dashboard      →  Role-aware entry point
+```
+
+Learn and Projects may **reference** each other. Neither module owns the other.
+
 ### 2.1 Application-level navigation (v0.8.0 target)
 
 **Employee sidebar**
@@ -101,10 +119,11 @@ Existing enterprise learning tools tend to be either content repositories (file 
 |-------|-------|------|-------|
 | 1 | Dashboard | `/` | Adds Learn widgets |
 | 2 | Learn | `/learn` | New primary module |
-| 3 | Initiatives | `/initiatives` | Unchanged |
-| 4 | Leaderboards | `/leaderboards/global` | Unchanged |
-| 5 | My Certifications | `/submissions` | Renamed from "My Submissions" |
-| 6 | Profile | `/profile` | Unchanged |
+| 3 | Projects | `/projects` | Independent org knowledge module — unchanged ownership |
+| 4 | Initiatives | `/initiatives` | Unchanged |
+| 5 | Leaderboards | `/leaderboards/global` | Unchanged |
+| 6 | My Certifications | `/submissions` | Renamed from "My Submissions" |
+| 7 | Profile | `/profile` | Unchanged |
 
 **Admin sidebar**
 
@@ -112,24 +131,24 @@ Existing enterprise learning tools tend to be either content repositories (file 
 |-------|-------|------|-------|
 | 1 | Dashboard | `/` | Adds Learn admin metrics |
 | 2 | Learn | `/learn` | Includes admin management entry |
-| 3 | Initiatives | `/initiatives` | Unchanged |
-| 4 | Users | `/users` | Unchanged |
-| 5 | Review Submissions | `/submissions/review` | Renamed from "Certificate Review" |
-| 6 | Leaderboards | `/leaderboards/global` | Unchanged |
-| 7 | Settings | `/settings` | New; Learn config subset in v1 |
+| 3 | Projects | `/projects` | Independent module — not under Learn Manage |
+| 4 | Initiatives | `/initiatives` | Unchanged |
+| 5 | Users | `/users` | Unchanged |
+| 6 | Review Submissions | `/submissions/review` | Renamed from "Certificate Review" |
+| 7 | Leaderboards | `/leaderboards/global` | Unchanged |
+| 8 | Settings | `/settings` | New; demoted modules subset in v1 |
 
 **Demoted from primary navigation (not removed)**
 
 | Former label | Path | Treatment |
 |--------------|------|-----------|
 | Study Materials | `/study-materials` | Accessible via Settings or footer link; not primary IA |
-| Projects | `/projects` | Project Knowledge Repository; separate from Learn Projects |
 | Submit Certificate | `/submissions/new` | Accessible from Learn Certification CTAs and My Certifications |
 | Notifications | `/notifications` | Retained in header bell; removed from sidebar clutter |
 
-> **Rationale:** The user's specified navigation prioritizes the learning journey. Notifications remain in the header. Submit Certificate becomes contextual (Certification readiness, Initiatives) rather than a top-level nav item.
+> **Rationale:** Learn and Projects are both primary modules with distinct purposes. Study Materials remains demoted to avoid confusion with Learn Resources. Notifications remain in the header bell.
 
-### 2.2 Entity hierarchy
+### 2.2 Entity hierarchy (Learn module only)
 
 ```text
 Career Path
@@ -137,7 +156,7 @@ Career Path
     └── Roadmap (one primary per Technology in v1)
         └── Stage (ordered)
             ├── Learning Resources (0..n curated links)
-            ├── Projects (0..n recommendations)
+            ├── Practice Resources (0..n curated links)
             └── Certification readiness note (optional)
 
 Certification (catalog entry)
@@ -147,20 +166,25 @@ Certification (catalog entry)
 Employee Learning Journey
 └── Enrollment (Career Path and/or Technology Roadmap)
     └── Stage Progress (per enrollment)
+
+Cross-module reference (optional, not ownership)
+Technology ←──→ Organizational Project (Projects module)
 ```
 
 ### 2.3 Content ownership model
 
-| Entity | Created by | Consumed by |
-|--------|------------|-------------|
-| Career Path | Admin | Employee |
-| Technology | Admin | Employee |
-| Roadmap & Stages | Admin | Employee |
-| Learning Resource | Admin (curated link) | Employee (opens externally) |
-| Learn Project | Admin (recommendation) | Employee |
-| Certification catalog entry | Admin | Employee |
-| Progress | Employee (self-reported) | Employee (+ aggregate admin views) |
-| Initiative | Admin | Employee (optional layer) |
+| Entity | Module | Created by | Consumed by |
+|--------|--------|------------|-------------|
+| Career Path | Learn | Admin | Employee |
+| Technology | Learn | Admin | Employee |
+| Roadmap & Stages | Learn | Admin | Employee |
+| Learning Resource | Learn | Admin (curated link) | Employee (opens externally) |
+| Practice Resource | Learn | Admin (curated link) | Employee (opens externally) |
+| Certification catalog entry | Learn | Admin | Employee |
+| Progress | Learn | Employee (self-reported) | Employee (+ aggregate admin views) |
+| Organizational Project | Projects | Admin | Employee |
+| Project knowledge items | Projects | Admin / contributors | Project members |
+| Initiative | Initiatives | Admin | Employee (optional layer) |
 
 ---
 
@@ -204,9 +228,10 @@ Admin **Manage** expands to:
 ├── /learn/manage/technologies
 ├── /learn/manage/roadmaps
 ├── /learn/manage/resources
-├── /learn/manage/projects
 └── /learn/manage/certifications
 ```
+
+> **Note:** Projects are **not** managed under `/learn/manage`. Project administration lives entirely in the Projects module (`/projects`).
 
 ### 3.3 Deep-link URL patterns
 
@@ -217,9 +242,9 @@ Admin **Manage** expands to:
 | Roadmap view | `/learn/technologies/:technologyId/roadmap` |
 | Stage detail (anchor or sub-route) | `/learn/technologies/:technologyId/roadmap#stage-:stageId` |
 | Certification detail | `/learn/certifications/:certificationId` |
-| Learn Project detail | `/learn/projects/:projectId` |
 | Admin edit Career Path | `/learn/manage/career-paths/:careerPathId` |
 | Admin Roadmap editor | `/learn/manage/technologies/:technologyId/roadmap` |
+| Organizational project (Projects module) | `/projects/:projectId` |
 
 ---
 
@@ -349,7 +374,7 @@ Each **Stage** contains:
 | Description | What the learner will understand after this Stage |
 | Order | Position in Roadmap (1-based) |
 | Learning Resources | Curated links for this Stage |
-| Projects | Recommended hands-on work (may be empty for early Stages) |
+| Practice Resources | Curated hands-on exercise and lab links for this Stage |
 | Estimated effort | e.g., "1–2 weeks" |
 | Certification relevance | Optional note: "Covers ~30% of AZ-900" |
 
@@ -367,7 +392,7 @@ Each **Stage** contains:
 ### 7.4 Roadmap UX
 
 - Vertical timeline or stepped stepper (Material UI Stepper pattern)
-- Each Stage expandable: Resources, Projects, Mark Complete
+- Each Stage expandable: Resources, Practice Resources, Mark Complete
 - Progress bar: `completedStages / totalStages`
 - **Next up** callout on current Stage
 - Completed Stages show checkmark and completion date
@@ -423,52 +448,147 @@ Each **Stage** contains:
 
 ---
 
-## 9. Project Integration
+## 9. Practice Resources Concept
 
-### 9.1 Definition (Learn Projects)
+### 9.1 Definition
 
-**Learn Projects** are hands-on practice recommendations attached to Roadmap Stages. They tell the learner *what to build* to reinforce skills — not where files are stored.
+**Practice Resources** are admin-curated **external links** attached to Roadmap Stages for hands-on exercises, labs, tutorials, and coding challenges. They reinforce Stage skills through practice — but remain external links, not owned content.
 
-> **Critical distinction:** Learn **Projects** ≠ **Project Knowledge Repository** (`/projects`). The latter is an internal KT document store. Learn Projects are external or brief-based practice guidance.
+Practice Resources answer: *"What hands-on exercise should I try to reinforce this Stage?"*
 
-### 9.2 Project attributes
+> **Critical distinction:** Practice Resources are **not** organizational Projects. They are curated external practice links within the Learn module, similar in structure to Learning Resources but categorized for hands-on work.
+
+### 9.2 Practice Resource types
+
+| Type | Examples |
+|------|----------|
+| Interactive lab | AWS Skill Builder lab, Katacoda scenario (external) |
+| Coding exercise | Exercism track, LeetCode curated set, GitHub tutorial repo |
+| Guided tutorial | "Build a REST API" walkthrough (external) |
+| Sandbox environment | Free tier playground link with setup instructions |
+
+### 9.3 Practice Resource attributes
 
 | Attribute | Description |
 |-----------|-------------|
-| Title | e.g., "Deploy a 3-tier app to AWS" |
-| Description | Objectives, scope, success criteria |
+| Title | e.g., "Deploy a Lambda function" |
+| URL | Validated HTTPS external link |
+| Type | From enum above |
 | Difficulty | Beginner / Intermediate / Advanced |
-| Estimated time | e.g., "4–8 hours" |
-| External link | Optional (GitHub template, brief URL) |
-| Prerequisites | Minimum Stage order required |
-| Skills practiced | Tags for discoverability |
+| Estimated time | e.g., "2–4 hours" |
+| Free / Paid | Badge |
+| Order | Within Stage practice list |
 
-### 9.3 Placement in Roadmap
+### 9.4 Placement in Roadmap
 
-- Early Stages: 0 Projects (foundations first)
-- Middle Stages: 1–2 guided Projects
-- Late Stages: Capstone-style Projects before Certification readiness
+- Early Stages: 0–1 Practice Resources (foundations first)
+- Middle Stages: 1–2 Practice Resources
+- Late Stages: Capstone-style practice before Certification readiness
 
-### 9.4 Employee interactions
+### 9.5 Employee interactions
 
-- View Project on Stage detail
-- **Mark Project Complete** (self-reported)
-- Optional link to external starter repo
-- No file upload to Engineering Learning Hub for project deliverables in v1
+- View Practice Resources on Stage detail alongside Learning Resources
+- Click opens external content in **new tab**
+- Optional **Mark Completed** (self-reported) — independent of Stage completion
+- No file upload or deliverable tracking in Engineering Learning Hub
 
-### 9.5 Future: link to Project Knowledge Repository
+### 9.6 Distinction from Learning Resources
 
-When an internal project documents relevant patterns, admin may add an optional cross-link. This is informational only — not a dependency.
+| | Learning Resources | Practice Resources |
+|---|-------------------|-------------------|
+| Purpose | Read, watch, understand | Do, build, practice |
+| Examples | Official docs, articles, videos | Labs, exercises, tutorials |
+| Attachment | Roadmap Stage | Roadmap Stage |
+| Ownership | Learn module (curated link) | Learn module (curated link) |
+
+Both are external links. The separation is semantic and organizational — helping learners distinguish study from practice.
 
 ---
 
-## 10. Industry Certification Integration
+## 10. Projects Module & Cross-Navigation
 
-### 10.1 Definition
+### 10.1 Projects module definition
+
+The **Projects** module is a completely **independent** module within Engineering Learning Hub. It is an internal **Engineering Knowledge Base** for organizational systems the company builds and maintains.
+
+**Projects are NOT:**
+
+- Learning projects
+- Practice projects
+- Portfolio projects
+- Owned by the Learn module
+
+**Projects ARE:**
+
+- Organizational project records (e.g., Banking Platform, Insurance Portal, Employee Portal, Claims Management System)
+- Repositories for project-specific engineering knowledge
+
+### 10.2 Organizational Project content
+
+Each organizational Project may contain:
+
+| Category | Examples |
+|----------|----------|
+| Overview | Project summary, status, timeline |
+| Client | Client name and context |
+| Business domain | Banking, insurance, HR, etc. |
+| Requirements | BRD, FRD |
+| Technical design | Architecture documents, API documentation |
+| Engineering assets | Git repository links, environment URLs, deployment guides |
+| Knowledge transfer | KT documents, release notes |
+| People | Team information, contacts |
+| Related Technologies | Cross-links to Learn Technologies |
+
+Project content is managed entirely within the Projects module. Learn does not store or duplicate this content.
+
+### 10.3 Cross-navigation model
+
+Learn and Projects reference each other through **optional many-to-many associations**. This is cross-navigation only — neither module owns the other.
+
+```text
+Learn: Technology "Spring Boot"
+  └── Related Organization Projects (read-only links)
+        ├── Insurance Portal      → /projects/{id}
+        ├── Employee Portal       → /projects/{id}
+        └── Payment Gateway       → /projects/{id}
+
+Projects: "Insurance Portal"
+  └── Related Technologies (read-only links)
+        ├── Spring Boot           → /learn/technologies/{id}
+        ├── React                 → /learn/technologies/{id}
+        ├── Docker                → /learn/technologies/{id}
+        └── PostgreSQL            → /learn/technologies/{id}
+```
+
+### 10.4 Cross-reference rules
+
+| Rule | Detail |
+|------|--------|
+| Ownership | Technology ↔ Project links are maintained in their respective modules |
+| Direction | Bidirectional display; single source of truth per side |
+| Optional | Technologies and Projects may exist with zero cross-links |
+| Navigation | Clicking a cross-link navigates to the other module's detail page |
+| No embedding | Learn does not embed Project documents; Projects does not embed Roadmaps |
+| v0.8.0 scope | Cross-link **data model and read surfaces** in Learn Technology detail; full Projects UI may ship in parallel or subsequent release |
+
+### 10.5 Employee value
+
+Cross-navigation connects theory to practice:
+
+- **From Learn:** "I've learned Spring Boot — which real company projects use it?"
+- **From Projects:** "This project uses React — where do I learn React?"
+
+This reinforces the platform's dual purpose without blurring module boundaries.
+
+---
+
+## 11. Industry Certification Integration
+
+### 11.1 Definition
 
 **Certifications** in the Learn module are **industry credentials** offered by external providers (AWS, Microsoft, Oracle, CNCF, Docker, etc.). Engineering Learning Hub catalogs them, maps them to Roadmaps, and guides readiness — but never delivers the exam.
 
-### 10.2 Certification catalog attributes
+### 11.2 Certification catalog attributes
 
 | Attribute | Description |
 |-----------|-------------|
@@ -482,7 +602,7 @@ When an internal project documents relevant patterns, admin may add an optional 
 | Estimated exam cost | Informational disclaimer |
 | Status | DRAFT / PUBLISHED |
 
-### 10.3 Readiness model (v1)
+### 11.3 Readiness model (v1)
 
 ```text
 NOT STARTED → IN PROGRESS → READY → (external exam) → RECORDED
@@ -495,7 +615,7 @@ NOT STARTED → IN PROGRESS → READY → (external exam) → RECORDED
 | Ready | All required Stages marked complete |
 | Recorded | Certificate submitted via My Certifications (optional) |
 
-### 10.4 Employee CTAs by readiness
+### 11.4 Employee CTAs by readiness
 
 | State | Primary CTA | Secondary CTA |
 |-------|-------------|---------------|
@@ -504,7 +624,7 @@ NOT STARTED → IN PROGRESS → READY → (external exam) → RECORDED
 | Ready | **Go to official provider** (external) | Submit Certificate (if initiative active) |
 | Recorded | View in My Certifications | Explore next Certification |
 
-### 10.5 Distinction from Company Initiatives
+### 11.5 Distinction from Company Initiatives
 
 | | Industry Certification (Learn) | Company Initiative |
 |---|-------------------------------|-------------------|
@@ -516,9 +636,9 @@ NOT STARTED → IN PROGRESS → READY → (external exam) → RECORDED
 
 ---
 
-## 11. Initiative Integration
+## 12. Initiative Integration
 
-### 11.1 Integration model
+### 12.1 Integration model
 
 Initiatives and Learn are **loosely coupled**. An Initiative may reference a Certification catalog entry, but Learn functions fully without any Initiative.
 
@@ -530,7 +650,7 @@ Roadmap progress                                        Reward / deadline / lead
 Readiness: READY                                        Submit Certificate CTA
 ```
 
-### 11.2 Cross-module surfaces
+### 12.2 Cross-module surfaces
 
 | Surface | Behaviour |
 |---------|-----------|
@@ -539,14 +659,14 @@ Readiness: READY                                        Submit Certificate CTA
 | Dashboard | Separate widgets; Initiative widget does not gate Learn widget |
 | Submit Certificate | Pre-fill initiative when navigated from Initiative; pre-fill certification context when from Learn |
 
-### 11.3 New Initiative attribute (future schema)
+### 12.3 New Initiative attribute (future schema)
 
 | Attribute | Description |
 |-----------|-------------|
 | `linkedCertificationId` | Optional FK to Learn Certification catalog |
 | Unlinked initiatives | Continue to work exactly as v0.7.1 (title-only campaigns) |
 
-### 11.4 Rules
+### 12.4 Rules
 
 1. Learning never depends on an initiative being active
 2. Initiative expiry does not affect Learn content or progress
@@ -555,20 +675,20 @@ Readiness: READY                                        Submit Certificate CTA
 
 ---
 
-## 12. Progress Tracking
+## 13. Progress Tracking
 
-### 12.1 Progress granularity
+### 13.1 Progress granularity
 
 | Level | Tracked | Method |
 |-------|---------|--------|
 | Enrollment | Career Path / Technology | User action: Start |
 | Stage | Per Roadmap Stage | User action: Mark Complete |
-| Resource | Per Learning Resource | Optional: Mark Visited |
-| Project | Per Learn Project | User action: Mark Complete |
+| Learning Resource | Per Learning Resource | Optional: Mark Visited |
+| Practice Resource | Per Practice Resource | Optional: Mark Completed |
 | Certification readiness | Derived | All required Stages complete |
 | Certification recorded | My Certifications | Existing submission workflow |
 
-### 12.2 Progress data (conceptual)
+### 13.2 Progress data (conceptual)
 
 ```text
 LearningEnrollment
@@ -580,11 +700,11 @@ StageProgress
 ResourceVisit (optional v1)
   userId, resourceId, visitedAt
 
-ProjectProgress
-  enrollmentId, projectId, status, completedAt?
+PracticeResourceProgress (optional v1)
+  userId, practiceResourceId, completedAt?
 ```
 
-### 12.3 Derived metrics
+### 13.3 Derived metrics
 
 | Metric | Calculation |
 |--------|-------------|
@@ -593,7 +713,7 @@ ProjectProgress
 | Next Stage | First incomplete Stage by order |
 | Certification readiness | Boolean from linked Roadmap completion |
 
-### 12.4 Progress UX
+### 13.4 Progress UX
 
 - Checkmarks on Stage stepper
 - Progress rings on Career Path cards
@@ -601,7 +721,7 @@ ProjectProgress
 - My Journey timeline of completions
 - No leaderboards for Learn progress in v1 (Initiative leaderboards unchanged)
 
-### 12.5 Reset and unenroll
+### 13.5 Reset and unenroll
 
 - Employee may **leave** a Career Path or Technology enrollment
 - Leaving preserves history but hides from active journey
@@ -610,21 +730,22 @@ ProjectProgress
 
 ---
 
-## 13. Admin Responsibilities
+## 14. Admin Responsibilities
 
-### 13.1 Content curation (primary duty)
+### 14.1 Content curation (primary duty)
 
 | Task | Description |
 |------|-------------|
 | Define Career Paths | Professional directions for the organization |
 | Define Technologies | Skill domains aligned to business needs |
 | Build Roadmaps | Stage sequences with learning logic |
-| Curate Learning Resources | Vet and link external resources |
-| Define Learn Projects | Hands-on recommendations |
+| Curate Learning Resources | Vet and link external study resources |
+| Curate Practice Resources | Vet and link external hands-on exercises and labs |
 | Maintain Certification catalog | Map certs to Roadmaps |
+| Link Technologies to Projects | Optional cross-references to organizational Projects |
 | Publish / archive content | Lifecycle management |
 
-### 13.2 Content lifecycle
+### 14.2 Content lifecycle
 
 ```text
 DRAFT → PUBLISHED → ARCHIVED
@@ -636,7 +757,7 @@ DRAFT → PUBLISHED → ARCHIVED
 | PUBLISHED | Visible in Learn |
 | ARCHIVED | Hidden from browse; existing enrollments retain read-only access |
 
-### 13.3 Admin workflows
+### 14.3 Admin workflows
 
 - Create Technology before Roadmap
 - Roadmap must have ≥ 3 Stages before publish
@@ -644,19 +765,21 @@ DRAFT → PUBLISHED → ARCHIVED
 - Bulk import of resources deferred (manual curation v1)
 - Content review cadence: quarterly link validation recommended
 
-### 13.4 What admins do NOT do in Learn
+### 14.4 What admins do NOT do in Learn
 
 - Upload video lessons
 - Create quizzes or exams
 - Grade learners
 - Issue certifications
 - Force enrollment
+- Manage organizational Projects (that belongs to the Projects module)
+- Duplicate Project knowledge inside Learn
 
 ---
 
-## 14. Employee Experience
+## 15. Employee Experience
 
-### 14.1 First visit
+### 15.1 First visit
 
 1. Employee lands on Dashboard or Learn (configurable default post-login, future)
 2. Learn home: "Where do you want to grow?"
@@ -664,13 +787,13 @@ DRAFT → PUBLISHED → ARCHIVED
 4. Select path → view detail → **Start Learning**
 5. Land on first Roadmap Stage with clear next step
 
-### 14.2 Returning visit
+### 15.2 Returning visit
 
 1. Dashboard shows **Continue Learning** widget
 2. One-click resume to current Stage
 3. My Journey shows all active and completed enrollments
 
-### 14.3 Certification pursuit flow
+### 15.3 Certification pursuit flow
 
 1. Discover Certification in Learn catalog
 2. View linked Roadmap and readiness criteria
@@ -679,7 +802,7 @@ DRAFT → PUBLISHED → ARCHIVED
 5. Click through to official provider
 6. After passing, submit via My Certifications (optionally linked to Initiative)
 
-### 14.4 UX principles
+### 15.4 UX principles
 
 | Principle | Implementation |
 |-----------|----------------|
@@ -691,7 +814,7 @@ DRAFT → PUBLISHED → ARCHIVED
 
 ---
 
-## 15. Business Rules
+## 16. Business Rules
 
 See `docs/v0.8.0/03-business-rules.md` for the authoritative numbered rule set. Summary of critical rules:
 
@@ -706,18 +829,20 @@ See `docs/v0.8.0/03-business-rules.md` for the authoritative numbered rule set. 
 | BR-L07 | Learning never depends on an active Initiative |
 | BR-L08 | Industry Certifications are cataloged in Learn, not Initiatives |
 | BR-L09 | Initiatives may optionally link to a Certification |
-| BR-L10 | Learn Projects are distinct from Project Knowledge Repository |
-| BR-L11 | Archived content: no new enrollments; existing enrollments read-only |
-| BR-L12 | Only ADMIN role manages Learn content |
-| BR-L13 | All authenticated users may enroll and track progress |
-| BR-L14 | External links open in new tab |
-| BR-L15 | Certification readiness is derived from Stage completion |
+| BR-L10 | Learn does not own or manage Projects |
+| BR-L11 | Practice Resources are external links — not organizational Projects |
+| BR-L12 | Learn ↔ Projects cross-navigation is optional and bidirectional |
+| BR-L13 | Archived content: no new enrollments; existing enrollments read-only |
+| BR-L14 | Only ADMIN role manages Learn content |
+| BR-L15 | All authenticated users may enroll and track progress |
+| BR-L16 | External links open in new tab |
+| BR-L17 | Certification readiness is derived from Stage completion |
 
 ---
 
-## 16. Non-Functional Considerations
+## 17. Non-Functional Considerations
 
-### 16.1 Performance
+### 17.1 Performance
 
 | Area | Target |
 |------|--------|
@@ -725,7 +850,7 @@ See `docs/v0.8.0/03-business-rules.md` for the authoritative numbered rule set. 
 | Roadmap detail | < 1.5s; Stages paginated if > 10 |
 | Progress update | Optimistic UI; < 500ms perceived |
 
-### 16.2 Security
+### 17.2 Security
 
 | Area | Approach |
 |------|----------|
@@ -734,14 +859,14 @@ See `docs/v0.8.0/03-business-rules.md` for the authoritative numbered rule set. 
 | External URLs | Validated on save; `javascript:` blocked |
 | XSS | Sanitize admin text fields; never embed arbitrary HTML from URLs |
 
-### 16.3 Accessibility
+### 17.3 Accessibility
 
 - Roadmap stepper keyboard-navigable
 - Stage expand/collapse with `aria-expanded`
 - Progress announced to screen readers
 - Color not sole indicator of completion (icons + text)
 
-### 16.4 Scalability (content)
+### 17.4 Scalability (content)
 
 | Entity | Expected volume (year 1) |
 |--------|--------------------------|
@@ -749,29 +874,30 @@ See `docs/v0.8.0/03-business-rules.md` for the authoritative numbered rule set. 
 | Technologies | 20–50 |
 | Stages (total) | 100–300 |
 | Learning Resources | 500–1500 links |
-| Learn Projects | 50–150 |
+| Practice Resources | 100–300 links |
 | Certifications | 20–40 |
+| Technology ↔ Project cross-links | 50–200 |
 
-### 16.5 Audit and logging
+### 17.5 Audit and logging
 
 - Admin publish/archive actions logged (structured INFO)
 - No PII in progress logs beyond user ID
 - Link validation job results logged (future)
 
-### 16.6 Internationalization
+### 17.6 Internationalization
 
 - v1: English only
 - Future: external resource language tags for filtering
 
 ---
 
-## 17. Risks
+## 18. Risks
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
 | Scope creep toward LMS | High | High | Strict terminology; approval gate; no upload/quiz features in v1 |
 | Study Materials / Learn confusion | Medium | Medium | Clear IA; demote Study Materials nav; document distinction |
-| Learn Projects vs Projects module naming | Medium | Medium | Always qualify: "Learn Project" in UI; separate routes |
+| Learn vs Projects module confusion | Medium | High | Independent modules in nav; clear labels; cross-nav only; document in onboarding |
 | External link rot | High | Medium | Quarterly admin review; future automated link checker |
 | Low admin curation capacity | Medium | High | Launch with 3 Career Paths; template library for Roadmaps |
 | Self-reported progress inaccuracy | Medium | Low | Accept for v1; readiness is guidance not gatekeeping |
@@ -782,7 +908,7 @@ See `docs/v0.8.0/03-business-rules.md` for the authoritative numbered rule set. 
 
 ---
 
-## 18. Future AI Opportunities
+## 19. Future AI Opportunities
 
 Ideas only — **not in v0.8.0 scope**. See `docs/v0.8.0/06-future-enhancements.md`.
 
@@ -800,7 +926,7 @@ Architecture should keep AI integration points optional (e.g., recommendation se
 
 ---
 
-## 19. Product Roadmap for Implementation
+## 20. Product Roadmap for Implementation
 
 See `docs/v0.8.0/05-roadmap.md` for phased F16+ plan. Summary:
 
@@ -810,11 +936,11 @@ See `docs/v0.8.0/05-roadmap.md` for phased F16+ plan. Summary:
 | F17 | Technology & Roadmap (read) | Employee browse Technology, view Roadmap |
 | F18 | Career Paths (read) | Browse and detail Career Paths |
 | F19 | Progress & Journey | Enrollment, Stage completion, My Journey |
-| F20 | Learning Resources & Projects | Resource links, Learn Projects on Stages |
+| F20 | Learning & Practice Resources | Resource links, Practice Resources on Stages |
 | F21 | Certification catalog | Certification browse, readiness, external CTAs |
 | F22 | Admin content management | CRUD for all Learn entities |
 | F23 | Initiative integration | Optional Certification link on Initiatives |
-| F24 | Dashboard & polish | Widgets, nav rename, empty states, QA |
+| F24 | Dashboard & polish | Widgets, nav updates, cross-nav surfaces, QA |
 
 **Estimated feature count:** 9 phases (F16–F24) for v0.8.0 MVP.
 
@@ -827,13 +953,15 @@ See `docs/v0.8.0/05-roadmap.md` for phased F16+ plan. Summary:
 | Career Path | Ordered collection of Technologies for a professional direction |
 | Technology | Skill domain with one primary Roadmap |
 | Roadmap | Ordered Stages guiding learning for a Technology |
-| Stage | Single step in a Roadmap with Resources and Projects |
-| Learning Resource | Curated external link |
-| Learn Project | Hands-on practice recommendation |
+| Stage | Single step in a Roadmap with Resources and Practice Resources |
+| Learning Resource | Curated external link for study |
+| Practice Resource | Curated external link for hands-on exercises and labs |
 | Certification | Industry credential from external provider |
 | Learning Journey | Employee's personal progress across enrollments |
 | Progress | Self-reported completion state |
 | Initiative | Internal admin campaign (separate module) |
+| Projects (module) | Organizational engineering knowledge base (separate module) |
+| Organizational Project | A real company system (e.g., Insurance Portal) in the Projects module |
 
 ---
 
@@ -843,10 +971,12 @@ See `docs/v0.8.0/05-roadmap.md` for phased F16+ plan. Summary:
 |---|----------|----------------|
 | 1 | Rename "My Submissions" → "My Certifications"? | Yes — aligns with user-specified nav |
 | 2 | Remove Notifications from sidebar? | Yes — keep header bell only |
-| 3 | Demote Study Materials and Projects from nav? | Yes — reduce confusion with Learn |
-| 4 | Allow multiple Roadmaps per Technology in v1? | No — one primary; simplify |
-| 5 | Require Stage sequential completion? | Soft recommendation only |
-| 6 | Initiative `linkedCertificationId` in v0.8.0 or later? | F23 — after Learn catalog exists |
+| 3 | Keep Projects in primary navigation as independent module? | Yes — separate from Learn |
+| 4 | Demote Study Materials from nav? | Yes — reduce confusion with Learn Resources |
+| 5 | Allow multiple Roadmaps per Technology in v1? | No — one primary; simplify |
+| 6 | Require Stage sequential completion? | Soft recommendation only |
+| 7 | Initiative `linkedCertificationId` in v0.8.0 or later? | F23 — after Learn catalog exists |
+| 8 | Technology ↔ Project cross-links in v0.8.0? | Yes — read surfaces on Technology detail; Projects UI may follow |
 
 ---
 

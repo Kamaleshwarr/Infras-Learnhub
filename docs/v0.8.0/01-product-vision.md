@@ -2,15 +2,30 @@
 
 **Module:** Learn  
 **Release:** v0.8.0  
-**Status:** Draft for approval
+**Status:** Design refinement v1.1 — draft for approval
 
 ---
 
 ## Vision statement
 
-Engineering Learning Hub will become the trusted **navigation system** for engineering growth — guiding every employee from aspiration to readiness through structured Career Paths, Technology Roadmaps, curated Learning Resources, hands-on Projects, and industry Certification guidance.
+Engineering Learning Hub will become the trusted **navigation system** for engineering growth — guiding every employee from aspiration to readiness through structured Career Paths, Technology Roadmaps, curated Learning Resources, curated Practice Resources, and industry Certification guidance.
 
 We guide. We do not teach.
+
+---
+
+## Platform architecture
+
+Engineering Learning Hub consists of **independent modules**:
+
+| Module | Question it answers |
+|--------|---------------------|
+| **Learn** | How do I learn this technology? |
+| **Projects** | How does our organization build and maintain real systems? |
+| **Initiatives** | What is the company encouraging right now? |
+| **Leaderboards** | Who is being recognized? |
+
+Learn and Projects may **reference** each other. Learn does **not** own Projects.
 
 ---
 
@@ -22,13 +37,29 @@ We guide. We do not teach.
 | "There are thousands of tutorials — which ones are good?" | Self-directed learners | Study Materials is a repository, not a guide |
 | "Am I ready to take the AWS exam?" | Certification aspirants | Initiatives encourage certs but don't teach prerequisites |
 | "What should I learn after Java basics?" | Career planners | No sequencing or progression model |
-| "I completed an initiative — what now?" | Post-certification learners | No continued journey |
+| "I learned Spring Boot — which real projects use it?" | Engineers joining teams | No link between learning and organizational systems |
 
 ---
 
 ## The solution: Learn module
 
 Learn transforms Engineering Learning Hub from a **workflow platform** (submit certs, join initiatives) into a **guidance platform** (discover, progress, achieve).
+
+### What Learn contains
+
+- Technologies
+- Career Paths
+- Roadmaps
+- Learning Resources (curated external study links)
+- Practice Resources (curated external hands-on exercise links)
+- Industry Certifications
+- Learning Progress
+
+### What Learn does NOT contain
+
+- Organizational Projects (those live in the **Projects** module)
+- Hosted lessons or assessments
+- Certification exam delivery
 
 ### Core value proposition
 
@@ -37,6 +68,7 @@ Learn transforms Engineering Learning Hub from a **workflow platform** (submit c
 | Clear starting point for any growth goal | Standardized, curated learning paths aligned to business needs |
 | Trusted resources without searching | Reduced time-to-competency |
 | Visible progress and next steps | Better certification readiness before exam attempts |
+| Optional link to real company projects | Connects learning to organizational engineering context |
 | Optional initiative rewards on top | Initiatives become more effective when learners arrive prepared |
 
 ---
@@ -45,10 +77,11 @@ Learn transforms Engineering Learning Hub from a **workflow platform** (submit c
 
 ### We are
 
-- A **Learning Guidance Platform**
+- A **Learning Guidance Platform** (Learn module)
+- An **Engineering Knowledge Base** (Projects module — independent)
 - A **curated map** of external learning
 - A **progress companion** for self-directed growth
-- An **integration layer** between learning, projects, and certification
+- An **integration layer** between learning, organizational projects, and certification
 
 ### We are not
 
@@ -56,6 +89,7 @@ Learn transforms Engineering Learning Hub from a **workflow platform** (submit c
 - A content hosting service
 - A certification exam provider
 - A replacement for official vendor training
+- A module where Learn owns or manages Projects
 
 ### Metaphor
 
@@ -68,13 +102,12 @@ Destinations              Certifications (industry credentials)
 Your location             Progress (where you are now)
 Traffic / ETA             Estimated effort per Stage
 Promoted places           Featured Career Paths
+Local landmarks           Organizational Projects (separate module)
 ```
 
 ---
 
 ## Product principles
-
-These principles govern every design and implementation decision for v0.8.0 and beyond.
 
 ### 1. Learning Journey is the product
 
@@ -84,19 +117,23 @@ The employee's personal journey — enrollments, progress, next steps — is the
 
 The existing Study Materials Repository remains available but is demoted from primary navigation. Learn Resources are contextually attached to Roadmap Stages, not dumped in folders.
 
-### 3. Learning Resources are curated links
+### 3. Learning Resources and Practice Resources are curated links
 
-No video hosting. No PDF storage for lessons. Prefer official documentation and open educational resources. Paid resources are allowed but must be clearly labeled.
+No video hosting. No PDF storage for lessons. Learning Resources are for study; Practice Resources are for hands-on exercises — both external links.
 
-### 4. Only two user roles
+### 4. Projects is an independent module
+
+Organizational Projects (Banking Platform, Insurance Portal, etc.) maintain internal engineering knowledge. Learn may link to them for context but never owns them.
+
+### 5. Only two user roles
 
 `ADMIN` and `EMPLOYEE`. Managers use Admin access. No manager dashboards, no approval workflows for enrollment.
 
-### 5. Keep everything simple
+### 6. Keep everything simple
 
 Flat Stage lists (no nested modules). One primary Roadmap per Technology in v1. Self-reported progress. Minimal configuration.
 
-### 6. Industry Certifications ≠ Company Initiatives
+### 7. Industry Certifications ≠ Company Initiatives
 
 | Industry Certification | Company Initiative |
 |------------------------|-------------------|
@@ -105,11 +142,11 @@ Flat Stage lists (no nested modules). One primary Roadmap per Technology in v1. 
 | Permanent catalog entry | Time-bound campaign |
 | Prepares the learner | Rewards the learner |
 
-### 7. Learning never depends on Initiatives
+### 8. Learning never depends on Initiatives
 
 Every Learn experience must work when zero initiatives are active. Initiatives add encouragement and rewards — they are not prerequisites.
 
-### 8. AI is optional and future-ready
+### 9. AI is optional and future-ready
 
 v0.8.0 ships without AI. Architecture should not block future recommendation or guidance features, but no core flow requires AI.
 
@@ -122,11 +159,13 @@ v0.8.0 ships without AI. Architecture should not block future recommendation or 
 - Software engineers seeking growth direction
 - Engineers pursuing industry certifications
 - Employees joining company learning initiatives who need preparation guidance
+- Engineers onboarding to organizational projects who need to learn related technologies
 
 ### Secondary: Admin (curator)
 
 - L&D administrators defining Career Paths
 - Technical leads curating Technology Roadmaps and Resources
+- Engineering leads maintaining organizational Project knowledge (Projects module)
 - HR / engineering managers launching Initiatives (existing module)
 
 ---
@@ -138,10 +177,12 @@ v0.8.0 ships without AI. Architecture should not block future recommendation or 
 | Criterion | Measure |
 |-----------|---------|
 | Learn module accessible from sidebar | `/learn` route live for all authenticated users |
+| Projects remains independent in sidebar | `/projects` not under Learn Manage |
 | At least 3 published Career Paths | Admin-curated, covering major engineering directions |
-| At least 10 published Technologies with Roadmaps | Each with ≥ 3 Stages and Resources |
+| At least 10 published Technologies with Roadmaps | Each with ≥ 3 Stages, Resources, and Practice Resources |
 | Certification catalog | ≥ 10 industry certifications with official links |
 | Employee enrollment and progress | Start path, complete Stage, view My Journey |
+| Technology ↔ Project cross-links (optional) | At least 1 Technology linked to organizational Projects |
 | Initiative cross-link (optional) | At least 1 initiative linked to a Certification |
 | No regression | Initiatives, Certificates, Leaderboards, Users unchanged |
 
@@ -154,6 +195,7 @@ v0.8.0 ships without AI. Architecture should not block future recommendation or 
 | Continuation rate | % who return within 7 days of first Stage complete |
 | Certification readiness | Count reaching READY state |
 | Outbound clicks | Clicks to official provider exam pages |
+| Cross-nav usage | Clicks from Learn Technology → Projects detail |
 | Initiative lift | Certification submissions where linked initiative exists |
 
 ---
@@ -166,6 +208,7 @@ v0.8.0 ships without AI. Architecture should not block future recommendation or 
 | Content repositories (SharePoint, Confluence) | Structured progression, not file dumps |
 | Vendor training portals | Vendor-agnostic; multi-technology Career Paths |
 | Initiative-only platforms | Learn exists independent of campaigns |
+| Confluence project spaces | Projects module is purpose-built; Learn links for skill context |
 
 ---
 
@@ -174,11 +217,12 @@ v0.8.0 ships without AI. Architecture should not block future recommendation or 
 | Module | Change in v0.8.0 |
 |--------|------------------|
 | Dashboard | Add Learn widgets (Continue Learning, featured paths) |
+| Learn | **New module** |
+| Projects | Remains independent; optional cross-links from Learn Technologies |
 | Initiatives | Optional Certification link; show Roadmap progress on detail |
 | My Certifications | Renamed nav label; contextual entry from Learn |
 | Leaderboards | No change in v0.8.0 |
 | Study Materials | Demoted from primary nav; not redesigned |
-| Projects (KT) | Demoted from primary nav; not redesigned |
 | Users / Auth / Profile | No change |
 
 ---

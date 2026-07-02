@@ -1,7 +1,7 @@
 # v0.8.0 — Business Rules
 
-**Module:** Learn  
-**Status:** Draft for approval — authoritative rule set for implementation
+**Module:** Learn (+ cross-module references)  
+**Status:** Design refinement v1.1 — authoritative rule set for implementation
 
 ---
 
@@ -9,12 +9,14 @@
 
 | Category | Prefix | Count |
 |----------|--------|-------|
-| Product & scope | BR-P | 5 |
+| Product & scope | BR-P | 6 |
+| Module separation | BR-M | 5 |
 | Content model | BR-C | 12 |
 | Content lifecycle | BR-LC | 6 |
 | Progress & enrollment | BR-PR | 10 |
-| Learning Resources | BR-R | 6 |
-| Learn Projects | BR-PJ | 5 |
+| Learning Resources | BR-LR | 6 |
+| Practice Resources | BR-PA | 6 |
+| Cross-navigation | BR-XN | 5 |
 | Certifications | BR-CT | 8 |
 | Initiative integration | BR-IN | 6 |
 | Authorization | BR-AU | 4 |
@@ -36,13 +38,41 @@ Features that would constitute an LMS (course authoring, quizzes, grades, SCORM,
 
 The Study Materials Repository (`/study-materials`) is a **separate module**. Learn Learning Resources are not synchronized with Study Materials in v0.8.0. Admins may manually cross-reference.
 
-### BR-P04 — Project Knowledge separation
+### BR-P04 — Learn scope boundary
 
-The Project Knowledge Repository (`/projects`) is **separate** from Learn Projects. Learn Projects are practice recommendations; Project Knowledge is internal documentation.
+The Learn module contains only: Technologies, Career Paths, Roadmaps, Learning Resources, Practice Resources, Industry Certifications, and Learning Progress. Nothing more.
 
 ### BR-P05 — Initiative independence
 
 All Learn functionality must operate correctly when **zero** Company Initiatives are active. No Learn feature may require initiative participation.
+
+### BR-P06 — Projects independence
+
+All Learn functionality must operate correctly when **zero** Technology ↔ Project cross-links exist. Cross-navigation is optional context only.
+
+---
+
+## Module separation rules
+
+### BR-M01 — Projects is independent
+
+The **Projects** module is a separate, independent module. It is not a child of Learn, not managed under `/learn/manage`, and not owned by the Learn module.
+
+### BR-M02 — Projects purpose
+
+Projects maintain **organizational project knowledge** — documentation, architecture, KT, and engineering assets for real company systems (e.g., Banking Platform, Insurance Portal).
+
+### BR-M03 — Not learning projects
+
+Organizational Projects are **not** learning projects, practice projects, or portfolio projects. Learn does not create, store, or manage them.
+
+### BR-M04 — Practice Resources are not Projects
+
+**Practice Resources** in Learn are curated **external links** for hands-on exercises. They are not organizational Projects and must not use the label "Project" in the Learn UI.
+
+### BR-M05 — Separate admin surfaces
+
+Learn content is administered under `/learn/manage`. Organizational Projects are administered under `/projects` (Projects module). No unified "project" admin in Learn.
 
 ---
 
@@ -62,7 +92,7 @@ A Career Path may reference at most **12** Technologies. Exceeding requires prod
 
 ### BR-C04 — Technology uniqueness
 
-Technology names must be unique (case-insensitive) within the catalog.
+Technology names must be unique (case-insensitive) within the Learn catalog.
 
 ### BR-C05 — One primary Roadmap per Technology
 
@@ -118,7 +148,7 @@ Learn catalog entities (Career Path, Technology, Certification) use statuses: `D
 
 ### BR-LC05 — Publish validation
 
-Publishing a Career Path requires all referenced Technologies to be `PUBLISHED` (or `ARCHIVED` with product approval exception — default: blocked).
+Publishing a Career Path requires all referenced Technologies to be `PUBLISHED`.
 
 ### BR-LC06 — Archive cascade
 
@@ -130,7 +160,7 @@ Archiving a Technology does not auto-archive its Career Paths. Career Paths with
 
 ### BR-PR01 — Self-reported progress
 
-Stage and Project completion is **self-reported** by the employee in v0.8.0. No automated verification.
+Stage completion and Practice Resource completion are **self-reported** by the employee in v0.8.0. No automated verification.
 
 ### BR-PR02 — Enrollment creation
 
@@ -138,7 +168,7 @@ Employees create enrollments via explicit action: **Start Career Path** or **Sta
 
 ### BR-PR03 — Concurrent enrollments
 
-Employees may have **multiple active enrollments** simultaneously (e.g., one Career Path and two standalone Technologies).
+Employees may have **multiple active enrollments** simultaneously.
 
 ### BR-PR04 — Duplicate enrollment prevention
 
@@ -162,7 +192,7 @@ A Career Path is complete when all **required** Technologies' Roadmaps are compl
 
 ### BR-PR09 — Leave enrollment
 
-Employees may **leave** an enrollment. Active status becomes `LEFT`. Progress data is preserved. Employee may re-enroll later.
+Employees may **leave** an enrollment. Active status becomes `LEFT`. Progress data is preserved.
 
 ### BR-PR10 — Admin progress immutability
 
@@ -172,53 +202,81 @@ Admins cannot modify employee progress records in v0.8.0.
 
 ## Learning Resources rules
 
-### BR-R01 — External links only
+### BR-LR01 — External links only
 
 Learning Resources are HTTPS URLs only. `javascript:`, `data:`, and `file:` schemes are rejected.
 
-### BR-R02 — URL validation on save
+### BR-LR02 — URL validation on save
 
-Admin save validates URL format and reachability is **not** required at save time (deferred to periodic review).
+Admin save validates URL format. Reachability is **not** required at save time.
 
-### BR-R03 — New tab behaviour
+### BR-LR03 — New tab behaviour
 
 All Learning Resource links open in a new browser tab with `rel="noopener noreferrer"`.
 
-### BR-R04 — Resource attachment
+### BR-LR04 — Resource attachment
 
-A Learning Resource may be attached to multiple Stages (via resource library reuse). A Stage may have 0–20 Resources.
+A Learning Resource may be attached to multiple Stages. A Stage may have 0–20 Learning Resources.
 
-### BR-R05 — Resource ordering
+### BR-LR05 — Resource ordering
 
 Resources within a Stage are ordered. Default display: Official Documentation first, then OER, then others.
 
-### BR-R06 — Paid resource disclosure
+### BR-LR06 — Paid resource disclosure
 
-Resources marked `paid` display a visible **Paid** badge. Free resources display **Free** badge when type is known.
+Resources marked `paid` display a visible **Paid** badge.
 
 ---
 
-## Learn Projects rules
+## Practice Resources rules
 
-### BR-PJ01 — Project attachment
+### BR-PA01 — External links only
 
-Learn Projects are attached to Stages. A Stage may have 0–5 Projects. Early Stages (order 1–2) should have 0 Projects (guideline, not enforced).
+Practice Resources are HTTPS URLs only, following the same URL rules as Learning Resources (BR-LR01).
 
-### BR-PJ02 — Project completion
+### BR-PA02 — Practice purpose
 
-Project completion is self-reported and independent of Stage completion. Completing all Projects does **not** auto-complete the Stage.
+Practice Resources are for hands-on exercises, labs, and coding challenges — not for organizational project documentation.
 
-### BR-PJ03 — External project links
+### BR-PA03 — Terminology
 
-Project external links follow the same URL rules as Learning Resources (BR-R01).
+User-facing label is **Practice Resource**. Do not label as "Project", "Learning Project", or "Practice Project" in the Learn module.
 
-### BR-PJ04 — Project difficulty
+### BR-PA04 — Stage attachment
 
-Difficulty is one of: `BEGINNER`, `INTERMEDIATE`, `ADVANCED`.
+Practice Resources are attached to Stages. A Stage may have 0–10 Practice Resources. Early Stages (order 1–2) should have 0–1 (guideline).
 
-### BR-PJ05 — Project naming
+### BR-PA05 — Completion independent of Stage
 
-Learn Project titles must be unique within a Technology's Roadmap (case-insensitive).
+Marking a Practice Resource complete is self-reported and independent of Stage completion.
+
+### BR-PA06 — Practice Resource library
+
+Practice Resources may be created in a shared library and reused across Stages, similar to Learning Resources.
+
+---
+
+## Cross-navigation rules
+
+### BR-XN01 — Optional links
+
+Technology ↔ Organizational Project associations are **optional**. Both entity types may exist with zero links.
+
+### BR-XN02 — Bidirectional display
+
+A link between Technology T and Project P appears on both T's detail (Related Organization Projects) and P's detail (Related Technologies).
+
+### BR-XN03 — Cross-nav only
+
+Cross-links provide **navigation only**. Learn does not embed Project content. Projects does not embed Roadmap content.
+
+### BR-XN04 — Admin maintenance
+
+Links may be created or removed by admin from either the Learn Technology editor or the Projects module. Both views reflect the same junction data.
+
+### BR-XN05 — No progress coupling
+
+Project membership or Project knowledge access does not affect Learn progress. Learn enrollment does not affect Project access.
 
 ---
 
@@ -226,7 +284,7 @@ Learn Project titles must be unique within a Technology's Roadmap (case-insensit
 
 ### BR-CT01 — Industry certifications only
 
-The Learn Certification catalog contains **industry credentials** from external providers only. Internal company badges or initiative titles are not Certifications.
+The Learn Certification catalog contains **industry credentials** from external providers only.
 
 ### BR-CT02 — Official exam link required
 
@@ -250,11 +308,11 @@ Engineering Learning Hub does not host, proctor, or score certification exams.
 
 ### BR-CT07 — Recorded certification
 
-A Certification moves to `RECORDED` state for an employee only when a certificate submission is **approved** in My Certifications and optionally linked to the Certification catalog entry (future FK).
+A Certification moves to `RECORDED` state for an employee only when a certificate submission is **approved** in My Certifications.
 
 ### BR-CT08 — Multiple certifications per Technology
 
-A Technology may link to multiple Certifications (e.g., AWS CLF-C02 and AWS SAA-C03).
+A Technology may link to multiple Certifications.
 
 ---
 
@@ -266,7 +324,7 @@ A Company Initiative may optionally reference one Certification catalog entry vi
 
 ### BR-IN02 — Unlinked initiatives unchanged
 
-Initiatives without a linked Certification behave exactly as v0.7.1. No Learn UI appears on unlinked initiative detail.
+Initiatives without a linked Certification behave exactly as v0.7.1.
 
 ### BR-IN03 — Initiative does not gate Learn
 
@@ -274,15 +332,15 @@ Employees may complete Roadmaps and reach Certification readiness without any ac
 
 ### BR-IN04 — Initiative expiry
 
-When an Initiative expires, Learn content and employee progress are unaffected. Initiative banner on Certification detail is removed.
+When an Initiative expires, Learn content and employee progress are unaffected.
 
 ### BR-IN05 — Initiative progress display
 
-When linked, Initiative detail shows the authenticated employee's Roadmap progress and readiness for the linked Certification. Aggregate initiative progress (existing) is unchanged.
+When linked, Initiative detail shows the authenticated employee's Roadmap progress and readiness for the linked Certification.
 
 ### BR-IN06 — Submit Certificate context
 
-Navigating to Submit Certificate from a linked Initiative pre-fills `initiativeId`. Navigating from Learn Certification readiness pre-fills certification context (implementation detail in F23).
+Navigating to Submit Certificate from a linked Initiative pre-fills `initiativeId`.
 
 ---
 
@@ -290,7 +348,7 @@ Navigating to Submit Certificate from a linked Initiative pre-fills `initiativeI
 
 ### BR-AU01 — Admin content management
 
-All Learn content CRUD (Career Paths, Technologies, Roadmaps, Resources, Projects, Certifications) requires `ADMIN` role.
+All Learn content CRUD requires `ADMIN` role. Projects module CRUD follows existing Projects authorization (separate module).
 
 ### BR-AU02 — Employee read access
 
@@ -302,7 +360,7 @@ Employees may read and write only their own progress and enrollment records.
 
 ### BR-AU04 — Employee 404 for draft
 
-Employees requesting draft or unpublished content receive **404 Not Found** (not 403), consistent with Initiative visibility pattern.
+Employees requesting draft Learn content receive **404 Not Found** (not 403).
 
 ---
 
@@ -316,17 +374,17 @@ Employees requesting draft or unpublished content receive **404 Not Found** (not
 
 "Certificate Review" sidebar label becomes **Review Submissions** (path unchanged).
 
-### BR-UX03 — Learn sidebar position
+### BR-UX03 — Learn and Projects in primary nav
 
-Learn appears as the **second** sidebar item (after Dashboard) for all authenticated users.
+Both **Learn** and **Projects** appear in the primary sidebar as independent modules. Learn is position 2; Projects is position 3 (employee and admin).
 
 ### BR-UX04 — Terminology enforcement
 
-User-facing copy in the Learn module must use approved terminology (see `02-information-architecture.md` §8.1). Code identifiers may differ but Swagger descriptions should align.
+User-facing copy in the Learn module must use approved terminology. The word "Project" in Learn UI refers only to **Related Organization Projects** (cross-nav links to the Projects module) — never to Practice Resources or owned entities.
 
 ### BR-UX05 — Next step prominence
 
-Every enrolled employee viewing a Roadmap must see exactly one **Next up** Stage highlighted (first incomplete Stage by order).
+Every enrolled employee viewing a Roadmap must see exactly one **Next up** Stage highlighted.
 
 ---
 
@@ -343,23 +401,11 @@ Every enrolled employee viewing a Roadmap must see exactly one **Next up** Stage
 | Stage | description | 3000 |
 | Learning Resource | title | 200 |
 | Learning Resource | url | 2048 |
-| Learn Project | title | 150 |
-| Learn Project | description | 3000 |
+| Practice Resource | title | 200 |
+| Practice Resource | url | 2048 |
 | Certification | name | 150 |
 | Certification | description | 2000 |
 | Certification | officialExamUrl | 2048 |
-
----
-
-## Validation error principles
-
-| Scenario | HTTP status | Pattern |
-|----------|-------------|---------|
-| Invalid field values | 400 | Field-level validation errors |
-| Duplicate unique field | 409 | Business conflict message |
-| Publish with invalid prerequisites | 400 | Clear rule reference (e.g., BR-C08) |
-| Employee access to draft | 404 | Consistent with initiatives |
-| Non-admin write attempt | 403 | Standard security response |
 
 ---
 
@@ -371,8 +417,7 @@ Every enrolled employee viewing a Roadmap must see exactly one **Next up** Stage
 | Quiz-based Stage completion | LMS territory |
 | Manager-assigned learning | Role simplicity |
 | Learn leaderboards | Scope control |
-| Certificate-to-Certification FK on submission | F23+ |
-| Multiple Roadmaps per Technology | Complexity |
+| Full Projects module UI redesign | Independent release track |
 | Bulk resource import | Admin tooling — later phase |
 
 ---

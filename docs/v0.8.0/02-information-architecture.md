@@ -1,13 +1,36 @@
 # v0.8.0 — Information Architecture
 
-**Module:** Learn  
-**Status:** Draft for approval
+**Module:** Learn (+ platform module boundaries)  
+**Status:** Design refinement v1.1 — draft for approval
 
 ---
 
-## 1. Application navigation (v0.8.0)
+## 1. Platform module architecture
 
-### 1.1 Employee navigation
+```text
+Engineering Learning Hub
+├── Dashboard          — role-aware entry point
+├── Learn              — learning guidance (NEW v0.8.0)
+├── Projects           — organizational engineering knowledge (independent)
+├── Initiatives        — internal learning campaigns
+├── Leaderboards       — recognition
+├── Users              — administration (admin)
+├── My Certifications  — certificate submissions (employee)
+└── Profile            — self-service identity
+```
+
+| Module | Owns | Does not own |
+|--------|------|--------------|
+| **Learn** | Technologies, Career Paths, Roadmaps, Learning Resources, Practice Resources, Certifications, Progress | Projects, Initiatives, hosted content |
+| **Projects** | Organizational project records, KT documents, architecture assets | Roadmaps, Learning Resources, Certifications |
+
+**Cross-navigation:** Technology (Learn) ↔ Organizational Project (Projects) — optional, bidirectional, neither module owns the other.
+
+---
+
+## 2. Application navigation (v0.8.0)
+
+### 2.1 Employee navigation
 
 ```text
 ┌─────────────────────────────────────┐
@@ -15,6 +38,7 @@
 ├─────────────────────────────────────┤
 │  🏠 Dashboard                       │
 │  📚 Learn                    ← NEW  │
+│  🗂️ Projects                 ← independent module
 │  🎯 Initiatives                     │
 │  🏆 Leaderboards                    │
 │  📜 My Certifications        ← rename│
@@ -24,25 +48,25 @@
 └─────────────────────────────────────┘
 ```
 
-| Item | Path | Icon (proposed) | Change from v0.7.1 |
-|------|------|-----------------|-------------------|
-| Dashboard | `/` | DashboardOutlined | Add Learn widgets |
-| Learn | `/learn` | MenuBookOutlined or RouteOutlined | **New** |
-| Initiatives | `/initiatives` | SchoolOutlined | Unchanged |
-| Leaderboards | `/leaderboards/global` | EmojiEventsOutlined | Unchanged |
-| My Certifications | `/submissions` | WorkspacePremiumOutlined | Renamed |
-| Profile | `/profile` | PersonOutlined | Unchanged |
+| Item | Path | Change from v0.7.1 |
+|------|------|-------------------|
+| Dashboard | `/` | Add Learn widgets |
+| Learn | `/learn` | **New** |
+| Projects | `/projects` | **Retained** — independent module |
+| Initiatives | `/initiatives` | Unchanged |
+| Leaderboards | `/leaderboards/global` | Unchanged |
+| My Certifications | `/submissions` | Renamed |
+| Profile | `/profile` | Unchanged |
 
 **Removed from sidebar (retained elsewhere)**
 
 | Item | New access path |
 |------|-----------------|
 | Notifications | Header bell + `/notifications` |
-| Submit Certificate | Learn Certification CTA, Initiative detail, My Certifications page |
-| Study Materials | Settings link or Learn admin cross-reference (future) |
-| Projects | Settings link (Project Knowledge Repository) |
+| Submit Certificate | Learn Certification CTA, Initiative detail, My Certifications |
+| Study Materials | Settings link |
 
-### 1.2 Admin navigation
+### 2.2 Admin navigation
 
 ```text
 ┌─────────────────────────────────────┐
@@ -50,6 +74,7 @@
 ├─────────────────────────────────────┤
 │  🏠 Dashboard                       │
 │  📚 Learn                    ← NEW  │
+│  🗂️ Projects                 ← independent module
 │  🎯 Initiatives                     │
 │  👥 Users                           │
 │  📋 Review Submissions       ← rename│
@@ -58,16 +83,11 @@
 └─────────────────────────────────────┘
 ```
 
-| Item | Path | Change from v0.7.1 |
-|------|------|-------------------|
-| Review Submissions | `/submissions/review` | Renamed from "Certificate Review" |
-| Settings | `/settings` | New shell; Learn config subset in v1 |
-
 ---
 
-## 2. Learn module IA
+## 3. Learn module IA
 
-### 2.1 Site map
+### 3.1 Site map
 
 ```text
 Learn
@@ -82,21 +102,19 @@ Learn
 ├── Certifications
 │   ├── List (/learn/certifications)
 │   └── Detail (/learn/certifications/:id)
-├── Learn Projects
-│   └── Detail (/learn/projects/:id)
 ├── My Journey (/learn/journey) [Employee]
 └── Manage (/learn/manage) [Admin]
     ├── Career Paths
     ├── Technologies
     ├── Roadmaps (per Technology)
     ├── Learning Resources (library + Stage assignment)
-    ├── Learn Projects
+    ├── Practice Resources (library + Stage assignment)
     └── Certifications
 ```
 
-### 2.2 Navigation pattern within Learn
+> **Note:** There is no `/learn/projects` or `/learn/manage/projects`. Organizational Projects live entirely under `/projects`.
 
-Use **horizontal tabs** below the Learn page header (consistent with admin status filter tabs on Initiatives list):
+### 3.2 Navigation pattern within Learn
 
 | Tab | Route | Visible to |
 |-----|-------|------------|
@@ -107,53 +125,134 @@ Use **horizontal tabs** below the Learn page header (consistent with admin statu
 | My Journey | `/learn/journey` | Employee |
 | Manage | `/learn/manage` | Admin |
 
-Active tab persists across sub-routes within the same section.
-
-### 2.3 Breadcrumb patterns
+### 3.3 Breadcrumb patterns
 
 | Page | Breadcrumb |
 |------|------------|
 | Technology Roadmap | Learn › Technologies › AWS › Roadmap |
+| Technology detail | Learn › Technologies › Spring Boot |
 | Career Path detail | Learn › Career Paths › Cloud Engineer |
 | Certification detail | Learn › Certifications › AWS Cloud Practitioner |
 | Admin Roadmap editor | Learn › Manage › Technologies › AWS › Edit Roadmap |
+| Organizational Project | Projects › Insurance Portal |
 
 ---
 
-## 3. Page inventory
+## 4. Projects module IA (independent)
 
-### 3.1 Employee-facing pages
+### 4.1 Site map (reference — not redesigned in v0.8.0 Learn scope)
+
+```text
+Projects
+├── List (/projects)
+└── Detail (/projects/:projectId)
+    ├── Overview
+    ├── Client & Business Domain
+    ├── Requirements (BRD, FRD)
+    ├── Technical Design & Architecture
+    ├── API Documentation
+    ├── Git Repository & Environment URLs
+    ├── Deployment Guide
+    ├── KT Documents & Release Notes
+    ├── Team & Contacts
+    └── Related Technologies → links to Learn
+```
+
+### 4.2 Example organizational Projects
+
+| Project | Domain |
+|---------|--------|
+| Banking Platform | Financial services |
+| Insurance Portal | Insurance |
+| Employee Portal | HR / internal tools |
+| Claims Management System | Insurance operations |
+
+---
+
+## 5. Cross-navigation surfaces
+
+### 5.1 Learn → Projects
+
+**Location:** Technology detail page (`/learn/technologies/:id`)
+
+**Section:** Related Organization Projects
+
+```text
+Spring Boot
+  ...
+  Related Organization Projects
+    • Insurance Portal        → /projects/{id}
+    • Employee Portal         → /projects/{id}
+    • Payment Gateway         → /projects/{id}
+```
+
+- Read-only list of linked organizational Projects
+- Empty state: "No linked organization projects yet"
+- Admin manages links from Learn Manage (Technology editor) or Projects module
+
+### 5.2 Projects → Learn
+
+**Location:** Project detail page (`/projects/:projectId`)
+
+**Section:** Related Technologies
+
+```text
+Insurance Portal
+  ...
+  Related Technologies
+    • Spring Boot             → /learn/technologies/{id}
+    • React                   → /learn/technologies/{id}
+    • Docker                  → /learn/technologies/{id}
+    • PostgreSQL              → /learn/technologies/{id}
+```
+
+- Read-only list of linked Learn Technologies
+- Click navigates to Learn Technology detail / Roadmap
+
+### 5.3 Cross-reference data model (conceptual)
+
+```text
+technology_project_links
+  technology_id   FK → learn.technologies
+  project_id      FK → projects.projects
+  created_at
+  UNIQUE(technology_id, project_id)
+```
+
+Single junction table; displayed bidirectionally. Maintained by admin from either module.
+
+---
+
+## 6. Page inventory
+
+### 6.1 Employee-facing Learn pages
 
 | Page | Route | Purpose | Key components |
 |------|-------|---------|----------------|
-| Learn Home | `/learn` | Discovery and resume | Continue Learning, Featured Paths, Browse |
-| Career Path List | `/learn/career-paths` | Browse paths | Search, filter, cards with progress |
-| Career Path Detail | `/learn/career-paths/:id` | Path overview | Technology list, Start CTA, progress |
-| Technology List | `/learn/technologies` | Browse technologies | Category filter, search, cards |
-| Technology Detail | `/learn/technologies/:id` | Tech overview | Description, Roadmap link, enroll CTA |
-| Roadmap View | `/learn/technologies/:id/roadmap` | Core learning UI | Stage stepper, resources, projects |
-| Certification List | `/learn/certifications` | Browse certs | Provider filter, level filter |
-| Certification Detail | `/learn/certifications/:id` | Cert overview | Readiness, linked Roadmap, external CTA |
-| Learn Project Detail | `/learn/projects/:id` | Project brief | Description, skills, external link |
-| My Journey | `/learn/journey` | Personal dashboard | Enrollments, progress, history |
+| Learn Home | `/learn` | Discovery and resume | Continue Learning, Featured Paths |
+| Career Path List | `/learn/career-paths` | Browse paths | Search, filter, cards |
+| Career Path Detail | `/learn/career-paths/:id` | Path overview | Technology list, Start CTA |
+| Technology List | `/learn/technologies` | Browse technologies | Category filter, search |
+| Technology Detail | `/learn/technologies/:id` | Tech overview | Description, Roadmap link, **Related Organization Projects** |
+| Roadmap View | `/learn/technologies/:id/roadmap` | Core learning UI | Stage stepper, Learning Resources, Practice Resources |
+| Certification List | `/learn/certifications` | Browse certs | Provider filter |
+| Certification Detail | `/learn/certifications/:id` | Cert overview | Readiness, linked Roadmap |
+| My Journey | `/learn/journey` | Personal dashboard | Enrollments, progress |
 
-### 3.2 Admin-facing pages
+### 6.2 Admin-facing Learn pages
 
 | Page | Route | Purpose |
 |------|-------|---------|
-| Manage Home | `/learn/manage` | Admin overview | Draft/published counts, quick actions |
-| Career Path List (admin) | `/learn/manage/career-paths` | CRUD list | Create, edit, publish, archive |
-| Career Path Editor | `/learn/manage/career-paths/:id` | Edit path | Metadata, Technology ordering |
-| Technology List (admin) | `/learn/manage/technologies` | CRUD list |
-| Technology Editor | `/learn/manage/technologies/:id` | Edit technology |
-| Roadmap Editor | `/learn/manage/technologies/:id/roadmap` | Stage CRUD | Drag-reorder, resource/project assignment |
-| Resource Library | `/learn/manage/resources` | Global resource pool | Reuse across Stages |
-| Project List (admin) | `/learn/manage/projects` | Learn Project CRUD |
+| Manage Home | `/learn/manage` | Admin overview |
+| Career Path List (admin) | `/learn/manage/career-paths` | CRUD |
+| Technology Editor | `/learn/manage/technologies/:id` | Edit technology + **link Projects** |
+| Roadmap Editor | `/learn/manage/technologies/:id/roadmap` | Stage CRUD, resource assignment |
+| Resource Library | `/learn/manage/resources` | Learning + Practice Resources |
 | Certification List (admin) | `/learn/manage/certifications` | Certification CRUD |
 
 ---
 
-## 4. Entity relationship diagram
+## 7. Entity relationship diagram
 
 ```mermaid
 erDiagram
@@ -161,154 +260,87 @@ erDiagram
     Technology ||--o{ CareerPathTechnology : "belongs to"
     Technology ||--|| Roadmap : "has primary"
     Roadmap ||--|{ Stage : contains
-    Stage ||--o{ StageResource : "links"
-    LearningResource ||--o{ StageResource : "used in"
-    Stage ||--o{ StageProject : "links"
-    LearnProject ||--o{ StageProject : "used in"
+    Stage ||--o{ StageLearningResource : "links"
+    LearningResource ||--o{ StageLearningResource : "used in"
+    Stage ||--o{ StagePracticeResource : "links"
+    PracticeResource ||--o{ StagePracticeResource : "used in"
     Certification ||--o{ CertificationTechnology : "prepares via"
     Technology ||--o{ CertificationTechnology : "prepares for"
+    Technology ||--o{ TechnologyProjectLink : "used in"
+    OrganizationalProject ||--o{ TechnologyProjectLink : "uses"
     User ||--o{ LearningEnrollment : creates
-    CareerPath ||--o{ LearningEnrollment : "enrolled in"
-    Technology ||--o{ LearningEnrollment : "enrolled in"
     LearningEnrollment ||--o{ StageProgress : tracks
-    Stage ||--o{ StageProgress : "completed in"
-    LearningInitiative ||--o| Certification : "optionally links"
 ```
 
 ---
 
-## 5. Content hierarchy (conceptual)
+## 8. Content hierarchy (Learn module)
 
 ```text
 Level 0: Learn Module
-Level 1: Career Path | Technology | Certification (top-level discoverables)
+Level 1: Career Path | Technology | Certification
 Level 2: Roadmap (under Technology)
 Level 3: Stage (under Roadmap)
-Level 4: Learning Resource | Learn Project (under Stage)
+Level 4: Learning Resource | Practice Resource (under Stage)
 ```
 
-**Depth rule:** Employees never navigate more than 4 levels deep to reach a Resource.
-
-```text
-Learn → Technologies → AWS → Roadmap → Stage 3 → [Resource link]
-  1         2           3       4         5          6 (external)
-```
-
-For Career Path-first journeys:
-
-```text
-Learn → Career Paths → Cloud Engineer → AWS Technology → Roadmap
-```
+**Depth rule:** Employees reach a Resource within 4 levels from Learn home.
 
 ---
 
-## 6. Dashboard integration
+## 9. Naming and labeling guidelines
 
-### 6.1 Employee dashboard widgets (new)
-
-| Widget | Content | Link |
-|--------|---------|------|
-| Continue Learning | Current enrollment, next Stage title, % complete | `/learn/technologies/:id/roadmap` |
-| Featured Career Path | Rotating or admin-featured path | `/learn/career-paths/:id` |
-| Certification Readiness | Nearest READY certification | `/learn/certifications/:id` |
-
-### 6.2 Admin dashboard widgets (new)
-
-| Widget | Content | Link |
-|--------|---------|------|
-| Learn Content Health | Draft / published / archived counts | `/learn/manage` |
-| Popular Technologies | Top enrollments (7-day) | `/learn/manage/technologies` |
-
-Existing initiative and submission widgets remain unchanged.
-
----
-
-## 7. Cross-module linking
-
-| From | To | Link type |
-|------|-----|-----------|
-| Learn Certification detail | Initiative detail | Banner when active initiative linked |
-| Learn Certification detail | My Certifications | "Submit Certificate" when READY |
-| Initiative detail | Learn Certification | Progress card when linked |
-| Initiative detail | Learn Roadmap | "Prepare for this certification" |
-| Learn Stage Resource | External URL | New tab |
-| Learn Certification | Official provider | New tab |
-| Dashboard Continue Learning | Roadmap | Deep link to next Stage |
-
----
-
-## 8. Naming and labeling guidelines
-
-### 8.1 UI labels (mandatory terminology)
+### 9.1 UI labels (mandatory terminology)
 
 | Context | Label | Avoid |
 |---------|-------|-------|
 | Module name | Learn | Training, Courses, LMS |
 | Sequence unit | Stage | Lesson, Module, Chapter |
-| Path sequence | Roadmap | Curriculum, Syllabus |
-| External links | Learning Resources | Materials, Content |
-| Practice work | Projects | Assignments, Labs |
+| Study links | Learning Resources | Materials, Content |
+| Hands-on links | Practice Resources | Learning Projects, Practice Projects |
 | Industry cred | Certification | Course completion |
-| User progress | Progress | Grade, Score |
-| Personal view | My Journey | My Courses |
+| Org systems module | Projects | Learning projects, portfolio |
+| Org system record | [Project Name] | Practice Resource, Learning Project |
 
-### 8.2 Disambiguation: "Projects"
+### 9.2 Disambiguation
 
-| UI context | Label |
-|------------|-------|
-| Learn module | **Learn Project** or **Practice Project** |
-| KT repository | **Project Knowledge** (if surfaced) |
-| Nav (demoted) | Projects → tooltip: "Internal project documentation" |
-
----
-
-## 9. Search and filter (v0.8.0 scope)
-
-| Page | Filters |
-|------|---------|
-| Career Paths | Search title, featured only |
-| Technologies | Search, category, difficulty |
-| Certifications | Search, provider, level |
-| Admin lists | Status (DRAFT/PUBLISHED/ARCHIVED), search |
-
-Global Search (backlog item) is **not** in v0.8.0 scope. Per-list search follows Initiative list patterns.
+| Term | Meaning | Module |
+|------|---------|--------|
+| **Practice Resource** | External hands-on exercise link on a Roadmap Stage | Learn |
+| **Learning Resource** | External study link on a Roadmap Stage | Learn |
+| **Project** / **Organizational Project** | Real company system (Insurance Portal, etc.) | Projects |
+| **Related Organization Projects** | Cross-nav section on Technology detail | Learn (display only) |
+| **Related Technologies** | Cross-nav section on Project detail | Projects (display only) |
 
 ---
 
-## 10. Empty and error states
+## 10. Dashboard integration
 
-| State | Copy direction |
-|-------|----------------|
-| No Career Paths published | "Learning paths are being prepared. Check back soon." |
-| No enrollment | "Start your learning journey — explore Career Paths or Technologies." |
-| Roadmap not yet published | Admin preview only; employees see 404 |
-| All Stages complete | "Roadmap complete! Explore Certification or the next Technology." |
-| Certification not ready | "Complete the linked Roadmap to become exam-ready." |
+### Employee widgets (new)
 
----
+| Widget | Content | Link |
+|--------|---------|------|
+| Continue Learning | Current enrollment, next Stage | Roadmap |
+| Featured Career Path | Admin-featured path | Career Path detail |
+| Certification Readiness | Nearest READY certification | Certification detail |
 
-## 11. Responsive behaviour
+### Admin widgets (new)
 
-| Breakpoint | Pattern |
-|------------|---------|
-| Desktop | Roadmap stepper vertical left; content right |
-| Tablet | Stepper collapses to top progress bar |
-| Mobile | Stage cards stacked; one Stage expanded at a time |
-
-Follow existing Initiative list pattern: desktop table, mobile cards for admin lists.
+| Widget | Content | Link |
+|--------|---------|------|
+| Learn Content Health | Draft / published counts | `/learn/manage` |
 
 ---
 
-## 12. Settings page (admin shell)
-
-`/settings` in v0.8.0 is a lightweight shell:
+## 11. Settings page (admin shell)
 
 | Section | v0.8.0 scope |
 |---------|--------------|
-| Learn | Link to `/learn/manage`; featured path count config (future) |
-| Study Materials | Link to `/study-materials` (demoted module) |
-| Project Knowledge | Link to `/projects` (demoted module) |
-| General | Placeholder for future org settings |
+| Learn | Link to `/learn/manage` |
+| Study Materials | Link to `/study-materials` (demoted) |
+| General | Placeholder |
+
+Projects is **not** under Settings — it has primary sidebar navigation.
 
 ---
 
