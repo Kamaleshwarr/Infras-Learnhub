@@ -1,9 +1,19 @@
 # Engineering Learning Hub — v0.8.0
 
-**Release theme:** Learn — Learning Guidance Platform  
-**Product design:** Approved v1.1 (**frozen**)  
-**Implementation plan:** **FINAL — frozen** ([07-implementation-plan.md](./07-implementation-plan.md))  
-**Depends on:** v0.7.1 Initiative Management (complete)
+**Release theme:** Learn — Learning Navigation Platform  
+**Product design:** Approved v1.1 (frozen — vision unchanged)  
+**Implementation plan v1:** FINAL — frozen ([07-implementation-plan.md](./07-implementation-plan.md))  
+**Architecture revision v2:** **Pending approval** ([08-navigation-platform-revision.md](./08-navigation-platform-revision.md))  
+**Implementation plan v2:** DRAFT ([09-implementation-plan-v2.md](./09-implementation-plan-v2.md))  
+**Depends on:** v0.7.1 Initiative Management (complete); F16 shipped
+
+---
+
+## ⚠️ Architecture revision in progress
+
+F16 review identified LMS-like drift in the v1 implementation plan (admin Technology/Roadmap/Resource CRUD). A **catalog-first, curation-only** revision is pending approval.
+
+**Do not implement original F17 until revision is approved.**
 
 ---
 
@@ -18,38 +28,41 @@
 | 04 | [User Flows](./04-user-flows.md) | Employee and admin journeys |
 | 05 | [Implementation Roadmap (summary)](./05-roadmap.md) | Phase overview |
 | 06 | [Future Enhancements](./06-future-enhancements.md) | AI and deferred features |
-| 07 | **[Implementation Plan](./07-implementation-plan.md)** | **FINAL F16–F23 detailed phases** |
+| 07 | [Implementation Plan v1](./07-implementation-plan.md) | FINAL F16–F23 (admin-authoring model) |
+| **08** | **[Navigation Platform Revision](./08-navigation-platform-revision.md)** | **Architecture revision v2 — pending** |
+| **09** | **[Implementation Plan v2](./09-implementation-plan-v2.md)** | **Revised F16-R–F22 — pending** |
 
 ---
 
-## Implementation phases (final)
+## Implementation phases
+
+### Shipped
+
+| Phase | Name | Status |
+|-------|------|--------|
+| F16 | Technology Discovery & Search | **Shipped** (refactor planned in F16-R) |
+
+### Revised roadmap (pending approval)
 
 | Phase | Name |
 |-------|------|
-| F16 | Technology Discovery & Search *(includes Projects cross-nav)* |
-| F17 | Roadmap & Learning Resources |
+| F16-R | Catalog Foundation Refactor |
+| F17 | Roadmap Viewer & Catalog Roadmaps |
 | F18 | Progress & Learning Journey |
-| F19 | Practice Resources |
-| F20 | Career Paths |
-| F21 | Industry Certifications |
-| F22 | Optional Initiative Association |
-| F23 | Dashboard, Unified Search & Release |
+| F19 | Career Path Catalog |
+| F20 | Certification Catalog |
+| F21 | Optional Initiative Association |
+| F22 | Dashboard, Unified Search & Release |
 
 ---
 
 ## Frozen architecture (summary)
 
-- **Learn** answers: "How do I learn this technology?"
-- **Projects** answers: "How does our organization build systems?" — **independent module**
-- Cross-navigation is a **relationship** in F16, not a standalone phase
-- Initiatives may **optionally** reference a Certification (F22) — Learn never depends on Initiatives
-
----
-
-## UX principles (implementation)
-
-1. A learner should never wonder what to do next  
-2. Every page answers: **Where am I?** **What is this?** **What should I do next?** **Where do I go next?**
+- **Learn** is a **Learning Navigation Platform** — guides, does not teach
+- **Platform catalog** ships ~100 technologies and curated roadmaps
+- **Admins curate** visibility — they do not author educational content
+- **Projects** remains an independent module
+- Cross-navigation is a relationship (F16)
 
 ---
 
@@ -58,5 +71,6 @@
 | Gate | Status |
 |------|--------|
 | Product design v1.1 | **Approved — frozen** |
-| Implementation plan | **FINAL — frozen** |
-| F16 implementation | **May begin after formal sign-off** |
+| Implementation plan v1 | **Frozen** (superseded on v2 approval) |
+| Architecture revision v2 | **Pending approval** |
+| F16-R / revised F17 | **Blocked** |

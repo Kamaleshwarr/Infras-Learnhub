@@ -24,29 +24,28 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ---
 
-## In design — v0.8.0 Learn (Learning Guidance Platform)
+## In design — v0.8.0 Learn (Learning Navigation Platform)
 
-**Status:** Product design v1.1 **approved (frozen)** · Implementation plan **FINAL — frozen** (`docs/v0.8.0/07-implementation-plan.md`)
+**Status:** F16 **shipped** · Architecture revision v2 **pending approval** (`docs/v0.8.0/08-navigation-platform-revision.md`)
 
-**Objective:** Introduce the **Learn** module — 8 implementation phases (F16–F23).
+**Objective:** Introduce the **Learn** module as a **Learning Navigation Platform** — catalog-first, curation-only admin model.
 
-**Product design:** `docs/v0.8.0/00-product-design.md`  
-**Implementation plan:** `docs/v0.8.0/07-implementation-plan.md`
+**Product design:** `docs/v0.8.0/00-product-design.md` (vision frozen)  
+**Architecture revision:** `docs/v0.8.0/08-navigation-platform-revision.md`  
+**Implementation plan v2:** `docs/v0.8.0/09-implementation-plan-v2.md`
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| Design v1.1 | Product architecture | **Approved — frozen** |
-| Plan | F16–F23 implementation plan | **FINAL — frozen** |
-| F16 | Technology Discovery & Search (+ Projects cross-nav) | **Implemented — manual QA pending** |
-| F17 | Roadmap & Learning Resources | Not started |
+| F16 | Technology Discovery & Search (+ Projects cross-nav) | **Shipped** — refactor planned (F16-R) |
+| F16-R | Catalog Foundation Refactor | **Blocked** — pending revision approval |
+| F17 | Roadmap Viewer & Catalog Roadmaps | **Blocked** — not original admin CRUD plan |
 | F18 | Progress & Learning Journey | Not started |
-| F19 | Practice Resources | Not started |
-| F20 | Career Paths | Not started |
-| F21 | Industry Certifications | Not started |
-| F22 | Optional Initiative Association | Not started |
-| F23 | Dashboard, Unified Search & Release | Not started |
+| F19 | Career Path Catalog | Not started |
+| F20 | Certification Catalog | Not started |
+| F21 | Optional Initiative Association | Not started |
+| F22 | Dashboard, Unified Search & Release | Not started |
 
-**Final plan:** Cross-navigation merged into F16; no standalone cross-nav phase; F22 renamed Optional Initiative Association; four-questions UX principle; admin–employee parity per phase.
+**Key revision:** Replace admin Technology/Roadmap/Resource CRUD with **built-in catalog (~100 technologies)** and **admin curation only**. Original F19 (Practice Resource CRUD) eliminated — practice links in roadmap catalog.
 
 ---
 

@@ -156,13 +156,26 @@ Roadmap: `docs/project-roadmap.md`
 - Password reset tokens and email reset flow
 - Cursor project governance documentation (`.cursor/`)
 
-### v0.8.0 F16 — Technology Discovery & Search (implemented)
+### v0.8.0 F16 — Technology Discovery & Search (shipped)
 
 - Learn module shell: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, admin `/learn/manage`
 - Technology entity, CRUD, publish/archive, search/filters, Technology ↔ Project cross-navigation
 - Flyway `V12__learn_technologies.sql` with dev seed technologies
 - Sidebar: Learn (position 2), Projects retained; My Certifications / Review Submissions renames
-- **F17 not started**
+
+### v0.8.0 Architecture Revision v2 (pending approval)
+
+F16 review identified LMS-like drift. Revision proposes:
+
+- **Built-in Technology Catalog** (~100 technologies) — metadata only, no hosted content
+- **Catalog-sourced roadmaps** — platform team ships seed data, not admin authors
+- **Admin as curator** — publish/feature/hide/org notes/project links; no educational content authoring
+- **F16-R refactor** before revised F17
+- **Original F17 admin CRUD cancelled**
+
+See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implementation-plan-v2.md`
+
+**F17 and all implementation blocked until revision approved.**
 
 ## Completed Backend Modules
 
