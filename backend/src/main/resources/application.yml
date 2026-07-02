@@ -81,4 +81,8 @@ app:
     provider: local
     local-root: ${APP_STORAGE_LOCAL_ROOT:./uploads}
     max-file-size-bytes: ${APP_STORAGE_MAX_FILE_SIZE_BYTES:26214400}
+  catalog:
+    import:
+      enabled: ${APP_CATALOG_IMPORT_ENABLED:true}
+      fail-fast: ${APP_CATALOG_IMPORT_FAIL_FAST:true}
 

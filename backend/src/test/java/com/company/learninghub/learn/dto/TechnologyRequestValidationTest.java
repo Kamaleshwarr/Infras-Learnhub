@@ -1,7 +1,6 @@
 package com.company.learninghub.learn.dto;
 
-import com.company.learninghub.learn.domain.TechnologyCategory;
-import com.company.learninghub.learn.domain.TechnologyDifficulty;
+import com.company.learninghub.learn.domain.TechnologyStatus;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -16,32 +15,24 @@ class TechnologyRequestValidationTest {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Test
-    void createRequestRejectsBlankName() {
-        TechnologyCreateRequest request = new TechnologyCreateRequest(
-                " ",
-                "AWS",
-                null,
-                TechnologyCategory.CLOUD,
-                TechnologyDifficulty.BEGINNER
+    void curationRequestRejectsLongOrgNotes() {
+        TechnologyCurationRequest request = new TechnologyCurationRequest(
+                true,
+                TechnologyStatus.PUBLISHED,
+                "A".repeat(2001)
         );
 
-        Set<ConstraintViolation<TechnologyCreateRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<TechnologyCurationRequest>> violations = validator.validate(request);
 
-        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString().equals("name"));
+        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString().equals("orgNotes"));
     }
 
     @Test
-    void createRequestRejectsLongShortName() {
-        TechnologyCreateRequest request = new TechnologyCreateRequest(
-                "AWS",
-                "A".repeat(31),
-                null,
-                TechnologyCategory.CLOUD,
-                TechnologyDifficulty.BEGINNER
-        );
+    void curationRequestAllowsPartialUpdate() {
+        TechnologyCurationRequest request = new TechnologyCurationRequest(true, null, null);
 
-        Set<ConstraintViolation<TechnologyCreateRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<TechnologyCurationRequest>> violations = validator.validate(request);
 
-        assertThat(violations).anyMatch(violation -> violation.getPropertyPath().toString().equals("shortName"));
+        assertThat(violations).isEmpty();
     }
 }

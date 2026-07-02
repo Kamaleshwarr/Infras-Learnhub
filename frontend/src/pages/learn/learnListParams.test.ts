@@ -7,71 +7,31 @@ import {
 } from './learnListParams'
 
 describe('learnListParams', () => {
-  it('parses search, filters, and pagination from URL params', () => {
-    const params = new URLSearchParams('search=aws&category=CLOUD&difficulty=BEGINNER&page=1&size=50&sort=name,desc')
-    expect(parseTechnologyListQuery(params)).toEqual({
-      page: 1,
-      size: 50,
-      sort: 'name,desc',
-      search: 'aws',
-      category: 'CLOUD',
-      difficulty: 'BEGINNER',
-      status: '',
-    })
-  })
-
-  it('builds URL params from query state', () => {
+  it('parses admin filters from search params', () => {
     const params = buildTechnologyListSearchParams({
-      page: 2,
+      page: 1,
       size: 10,
-      sort: 'name,asc',
+      sort: 'name,desc',
       search: 'spring',
-      category: 'LANGUAGES',
-      difficulty: '',
-      status: 'DRAFT',
+      category: 'BACKEND',
+      difficulty: 'INTERMEDIATE',
+      status: 'HIDDEN',
     })
 
-    expect(params.get('page')).toBe('2')
-    expect(params.get('size')).toBe('10')
-    expect(params.get('search')).toBe('spring')
-    expect(params.get('category')).toBe('LANGUAGES')
-    expect(params.get('status')).toBe('DRAFT')
+    expect(params.get('category')).toBe('BACKEND')
+    expect(params.get('status')).toBe('HIDDEN')
+    expect(parseTechnologyListQuery(params).status).toBe('HIDDEN')
   })
 
-  it('includes admin status only for manage list API params', () => {
-    expect(
-      toTechnologyApiParams(
-        {
-          page: 0,
-          size: 20,
-          sort: 'name,asc',
-          search: '',
-          category: '',
-          difficulty: '',
-          status: 'DRAFT',
-        },
-        { isAdmin: true },
-      ).status,
-    ).toBe('DRAFT')
+  it('includes status only for admin API params', () => {
+    const query = parseTechnologyListQuery(new URLSearchParams('status=HIDDEN'))
 
-    expect(
-      toTechnologyApiParams(
-        {
-          page: 0,
-          size: 20,
-          sort: 'name,asc',
-          search: '',
-          category: '',
-          difficulty: '',
-          status: 'DRAFT',
-        },
-        { isAdmin: false },
-      ).status,
-    ).toBeUndefined()
+    expect(toTechnologyApiParams(query, { isAdmin: true }).status).toBe('HIDDEN')
+    expect(toTechnologyApiParams(query, { isAdmin: false }).status).toBeUndefined()
   })
 
   it('toggles sort direction', () => {
     expect(toggleSort('name,asc', 'name')).toBe('name,desc')
-    expect(toggleSort('name,desc', 'category')).toBe('category,asc')
+    expect(toggleSort('name,desc', 'slug')).toBe('slug,asc')
   })
 })

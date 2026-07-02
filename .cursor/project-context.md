@@ -52,7 +52,7 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 ## Current Release
 
 **v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
-**v0.8.0** — Learn module (**F16 shipped**; **F16-R ready to begin**)  
+**v0.8.0** — Learn module (**F16-R shipped**; **F17 blocked**)  
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*  
 **Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
@@ -163,6 +163,15 @@ Roadmap: `docs/project-roadmap.md`
 - Flyway `V12__learn_technologies.sql` with dev seed technologies
 - Sidebar: Learn (position 2), Projects retained; My Certifications / Review Submissions renames
 
+### v0.8.0 F16-R — Catalog Foundation Refactor (shipped)
+
+- Catalog-first technology model: `catalog/manifest.json`, `catalog/technologies/wave-1.json` (30 technologies), JSON schema validation
+- `CatalogImportService` — idempotent startup import by `slug`, version tracking, org override preservation
+- Flyway `V13__learn_catalog_foundation.sql` — slug, catalog columns, `learn_catalog_imports`, `HIDDEN` status
+- Admin curation APIs: `PATCH .../curation`, `POST .../publish|hide|archive`, `GET .../manage/catalog/status`
+- Admin UI: removed Create/Edit metadata authoring; `TechnologyCurationPanel` (feature, org notes, project links)
+- Employee browse/search/detail unchanged (F16 parity)
+
 ### v0.8.0 Architecture Revision v2 (APPROVED — FROZEN)
 
 > **Engineering Learning Hub owns guidance, not knowledge.**
@@ -174,13 +183,13 @@ Roadmap: `docs/project-roadmap.md`
 
 See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implementation-plan-v2.md`, `docs/v0.8.0/10-catalog-specification.md`
 
-**F16-R is ready to begin. F17 blocked until F16-R complete.**
+**F16-R shipped. F17 may begin after F16-R merge.**
 
 ## Completed Backend Modules
 
 - Authentication
 - Learning Initiatives
-- **Learn — Technologies (F16)**
+- **Learn — Technologies (F16 + F16-R catalog foundation)**
 - Certificate Submissions
 - Leaderboards
 - Study Materials Repository

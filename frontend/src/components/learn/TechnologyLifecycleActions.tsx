@@ -24,6 +24,8 @@ export function TechnologyLifecycleActions({ technology, onSuccess, onError }: T
     try {
       if (confirmAction === 'publish') {
         await learnApi.publishTechnology(technology.id)
+      } else if (confirmAction === 'hide') {
+        await learnApi.hideTechnology(technology.id)
       } else {
         await learnApi.archiveTechnology(technology.id)
       }
@@ -33,7 +35,11 @@ export function TechnologyLifecycleActions({ technology, onSuccess, onError }: T
       onError(
         resolveApiError(
           error,
-          confirmAction === 'publish' ? LEARN_MESSAGES.publishError : LEARN_MESSAGES.archiveError,
+          confirmAction === 'publish'
+            ? LEARN_MESSAGES.publishError
+            : confirmAction === 'hide'
+              ? LEARN_MESSAGES.hideError
+              : LEARN_MESSAGES.archiveError,
         ),
       )
     } finally {
@@ -41,28 +47,49 @@ export function TechnologyLifecycleActions({ technology, onSuccess, onError }: T
     }
   }
 
+  function confirmTitle() {
+    if (confirmAction === 'publish') {
+      return LEARN_MESSAGES.publishConfirmTitle
+    }
+    if (confirmAction === 'hide') {
+      return LEARN_MESSAGES.hideConfirmTitle
+    }
+    return LEARN_MESSAGES.archiveConfirmTitle
+  }
+
+  function confirmBody() {
+    if (confirmAction === 'publish') {
+      return LEARN_MESSAGES.publishConfirmBody
+    }
+    if (confirmAction === 'hide') {
+      return LEARN_MESSAGES.hideConfirmBody
+    }
+    return LEARN_MESSAGES.archiveConfirmBody
+  }
+
   return (
     <>
       <Stack direction="row" spacing={1}>
-        {technology.status === 'DRAFT' ? (
+        {technology.status === 'HIDDEN' ? (
           <Button onClick={() => setConfirmAction('publish')} variant="contained">
             {LEARN_MESSAGES.publishAction}
           </Button>
         ) : null}
         {technology.status === 'PUBLISHED' ? (
-          <Button color="warning" onClick={() => setConfirmAction('archive')} variant="outlined">
-            {LEARN_MESSAGES.archiveAction}
-          </Button>
+          <>
+            <Button onClick={() => setConfirmAction('hide')} variant="outlined">
+              {LEARN_MESSAGES.hideAction}
+            </Button>
+            <Button color="warning" onClick={() => setConfirmAction('archive')} variant="outlined">
+              {LEARN_MESSAGES.archiveAction}
+            </Button>
+          </>
         ) : null}
       </Stack>
 
       <Dialog onClose={() => setConfirmAction(null)} open={Boolean(confirmAction)}>
-        <DialogTitle>
-          {confirmAction === 'publish' ? LEARN_MESSAGES.publishConfirmTitle : LEARN_MESSAGES.archiveConfirmTitle}
-        </DialogTitle>
-        <DialogContent>
-          {confirmAction === 'publish' ? LEARN_MESSAGES.publishConfirmBody : LEARN_MESSAGES.archiveConfirmBody}
-        </DialogContent>
+        <DialogTitle>{confirmTitle()}</DialogTitle>
+        <DialogContent>{confirmBody()}</DialogContent>
         <DialogActions>
           <Button disabled={submitting} onClick={() => setConfirmAction(null)}>
             {LEARN_MESSAGES.formCancel}

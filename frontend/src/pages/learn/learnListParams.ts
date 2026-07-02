@@ -99,7 +99,7 @@ export function toggleSort(currentSort: string, property: string): string {
 }
 
 function parseStatus(value: string | null): TechnologyListQuery['status'] {
-  if (value === 'DRAFT' || value === 'PUBLISHED' || value === 'ARCHIVED') {
+  if (value === 'HIDDEN' || value === 'PUBLISHED' || value === 'ARCHIVED') {
     return value
   }
   return ''
@@ -107,13 +107,17 @@ function parseStatus(value: string | null): TechnologyListQuery['status'] {
 
 function parseCategory(value: string | null): TechnologyCategory | '' {
   if (
+    value === 'BACKEND' ||
+    value === 'FRONTEND' ||
     value === 'CLOUD' ||
-    value === 'LANGUAGES' ||
     value === 'DEVOPS' ||
-    value === 'DATA' ||
+    value === 'DATABASE' ||
+    value === 'AI_AND_GENAI' ||
+    value === 'TESTING' ||
     value === 'SECURITY' ||
-    value === 'PLATFORM' ||
-    value === 'OTHER'
+    value === 'MOBILE' ||
+    value === 'ARCHITECTURE' ||
+    value === 'DATA_ENGINEERING'
   ) {
     return value
   }
@@ -137,7 +141,7 @@ function parsePositiveInt(value: string | null, fallback: number) {
 
 export const TECHNOLOGY_STATUS_TABS: Array<{ label: string; value: TechnologyListQuery['status'] }> = [
   { label: 'All', value: '' },
-  { label: 'Draft', value: 'DRAFT' },
+  { label: 'Hidden', value: 'HIDDEN' },
   { label: 'Published', value: 'PUBLISHED' },
   { label: 'Archived', value: 'ARCHIVED' },
 ]

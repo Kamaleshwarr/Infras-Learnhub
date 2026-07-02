@@ -1,17 +1,23 @@
-import AddOutlinedIcon from '@mui/icons-material/AddOutlined'
-import { Box, Button } from '@mui/material'
+import { Alert, Stack, Typography } from '@mui/material'
+import type { CatalogStatus } from '../../types/learn'
 import { LEARN_MESSAGES } from './learnMessages'
 
 interface TechnologyListToolbarProps {
-  onCreateTechnology: () => void
+  catalogStatus: CatalogStatus | null
 }
 
-export function TechnologyListToolbar({ onCreateTechnology }: TechnologyListToolbarProps) {
+export function TechnologyListToolbar({ catalogStatus }: TechnologyListToolbarProps) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-      <Button onClick={onCreateTechnology} startIcon={<AddOutlinedIcon />} variant="contained">
-        {LEARN_MESSAGES.createTechnology}
-      </Button>
-    </Box>
+    <Stack spacing={1} sx={{ mb: 2 }}>
+      <Typography color="text.secondary" variant="body2">
+        {LEARN_MESSAGES.manageCatalogDescription}
+      </Typography>
+      {catalogStatus?.catalogVersion ? (
+        <Alert severity="info">
+          {LEARN_MESSAGES.catalogStatusLabel}: {catalogStatus.catalogVersion} ·{' '}
+          {catalogStatus.technologyCount} {LEARN_MESSAGES.catalogTechnologiesLabel}
+        </Alert>
+      ) : null}
+    </Stack>
   )
 }

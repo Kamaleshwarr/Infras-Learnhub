@@ -1,5 +1,5 @@
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined'
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
 import {
   Box,
   Card,
@@ -32,7 +32,7 @@ interface TechnologyTableProps {
   sort: string
   showStatusColumn: boolean
   onSort: (property: string) => void
-  onEdit?: (technology: Technology) => void
+  onCurate?: (technology: Technology) => void
   onLifecycleSuccess?: (action: TechnologyLifecycleAction) => void
 }
 
@@ -59,11 +59,11 @@ export function TechnologyTable({
   sort,
   showStatusColumn,
   onSort,
-  onEdit,
+  onCurate,
   onLifecycleSuccess,
 }: TechnologyTableProps) {
   const navigate = useNavigate()
-  const showActionsColumn = Boolean(onEdit || onLifecycleSuccess)
+  const showActionsColumn = Boolean(onCurate || onLifecycleSuccess)
   const columns = buildColumns(showStatusColumn, showActionsColumn)
 
   if (loading) {
@@ -123,10 +123,10 @@ export function TechnologyTable({
                         technology={technology}
                       />
                     ) : null}
-                    {onEdit ? (
-                      <Tooltip title="Edit">
-                        <IconButton aria-label={`Edit ${technology.name}`} onClick={() => onEdit(technology)}>
-                          <EditOutlinedIcon />
+                    {onCurate ? (
+                      <Tooltip title="Curate">
+                        <IconButton aria-label={`Curate ${technology.name}`} onClick={() => onCurate(technology)}>
+                          <TuneOutlinedIcon />
                         </IconButton>
                       </Tooltip>
                     ) : null}

@@ -1,10 +1,10 @@
 import { httpClient } from './httpClient'
 import type { PageResponse } from '../types/api'
 import type {
+  CatalogStatus,
   Technology,
-  TechnologyCreateRequest,
+  TechnologyCurationRequest,
   TechnologyListParams,
-  TechnologyUpdateRequest,
 } from '../types/learn'
 
 export const learnApi = {
@@ -20,16 +20,23 @@ export const learnApi = {
     const response = await httpClient.get<PageResponse<Technology>>('/learn/manage/technologies', { params })
     return response.data
   },
-  createTechnology: async (request: TechnologyCreateRequest) => {
-    const response = await httpClient.post<Technology>('/learn/manage/technologies', request)
+  getCatalogStatus: async () => {
+    const response = await httpClient.get<CatalogStatus>('/learn/manage/catalog/status')
     return response.data
   },
-  updateTechnology: async (technologyId: string, request: TechnologyUpdateRequest) => {
-    const response = await httpClient.put<Technology>(`/learn/manage/technologies/${technologyId}`, request)
+  updateTechnologyCuration: async (technologyId: string, request: TechnologyCurationRequest) => {
+    const response = await httpClient.patch<Technology>(
+      `/learn/manage/technologies/${technologyId}/curation`,
+      request,
+    )
     return response.data
   },
   publishTechnology: async (technologyId: string) => {
     const response = await httpClient.post<Technology>(`/learn/manage/technologies/${technologyId}/publish`)
+    return response.data
+  },
+  hideTechnology: async (technologyId: string) => {
+    const response = await httpClient.post<Technology>(`/learn/manage/technologies/${technologyId}/hide`)
     return response.data
   },
   archiveTechnology: async (technologyId: string) => {
