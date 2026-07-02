@@ -1,9 +1,9 @@
 # Engineering Learning Hub — v0.8.0 Product Design
 
 **Release theme:** Learn — Learning Guidance Platform  
-**Status:** Product design — refinement v1.1 (pre-implementation)  
+**Status:** Product design v1.1 **approved (frozen)** · Implementation plan pending approval  
 **Depends on:** v0.7.1 Initiative Management (complete)  
-**Classification:** Product design only — no production code in this phase
+**Classification:** Product design approved · Implementation planning complete (awaiting plan approval)
 
 ---
 
@@ -41,8 +41,9 @@ Engineering Learning Hub consists of **independent modules** with clear responsi
 | 02 | [Information Architecture](./02-information-architecture.md) | Navigation, URL structure, entity hierarchy, page inventory |
 | 03 | [Business Rules](./03-business-rules.md) | Authoritative rules for content, progress, integrations |
 | 04 | [User Flows](./04-user-flows.md) | Employee and admin journeys with flow diagrams |
-| 05 | [Implementation Roadmap](./05-roadmap.md) | Phased F16+ delivery plan for post-approval implementation |
-| 06 | [Future Enhancements](./06-future-enhancements.md) | AI opportunities, deferred features, long-term vision |
+| 05 | [Implementation Roadmap (summary)](./05-roadmap.md) | Phase overview and dependency graph |
+| 06 | [Future Enhancements](./06-future-enhancements.md) | AI opportunities, deferred features |
+| 07 | **[Implementation Plan](./07-implementation-plan.md)** | **Detailed F16–F24 phases (authoritative for coding)** |
 
 ---
 
@@ -102,20 +103,22 @@ Engineering Learning Hub consists of **independent modules** with clear responsi
 
 ## Approval gate
 
-Implementation phases (F16+) will be created **only after** this product design is reviewed and approved by the product owner.
+| Gate | Status |
+|------|--------|
+| Product design v1.1 | **Approved — frozen** |
+| Implementation plan (`07-implementation-plan.md`) | **Pending approval** |
+| F16 coding | **Blocked until plan approved** |
 
-**Review checklist:**
+**Product design checklist:** (approved)
 
-- [ ] Product vision and positioning approved
-- [ ] Information architecture and navigation approved
-- [ ] Entity model and terminology approved
-- [ ] **Learn / Projects module separation confirmed**
-- [ ] Business rules approved
-- [ ] User flows validated
-- [ ] Initiative vs Certification separation confirmed
-- [ ] Study Materials module boundary confirmed
-- [ ] Implementation roadmap phased and prioritized
-- [ ] Risks acknowledged with mitigation plan
+**Implementation plan checklist:**
+
+- [ ] Phase sequence and vertical slices approved
+- [ ] F16–F24 scope per phase approved
+- [ ] Flyway incremental migration plan approved
+- [ ] "Never wonder what's next" UX principle acknowledged
+- [ ] AI features remain out of scope
+- [ ] Projects module independence confirmed in plan
 
 ---
 

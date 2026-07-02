@@ -15,7 +15,7 @@ Last updated: 2026-07-02 (v0.8.0 — product design in review)
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
 | **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
-| **v0.8.0** | **Learn — Learning Guidance Platform** | **Product design v1.1 — refinement for approval** |
+| **v0.8.0** | **Learn — Learning Guidance Platform** | **Implementation plan pending approval** |
 
 Release notes: `docs/releases/release-v0.7.1.md`  
 v0.8.0 product design: `docs/v0.8.0/`  
@@ -26,23 +26,28 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ## In design — v0.8.0 Learn (Learning Guidance Platform)
 
-**Status:** Product design v1.1 — **refinement for approval** before implementation (F16+).
+**Status:** Product design v1.1 **approved (frozen)** · Implementation plan **pending approval** (`docs/v0.8.0/07-implementation-plan.md`)
 
-**Objective:** Introduce the **Learn** module — a Learning Guidance Platform. Learn contains Technologies, Career Paths, Roadmaps, Learning Resources, **Practice Resources**, Certifications, and Progress only. The **Projects** module remains independent (organizational engineering knowledge). Optional cross-navigation links Technologies to organizational Projects.
+**Objective:** Introduce the **Learn** module — a Learning Guidance Platform. Learn contains Technologies, Career Paths, Roadmaps, Learning Resources, Practice Resources, Certifications, and Progress only. The **Projects** module remains independent.
 
-**Product design:** `docs/v0.8.0/` (master: `docs/v0.8.0/00-product-design.md`)
+**Product design:** `docs/v0.8.0/00-product-design.md`  
+**Implementation plan:** `docs/v0.8.0/07-implementation-plan.md`
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| Design | Product vision, IA, business rules, user flows | **v1.1 refinement for approval** |
-| F16 | Learn foundation (routes, nav, schema) | Not started |
-| F17–F21 | Employee experience (browse, progress, certifications) | Not started |
-| F20 | Learning & Practice Resources (not Learn Projects) | Not started |
-| F22 | Admin content management + Technology ↔ Project links | Not started |
+| Design v1.1 | Product vision, IA, business rules, user flows | **Approved — frozen** |
+| Plan | F16–F24 detailed implementation phases | **Pending approval** |
+| F16 | Technology Discovery & Search | Not started (blocked on plan) |
+| F17 | Roadmap & Learning Resources | Not started |
+| F18 | Progress & Learning Journey | Not started |
+| F19 | Practice Resources | Not started |
+| F20 | Career Paths | Not started |
+| F21 | Industry Certifications | Not started |
+| F22 | Projects Cross-Navigation | Not started |
 | F23 | Initiative ↔ Certification integration | Not started |
-| F24 | Dashboard polish & release | Not started |
+| F24 | Dashboard, Unified Search & Release | Not started |
 
-**Key product decisions:** Learn does not own Projects; Practice Resources are external hands-on links; Projects stays in primary navigation; cross-nav only between Learn and Projects modules; guidance not LMS; Industry Certifications in Learn (distinct from Initiatives).
+**Key implementation decisions:** Vertical slices (no foundation-only F16); Technologies first; search F16+F24; admin CRUD distributed per entity; monolithic admin phase eliminated; UX principle — learner never wonders what's next.
 
 ---
 
