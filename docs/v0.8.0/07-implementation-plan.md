@@ -1,9 +1,9 @@
 # v0.8.0 Learn Module — Implementation Plan
 
-**Status:** Finalized for approval — **architecture frozen (design v1.1)**  
-**Feature numbering:** F16–F24 (continues from F15)  
+**Status:** **FINAL — frozen** (approved for F16 implementation after sign-off)  
+**Feature numbering:** F16–F23 (continues from F15)  
 **Depends on:** v0.7.1 Initiative Management (complete)  
-**Classification:** Implementation planning only — **no production code in this document**
+**Classification:** Implementation planning — **no production code**
 
 ---
 
@@ -31,28 +31,59 @@ This is the authoritative implementation plan for v0.8.0 Learn. It follows the s
 | Principle | Implementation implication |
 |-----------|---------------------------|
 | **Technologies are primary** | First employee slice is Technology browse/search; Career Paths come later as a complement |
-| **Search is first-class** | Technology list search in F16; unified Learn search in F24; URL-synced query params throughout |
+| **Search is first-class** | Technology list search in F16; unified Learn search in F23; URL-synced query params throughout |
 | **Progress grows incrementally** | F18 adds enrollment/progress; F21 adds certification readiness; each phase adds guidance layers |
 | **Practice Resources are external links** | Never labeled "Project"; separate tables and UI sections from Learning Resources |
-| **Certifications ≠ Initiatives** | Certification catalog in Learn (F21); Initiative link deferred to F23 |
-| **Projects stay independent** | Cross-navigation only in F22; no `/learn/projects` routes |
-| **A learner should never wonder what to do next** | Every phase ships a **Next step** affordance: Stage 1 CTA (F17), Next up (F18), Continue Learning (F18+), readiness CTAs (F21) |
+| **Certifications ≠ Initiatives** | Certification catalog in Learn (F21); optional Initiative association in F22 |
+| **Projects stay independent** | Cross-navigation is a **relationship**, delivered in F16 with Technology pages — not a standalone phase |
+| **Admin–employee parity** | Every phase pairs employee capability with admin management (except employee-only progress per BR-PR10) |
+| **A learner should never wonder what to do next** | Every phase ships a **Next step** affordance (see per-phase table below) |
 
-### UX principle (mandatory)
+### UX principles (mandatory)
+
+#### Principle 1 — Never wonder what to do next
 
 > **"A learner should never wonder what to do next."**
 
-Every completed feature must guide users to the next logical learning step:
+Every completed feature must guide users to the next logical learning step.
 
-| Phase | Next-step affordance |
-|-------|---------------------|
-| F16 | Technology detail → **View Roadmap** |
-| F17 | Roadmap → **Start with Stage 1** / expand first Stage |
-| F18 | **Next up** Stage; **Continue Learning** on Learn home |
-| F19 | Stage lists show **Practice Resources** after Learning Resources |
-| F20 | Career Path detail → **Start with first Technology** |
-| F21 | Certification → **Continue Roadmap** or **Visit official provider** when READY |
-| F24 | Dashboard **Continue Learning** widget |
+#### Principle 2 — Four questions every page must answer
+
+Every Learn page (and cross-linked surfaces) must answer:
+
+| # | Question | Implementation guidance |
+|---|----------|-------------------------|
+| 1 | **Where am I?** | Breadcrumbs, tab highlight, clear `PageHeader` title |
+| 2 | **What is this?** | Description, metadata chips, context copy |
+| 3 | **What should I do next?** | Primary CTA, **Next up**, readiness state |
+| 4 | **Where do I go next?** | Links to Roadmap, Technology, Certification, Projects, or Continue Learning |
+
+Apply this checklist in every phase's manual QA review.
+
+| Phase | Next-step affordance | Four-questions focus |
+|-------|---------------------|----------------------|
+| F16 | Technology detail → **View Roadmap**; optional → Related Organization Projects | Breadcrumbs on Technology detail |
+| F17 | Roadmap → **Start with Stage 1** | Stage expand; resource links |
+| F18 | **Next up** Stage; **Continue Learning** | My Journey context |
+| F19 | Practice Resources after study resources | Separate section labels |
+| F20 | Career Path → **Start with first Technology** | Path → Technology links |
+| F21 | **Continue Roadmap** or **Visit official provider** | Readiness badge |
+| F23 | Dashboard **Continue Learning** widget | Dashboard entry point |
+
+### Admin–employee parity (mandatory)
+
+Each phase delivers **employee and admin capabilities together** in one vertical slice. Do not defer admin CRUD to a later admin-only phase.
+
+| Phase | Employee | Admin |
+|-------|----------|-------|
+| **F16** | Browse/search Technologies; Technology detail; optional Related Organization Projects | Create/edit/publish/archive Technology; manage Technology ↔ Project links |
+| **F17** | View Roadmap, Stages, Learning Resources | Roadmap editor; Stage CRUD; Learning Resource curation |
+| **F18** | Enroll; Stage progress; My Journey; Continue Learning | *N/A — progress is employee self-service (BR-PR10)* |
+| **F19** | View Practice Resources on Stages | Practice Resource curation |
+| **F20** | Browse/start Career Paths | Career Path CRUD; publish/archive |
+| **F21** | Browse Certifications; readiness CTAs | Certification CRUD; link Technologies |
+| **F22** | Initiative progress card; optional Certification banner | Link Certification on Initiative (optional field) |
+| **F23** | Dashboard widgets; unified search | Settings shell; release QA |
 
 ---
 
@@ -65,8 +96,9 @@ The prior proposal (all schema in F16, read-only employee slices before admin, m
 | F16 foundation-only (no user value) | **Eliminated** — F16 is first vertical slice (Technology discovery + admin create) |
 | Employee read long before admin write | **Admin write paired** with each employee slice from F16 onward |
 | Career Paths before Progress (F18 before F19) | **Reordered** — Progress (F18) before Career Paths (F20) |
-| Monolithic F22 admin CRUD | **Split** — admin CRUD distributed across F16–F21 per entity |
-| Search deferred to v0.9 | **Elevated** — list search F16; unified Learn search F24 |
+| Monolithic admin-only phase | **Eliminated** — admin CRUD distributed F16–F21; cross-nav merged into F16 |
+| Standalone cross-navigation phase | **Eliminated** — Technology ↔ Project links are a relationship, not a business feature |
+| Search deferred to v0.9 | **Elevated** — list search F16; unified Learn search F23 |
 | Learning Resources separate from Roadmap (F20 after F17) | **Merged** — F17 delivers Roadmap + Learning Resources together |
 
 ---
@@ -75,33 +107,30 @@ The prior proposal (all schema in F16, read-only employee slices before admin, m
 
 | Phase | Name | Employee value | Admin value | Complexity |
 |-------|------|----------------|-------------|------------|
-| **F16** | Technology Discovery & Search | Browse/search Technologies | Create/edit/publish Technology | **M** |
+| **F16** | Technology Discovery & Search | Browse/search Technologies; optional Related Organization Projects | Create/edit/publish Technology; Technology ↔ Project links | **M** |
 | **F17** | Roadmap & Learning Resources | View Roadmap, Stages, study links | Roadmap editor, Learning Resource curation | **L** |
-| **F18** | Progress & Learning Journey | Enroll, complete Stages, My Journey | — (progress is employee-only) | **L** |
+| **F18** | Progress & Learning Journey | Enroll, complete Stages, My Journey | *(employee self-service only — BR-PR10)* | **L** |
 | **F19** | Practice Resources | Hands-on external links on Stages | Practice Resource curation | **M** |
 | **F20** | Career Paths | Browse/start Career Paths | Career Path CRUD | **M** |
 | **F21** | Industry Certifications | Catalog, readiness, provider CTA | Certification CRUD | **M** |
-| **F22** | Projects Cross-Navigation | Related Organization Projects | Technology ↔ Project links | **S** |
-| **F23** | Initiative Integration | Initiative ↔ Certification progress | Link Certification on Initiative | **S** |
-| **F24** | Dashboard, Unified Search & Release | Dashboard widgets, Learn home polish | Settings shell; release readiness | **M** |
+| **F22** | Optional Initiative Association | Initiative progress; optional Certification banner | Link Certification on Initiative (optional) | **S** |
+| **F23** | Dashboard, Unified Search & Release | Dashboard widgets, Learn home polish | Settings shell; release readiness | **M** |
 
-**Total phases:** 9 (F16–F24)  
+**Total phases:** 8 (F16–F23)  
 **Flyway migrations:** Incremental per phase (no big-bang schema)
 
 ```mermaid
 flowchart LR
-    F16[F16 Technologies] --> F17[F17 Roadmap]
+    F16[F16 Technologies + cross-nav] --> F17[F17 Roadmap]
     F17 --> F18[F18 Progress]
     F18 --> F19[F19 Practice]
     F18 --> F20[F20 Career Paths]
     F18 --> F21[F21 Certifications]
-    F17 --> F22[F22 Cross-nav]
-    F21 --> F23[F23 Initiatives]
-    F19 --> F24[F24 Release]
-    F20 --> F24
-    F21 --> F24
-    F22 --> F24
-    F23 --> F24
+    F21 --> F22[F22 Optional Initiative Assoc]
+    F19 --> F23[F23 Release]
+    F20 --> F23
+    F21 --> F23
+    F22 --> F23
 ```
 
 ---
@@ -158,11 +187,20 @@ frontend/src/
 
 ## Objective
 
-Deliver the first usable Learn vertical slice: employees browse and search Technologies; admins create and publish Technologies. Establishes Learn navigation, module shell, and search-first Technology browsing.
+Deliver the first usable Learn vertical slice: employees browse and search Technologies; admins create and publish Technologies. Includes **Technology ↔ Project cross-navigation** as an optional relationship (not a standalone feature). Establishes Learn navigation, module shell, and search-first Technology browsing.
 
 ## Scope
 
-First end-to-end Learn capability centered on **Technologies as the primary entry point**.
+First end-to-end Learn capability centered on **Technologies as the primary entry point**, including lightweight cross-links to the independent Projects module.
+
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| Browse/search Technologies | Create Technology |
+| Technology detail | Edit Technology |
+| Related Organization Projects (read) | Publish / Archive Technology |
+| Navigate to `/projects/{id}` | Manage Technology ↔ Project links in Edit dialog |
 
 ## In scope
 
@@ -171,12 +209,17 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 - `learnApi.ts`, `types/learn.ts`, `learnMessages.ts`, `learnListParams.ts`
 - Technology entity, repository, service, controller
 - Employee: Technology list (search, category, difficulty filters, pagination, URL query sync)
-- Employee: Technology detail (metadata, **View Roadmap** CTA — disabled/placeholder until F17 if roadmap missing)
+- Employee: Technology detail (metadata, **View Roadmap** CTA — placeholder until F17 if roadmap missing)
+- Employee: **Related Organization Projects** on Technology detail (optional; links to `/projects/{id}`)
 - Employee: Learn home with Technology-first discovery and search entry
 - Admin: Technology list with status filter tabs (DRAFT / PUBLISHED / ARCHIVED)
 - Admin: Create Technology dialog, Edit Technology dialog
 - Admin: Publish / Archive Technology (dedicated actions)
-- Flyway `V12__learn_technologies.sql`
+- Admin: **Technology ↔ Project link picker** in Edit Technology dialog
+- **Cross-navigation (relationship, not a feature):**
+  - `learn_technology_project_links` junction (FK → existing `projects` table)
+  - Projects module: **Related Technologies** read-only card on project detail (minimal addition to existing `/projects` page — links to `/learn/technologies/{id}`)
+- Flyway `V12__learn_technologies.sql` (includes `learn_technologies` + `learn_technology_project_links`)
 - Dev seed: 2–3 sample Technologies for QA (Flyway seed or test fixtures — not production)
 
 ## Out of scope
@@ -185,25 +228,27 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 - Progress, enrollment (F18)
 - Career Paths (F20)
 - Certifications (F21)
-- Projects cross-links (F22)
-- Unified cross-entity search (F24 — list search only here)
-- Settings page (F24)
-- Dashboard widgets (F24)
+- Creating organizational Projects from Learn (Projects module owns Projects)
+- Unified cross-entity search (F23 — list search only here)
+- Settings page (F23)
+- Dashboard widgets (F23)
 - AI features
 
 ## Backend work
 
 | Item | Detail |
 |------|--------|
-| Migration `V12` | `learn_technologies` table: id, name, short_name, description, category, difficulty, status, featured, timestamps |
+| Migration `V12` | `learn_technologies` + `learn_technology_project_links` (technology_id, project_id; FK → `projects`) |
 | `LearnTechnologyService` | CRUD, publish, archive, employee visibility filter |
 | `GET /api/v1/learn/technologies` | Paginated; `search`, `category`, `difficulty`; employees: PUBLISHED only |
-| `GET /api/v1/learn/technologies/{id}` | Detail; employee 404 if not PUBLISHED |
+| `GET /api/v1/learn/technologies/{id}` | Detail with `relatedProjects[]`; employee 404 if not PUBLISHED |
+| `POST/DELETE .../manage/technologies/{id}/project-links` | Admin link/unlink organizational Projects |
 | `GET /api/v1/learn/manage/technologies` | Admin list with status filter |
 | `POST /api/v1/learn/manage/technologies` | Create (DRAFT) |
 | `PUT /api/v1/learn/manage/technologies/{id}` | Update metadata |
 | `POST /api/v1/learn/manage/technologies/{id}/publish` | Publish validation |
 | `POST /api/v1/learn/manage/technologies/{id}/archive` | Archive |
+| Projects API (coordinate) | Extend project detail `GET` to include `relatedTechnologies[]` summaries |
 | Authorization | Employee read authenticated; admin write `@PreAuthorize("hasRole('ADMIN')")` |
 | OpenAPI | `@Tag`, `@Operation` on all endpoints |
 
@@ -215,7 +260,9 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 | `navigation.tsx` | Learn, Projects retained, My Certifications / Review Submissions renames |
 | `LearnLayout` | Tab bar: Home, Technologies, (placeholders for later tabs) |
 | `TechnologyListPage` | Reuse `InitiativeListPage` patterns: toolbar, filters, URL sync, desktop table + mobile cards |
-| `TechnologyDetailPage` | Metadata, category/difficulty chips, **View Roadmap** CTA |
+| `TechnologyDetailPage` | Metadata, category/difficulty chips, **View Roadmap** CTA, **RelatedOrganizationProjectsCard** |
+| `RelatedTechnologiesCard` | On existing Projects detail page (`/projects/:id`) — minimal read-only card |
+| `TechnologyProjectLinkPicker` | Admin multi-select in Edit Technology dialog |
 | `LearnHomePage` | Hero, Technology search input, featured Technologies grid |
 | `CreateTechnologyDialog` / `EditTechnologyDialog` | `maxWidth="md"`, validation, dirty guard |
 | `TechnologyStatusChip` | DRAFT / PUBLISHED / ARCHIVED |
@@ -226,7 +273,9 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 
 | Type | Fields (indicative) |
 |------|---------------------|
-| `TechnologyResponse` | id, name, shortName, description, category, difficulty, status, featured, createdAtUtc, updatedAtUtc |
+| `TechnologyResponse` | id, name, shortName, description, category, difficulty, status, featured, relatedProjects[], createdAtUtc, updatedAtUtc |
+| `RelatedProjectSummary` | id, name, businessDomain? |
+| `RelatedTechnologySummary` | id, name, shortName |
 | `TechnologyCreateRequest` | name, shortName, description, category, difficulty |
 | `TechnologyUpdateRequest` | same as create |
 | `TechnologyListParams` | search, category, difficulty, status (admin), page, size, sort |
@@ -252,13 +301,15 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 | BR-AU02 | All authenticated users browse published |
 | BR-UX03 | Learn position 2, Projects position 3 |
 | BR-UX04 | Terminology: Technology, not Course |
+| BR-XN01–05 | Cross-navigation as optional relationship |
+| BR-M01–05 | Projects module independence |
 
 ## Test strategy
 
 | Layer | Tests |
 |-------|-------|
-| Backend service | Create, update, publish, archive, uniqueness, employee visibility |
-| Backend controller | List filters, 404 draft for employee, admin 403 for employee writes |
+| Backend service | Create, update, publish, archive, uniqueness, employee visibility, project link CRUD |
+| Backend controller | List filters, 404 draft for employee, project link 409 on duplicate |
 | Backend security | `@PreAuthorize` on manage endpoints |
 | Frontend unit | `learnListParams` parse/build, form validation |
 | Frontend component | Technology list render, create dialog validation, admin-only controls hidden for employee |
@@ -278,6 +329,12 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 | 8 | Employee sidebar: Learn, Projects, no admin Manage tab |
 | 9 | Admin sidebar: Learn with Manage tab |
 | 10 | Duplicate Technology name rejected |
+| 11 | Technology with linked Projects shows Related Organization Projects |
+| 12 | Click project link navigates to `/projects/{id}` |
+| 13 | Project detail shows Related Technologies (when links exist) |
+| 14 | Admin adds/removes Technology ↔ Project link in Edit dialog |
+| 15 | Zero links — empty state; Learn fully functional |
+| 16 | Four-questions UX: breadcrumb, description, View Roadmap CTA, cross-nav links |
 
 ## Risks
 
@@ -296,7 +353,9 @@ First end-to-end Learn capability centered on **Technologies as the primary entr
 
 - [ ] Employee can browse and search published Technologies
 - [ ] Admin can create, edit, publish, archive Technologies
+- [ ] Optional Technology ↔ Project cross-nav works (both directions)
 - [ ] Learn appears in sidebar; Projects remains independent
+- [ ] Four-questions UX checklist passed on Technology pages
 - [ ] All automated tests pass; build passes
 - [ ] Manual QA checklist complete
 - [ ] PR references `feat(v0.8.0): F16 technology discovery and search`
@@ -316,6 +375,14 @@ Employees view a full Technology Roadmap with ordered Stages and curated Learnin
 ## Scope
 
 Roadmap read/write for a Technology, Stage sequence, Learning Resource library and Stage attachment.
+
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| View Roadmap, Stages, Learning Resources | Roadmap editor; Stage CRUD; reorder |
+| Start with Stage 1 guidance | Learning Resource library CRUD; attach to Stages |
+| | Publish Technology (with roadmap validation) |
 
 ## In scope
 
@@ -337,7 +404,7 @@ Roadmap read/write for a Technology, Stage sequence, Learning Resource library a
 - Enrollment / progress checkmarks (F18)
 - Career Paths (F20)
 - Certifications (F21)
-- Projects cross-links (F22)
+- Projects cross-links (merged into F16)
 - Resource visit tracking (optional — defer to F18 if needed)
 
 ## Backend work
@@ -446,6 +513,14 @@ Employees enroll in Technologies, mark Stages complete, and track progress via M
 
 Enrollment, stage progress, My Journey page, next-step guidance based on progress.
 
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| Enroll; mark Stages complete; My Journey; Continue Learning | *N/A — employee self-service only (BR-PR10)* |
+
+> Progress is intentionally employee-owned. Admins manage content in F16–F17; they do not edit learner progress.
+
 ## In scope
 
 - Flyway `V14__learn_progress.sql`
@@ -464,7 +539,7 @@ Enrollment, stage progress, My Journey page, next-step guidance based on progres
 - Certification readiness (F21)
 - Practice Resource completion tracking (F19)
 - Admin progress editing (forbidden BR-PR10)
-- Dashboard widget (F24)
+- Dashboard widget (F23)
 
 ## Backend work
 
@@ -564,6 +639,13 @@ Add curated **Practice Resources** (external hands-on links) to Roadmap Stages. 
 
 Practice Resource entity, Stage attachment, employee display, optional completion toggle.
 
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| View Practice Resources on Stages (separate section) | Practice Resource library CRUD |
+| Mark Completed (optional) | Attach Practice Resources to Stages in roadmap editor |
+
 ## In scope
 
 - Flyway `V15__learn_practice_resources.sql`
@@ -575,7 +657,7 @@ Practice Resource entity, Stage attachment, employee display, optional completio
 
 ## Out of scope
 
-- Organizational Projects / cross-nav (F22)
+- Organizational Projects / cross-nav (delivered in F16)
 - Certification readiness changes
 - Hosting practice content
 
@@ -667,6 +749,13 @@ Add **Career Paths** as a complement to Technology-first browsing. Employees dis
 ## Scope
 
 Career Path entity, employee browse/detail/start, admin CRUD, Learn home featured paths.
+
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| Browse/search Career Paths | Create/edit Career Paths |
+| Start Career Path | Publish/archive; order Technologies (required/elective) |
 
 ## In scope
 
@@ -774,6 +863,13 @@ Employees browse Industry Certifications, see readiness based on Roadmap progres
 
 Certification entity, Technology linkage, readiness calculation, employee CTAs.
 
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| Browse/search Certifications; readiness CTAs | Create/edit Certifications |
+| Visit official provider (external) | Link Technologies; publish |
+
 ## In scope
 
 - Flyway `V17__learn_certifications.sql`
@@ -787,7 +883,7 @@ Certification entity, Technology linkage, readiness calculation, employee CTAs.
 
 ## Out of scope
 
-- Initiative link (F23)
+- Initiative link (F22)
 - RECORDED state automation from submissions (optional display only if submission exists)
 - Exam scheduling
 
@@ -845,7 +941,7 @@ Certification entity, Technology linkage, readiness calculation, employee CTAs.
 | 3 | IN_PROGRESS shows Continue Roadmap |
 | 4 | READY shows Visit official provider (new tab) |
 | 5 | Admin creates and publishes certification |
-| 6 | No Initiative UI on certification detail (F23 adds optional banner) |
+| 6 | No Initiative UI on certification detail (F22 adds optional banner) |
 
 ## Risks
 
@@ -868,124 +964,29 @@ Certification entity, Technology linkage, readiness calculation, employee CTAs.
 
 ---
 
-# F22 — Projects Cross-Navigation
+
+# F22 — Optional Initiative Association
+
+> **Former name:** ~~Initiative Integration~~ — Learn does **not** depend on Initiatives. Industry Certifications remain independent. Company Initiatives may **optionally** reference a Certification.
 
 ## Objective
 
-Lightweight bidirectional cross-navigation between Learn Technologies and organizational Projects. Neither module owns the other.
+Allow admins to optionally associate a Company Initiative with an Industry Certification. When linked, show Roadmap progress on Initiative detail and an active-initiative banner on Certification detail. **Learning never depends on an Initiative.**
 
 ## Scope
 
-Junction table, Related Organization Projects on Technology detail, Related Technologies on Project detail, admin link management.
+Nullable FK on initiatives, read-only cross-module surfaces, Submit Certificate contextual entry.
+
+## Admin–employee parity
+
+| Employee | Admin |
+|----------|-------|
+| View Certification progress on Initiative detail (when linked) | Set/clear **Linked Certification** on Initiative edit |
+| Optional initiative banner on Certification detail | Same optional field on edit |
 
 ## In scope
 
-- Flyway `V18__learn_technology_project_links.sql`
-- `learn_technology_project_links` (technology_id, project_id) FK → existing `projects` table
-- Employee: **Related Organization Projects** on Technology detail
-- Employee: click → `/projects/{id}`
-- Admin: link/unlink picker in Technology editor
-- Projects module: **Related Technologies** section on project detail (read-only links to Learn) — minimal if Projects UI is placeholder
-- Empty states when no links
-
-## Out of scope
-
-- Creating organizational Projects from Learn
-- Embedding Project content in Learn
-- Project knowledge CRUD (Projects module)
-- `/learn/projects` routes
-
-## Backend work
-
-| Item | Detail |
-|------|--------|
-| `POST/DELETE .../manage/technologies/{id}/project-links` | Admin only |
-| Include `relatedProjects[]` in Technology detail response |
-| Projects API extension | Include `relatedTechnologies[]` on project detail (coordinate with Projects module) |
-
-## Frontend work
-
-| Item | Detail |
-|------|--------|
-| `RelatedOrganizationProjectsCard` | Technology detail |
-| `RelatedTechnologiesCard` | Project detail (if page exists) |
-| `TechnologyProjectLinkPicker` | Admin multi-select |
-
-## Shared models
-
-| Type | Fields |
-|------|--------|
-| `RelatedProjectSummary` | id, name, businessDomain? |
-| `RelatedTechnologySummary` | id, name, shortName |
-
-## Validation rules
-
-| Rule | Detail |
-|------|--------|
-| project_id | Must exist in `projects` table |
-| Duplicate link | 409 on duplicate pair |
-
-## Business rules
-
-| ID | Rule |
-|----|------|
-| BR-XN01–05 | Cross-navigation rules |
-| BR-M01–05 | Module separation |
-
-## Test strategy
-
-| Layer | Tests |
-|-------|-------|
-| Backend | Link CRUD, bidirectional read, orphan project FK |
-| Frontend | Navigation to `/projects/{id}`, empty states |
-| Regression | Learn functions with zero links |
-
-## Manual QA checklist
-
-| # | Scenario |
-|---|----------|
-| 1 | Technology with links shows Related Organization Projects |
-| 2 | Click navigates to Projects module |
-| 3 | Project detail shows Related Technologies (if UI available) |
-| 4 | Admin adds and removes link |
-| 5 | No links — empty state; Learn fully functional |
-| 6 | No Practice Resource labeled as Project |
-
-## Risks
-
-| Risk | Mitigation |
-|------|------------|
-| Projects page placeholder | Cross-nav still works; link may land on minimal page |
-
-## Dependencies
-
-- **F16** (Technology detail)
-- Existing `projects` table and `/projects` route
-
-## Acceptance criteria
-
-- [ ] Cross-nav works bidirectionally where Projects UI exists
-- [ ] Learn does not own Project content
-
-## Estimated complexity
-
-**S (Small)**
-
----
-
-# F23 — Initiative Integration
-
-## Objective
-
-Optionally link Company Initiatives to Industry Certifications. Show Roadmap progress on Initiative detail and active initiative banner on Certification detail.
-
-## Scope
-
-Nullable FK on initiatives, cross-module read surfaces, Submit Certificate contextual entry.
-
-## In scope
-
-- Flyway `V19__initiative_certification_link.sql`
+- Flyway `V18__initiative_certification_link.sql`
 - `learning_initiatives.linked_certification_id` nullable FK
 - Edit Initiative dialog: optional Certification dropdown
 - Initiative detail: employee Roadmap progress card when linked
@@ -1019,7 +1020,7 @@ Nullable FK on initiatives, cross-module read surfaces, Submit Certificate conte
 
 | ID | Rule |
 |----|------|
-| BR-IN01–06 | All initiative integration rules |
+| BR-IN01–06 | Initiative **association** rules (optional) |
 | BR-P05–06 | Independence |
 
 ## Test strategy
@@ -1039,6 +1040,7 @@ Nullable FK on initiatives, cross-module read surfaces, Submit Certificate conte
 | 3 | Expired initiative — banner removed from certification |
 | 4 | Learn works with zero initiatives |
 | 5 | F14 lifecycle regression |
+| 6 | UI copy uses "association" / "optional" — not "integration" or "required" |
 
 ## Risks
 
@@ -1062,7 +1064,7 @@ Nullable FK on initiatives, cross-module read surfaces, Submit Certificate conte
 
 ---
 
-# F24 — Dashboard, Unified Search & Release
+# F23 — Dashboard, Unified Search & Release
 
 ## Objective
 
@@ -1082,7 +1084,7 @@ Cross-cutting polish, unified search, release artifacts — no new core domain e
 - Notifications remain header-only (sidebar cleanup if not done in F16)
 - `docs/releases/release-v0.8.0.md`
 - Update `docs/project-roadmap.md`, `.cursor/project-context.md`
-- Full manual QA pass across F16–F23
+- Full manual QA pass across F16–F22
 - Launch content verification checklist (seed/production catalog)
 
 ## Out of scope
@@ -1135,8 +1137,8 @@ Cross-cutting polish, unified search, release artifacts — no new core domain e
 | 2 | Dashboard Continue Learning resumes correct Stage |
 | 3 | Full employee journey: Technology → Roadmap → Progress → Certification READY |
 | 4 | Full admin journey: create tech → roadmap → publish → career path → certification |
-| 5 | Projects cross-nav (F22) |
-| 6 | Initiative link (F23) |
+| 5 | Technology ↔ Project cross-nav (F16) |
+| 6 | Optional Initiative association (F22) |
 | 7 | Zero initiatives — full Learn works |
 | 8 | Zero project links — full Learn works |
 | 9 | v0.7.1 initiatives regression |
@@ -1153,7 +1155,7 @@ Cross-cutting polish, unified search, release artifacts — no new core domain e
 
 ## Dependencies
 
-- **F16–F23** complete
+- **F16–F22** complete
 
 ## Acceptance criteria
 
@@ -1172,16 +1174,15 @@ Cross-cutting polish, unified search, release artifacts — no new core domain e
 
 | Migration | Phase | Contents |
 |-----------|-------|----------|
-| `V12__learn_technologies.sql` | F16 | `learn_technologies` |
+| `V12__learn_technologies.sql` | F16 | `learn_technologies`, `learn_technology_project_links` |
 | `V13__learn_roadmaps_and_learning_resources.sql` | F17 | roadmaps, stages, learning_resources, junction |
 | `V14__learn_progress.sql` | F18 | enrollments, stage_progress, optional resource_visits |
 | `V15__learn_practice_resources.sql` | F19 | practice_resources, junction, optional progress |
 | `V16__learn_career_paths.sql` | F20 | career_paths, career_path_technologies |
 | `V17__learn_certifications.sql` | F21 | certifications, certification_technologies |
-| `V18__learn_technology_project_links.sql` | F22 | technology ↔ project junction |
-| `V19__initiative_certification_link.sql` | F23 | `learning_initiatives.linked_certification_id` |
+| `V18__initiative_certification_link.sql` | F22 | `learning_initiatives.linked_certification_id` |
 
-No migration in F24.
+No migration in F23.
 
 ---
 
@@ -1199,13 +1200,31 @@ No migration in F24.
 
 ---
 
+## Future guidance — rule-based recommendations (not in v0.8.0)
+
+Future "what to learn next" recommendations should initially be **rule-based**, not AI-generated.
+
+```text
+Completed Java → recommend Spring Boot → recommend Docker → recommend AWS
+```
+
+| Aspect | Guidance |
+|--------|----------|
+| Implementation | Curated adjacency rules in catalog metadata or recommendation table |
+| AI | Deferred — `06-future-enhancements.md` |
+| v0.8.0 | **Out of scope** — static **Next up** within enrolled Roadmap only |
+
+---
+
 ## Explicitly out of scope (all phases)
 
 | Item | Target |
 |------|--------|
-| AI Mentor, AI Summaries, AI Roadmap Generation, AI Chat | Future (`06-future-enhancements.md`) |
+| AI Mentor, AI Summaries, AI Roadmap Generation, AI Chat | Future |
+| Rule-based next-Technology recommendations | v0.8.1+ |
+| Standalone cross-navigation phase | **Eliminated** — merged into F16 |
 | Learn owning Projects | **Permanently excluded** |
-| LMS features (quizzes, grades, hosted video) | **Permanently excluded** |
+| LMS features | **Permanently excluded** |
 | Global app-wide search | v0.9+ |
 | Learn leaderboards | v0.9+ |
 | Automated link health checker | v0.8.1 |
@@ -1214,11 +1233,16 @@ No migration in F24.
 
 ## Approval gate
 
+| Gate | Status |
+|------|--------|
+| Product design v1.1 | **Approved — frozen** |
+| Implementation plan | **FINAL — frozen** |
+| F16 coding | **May begin after formal sign-off** |
+
 | Gate | Required before |
 |------|-----------------|
-| **This implementation plan approved** | F16 coding begins |
-| F16 PR merged | F17 begins |
-| Each subsequent phase | Next phase begins |
+| F16 start | Final plan sign-off |
+| Each subsequent phase | Prior phase merged |
 
 ---
 
@@ -1226,9 +1250,7 @@ No migration in F24.
 
 | Role | Status |
 |------|--------|
-| Product Owner | Pending |
-| Engineering Lead | Pending |
-| UX Lead | Pending |
-
-**Product design v1.1:** Approved — frozen  
-**Implementation plan:** Pending approval
+| Product Owner | Approved (design v1.1) |
+| Implementation plan | **FINAL — frozen** |
+| Engineering Lead | Pending sign-off |
+| UX Lead | Pending sign-off |

@@ -89,7 +89,27 @@ AI is **optional and future-ready** in v0.8.0. No core Learn flow depends on AI.
 | UX | Notification or Learn Home card: "Earn rewards — AWS Challenge active" |
 | Rule | Still optional; never mandatory |
 
-### 1.8 AI implementation prerequisites
+### 1.8 Rule-based learning recommendations (pre-AI)
+
+Before any AI features, future "what to learn next" guidance should use **deterministic, rule-based** recommendations curated by admins:
+
+```text
+Completed Java → recommend Spring Boot → recommend Docker → recommend AWS
+```
+
+| Aspect | Guidance |
+|--------|----------|
+| Data model | Technology adjacency table or `recommendedNextTechnologyId` |
+| Trigger | Roadmap complete or Technology marked complete |
+| UX | "Suggested next" card on My Journey or Technology detail |
+| AI | Only after rule-based approach is proven — see §1 AI opportunities |
+| v0.8.0 | **Out of scope** — use static Next up within enrolled Roadmap |
+
+This is intentionally simpler, auditable, and does not require AI infrastructure.
+
+---
+
+### 1.9 AI implementation prerequisites
 
 | Prerequisite | Description |
 |--------------|-------------|

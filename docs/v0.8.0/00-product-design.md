@@ -928,21 +928,20 @@ Architecture should keep AI integration points optional (e.g., recommendation se
 
 ## 20. Product Roadmap for Implementation
 
-See `docs/v0.8.0/05-roadmap.md` for phased F16+ plan. Summary:
+**Authoritative plan:** `docs/v0.8.0/07-implementation-plan.md` (**FINAL — frozen**)
 
 | Phase | Theme | Deliverable |
 |-------|-------|-------------|
-| F16 | Foundation | Types, routes, empty Learn shell, sidebar nav update |
-| F17 | Technology & Roadmap (read) | Employee browse Technology, view Roadmap |
-| F18 | Career Paths (read) | Browse and detail Career Paths |
-| F19 | Progress & Journey | Enrollment, Stage completion, My Journey |
-| F20 | Learning & Practice Resources | Resource links, Practice Resources on Stages |
-| F21 | Certification catalog | Certification browse, readiness, external CTAs |
-| F22 | Admin content management | CRUD for all Learn entities |
-| F23 | Initiative integration | Optional Certification link on Initiatives |
-| F24 | Dashboard & polish | Widgets, nav updates, cross-nav surfaces, QA |
+| F16 | Technology Discovery & Search | Browse/search Technologies; admin CRUD; **Projects cross-nav** |
+| F17 | Roadmap & Learning Resources | Roadmap, Stages, Learning Resources |
+| F18 | Progress & Learning Journey | Enrollment, progress, My Journey |
+| F19 | Practice Resources | External hands-on links |
+| F20 | Career Paths | Complement to Technologies |
+| F21 | Industry Certifications | Catalog, readiness, provider CTA |
+| F22 | Optional Initiative Association | Optional Certification on Initiative |
+| F23 | Dashboard, Unified Search & Release | Widgets, unified search, release |
 
-**Estimated feature count:** 9 phases (F16–F24) for v0.8.0 MVP.
+**8 phases (F16–F23).** No standalone cross-navigation phase.
 
 ---
 
