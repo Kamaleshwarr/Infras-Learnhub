@@ -295,7 +295,7 @@ public class LearnTechnologyService {
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("shortName")), pattern),
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("slug")), pattern)
+                    criteriaBuilder.like(root.get("slug"), pattern)
             );
         };
     }
@@ -313,14 +313,24 @@ public class LearnTechnologyService {
 
     private Sort.Order toRepositorySortOrder(Sort.Order order) {
         String property = switch (order.getProperty()) {
-            case "id", "slug", "name", "shortName", "category", "difficulty", "status", "featured", "createdAt", "updatedAt" ->
+            case "id", "slug", "name", "shortName", "category", "difficulty", "status", "createdAt", "updatedAt" ->
                     order.getProperty();
+            case "featured" -> "catalogFeatured";
             case "createdAtUtc" -> "createdAt";
             case "updatedAtUtc" -> "updatedAt";
             default -> throw new IllegalArgumentException("Unsupported sort property: " + order.getProperty());
         };
 
         Sort.Order translated = new Sort.Order(order.getDirection(), property, order.getNullHandling());
-        return order.isIgnoreCase() ? translated.ignoreCase() : translated;
+        if (order.isIgnoreCase() && isTextSortProperty(property)) {
+            return translated.ignoreCase();
+        }
+        return translated;
+    }
+
+    private boolean isTextSortProperty(String property) {
+        return "slug".equals(property)
+                || "name".equals(property)
+                || "shortName".equals(property);
     }
 }

@@ -78,6 +78,25 @@ class LearnCatalogFlywayMigrationTest {
         }
     }
 
+    @Test
+    void v13SlugColumnRemainsTextNotBytea() throws SQLException {
+        migrateToLatest();
+
+        try (Connection connection = openConnection();
+             var statement = connection.createStatement();
+             var resultSet = statement.executeQuery("""
+                     SELECT data_type
+                     FROM information_schema.columns
+                     WHERE table_schema = 'public'
+                       AND table_name = 'learn_technologies'
+                       AND column_name = 'slug'
+                     """)) {
+
+            assertThat(resultSet.next()).isTrue();
+            assertThat(resultSet.getString("data_type")).isEqualTo("character varying");
+        }
+    }
+
     private void migrateToV12() {
         Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())

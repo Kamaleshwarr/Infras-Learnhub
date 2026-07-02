@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -33,7 +34,7 @@ public class LearnTechnology extends AuditableEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "slug", nullable = false, length = 100, updatable = false)
+    @Column(name = "slug", nullable = false, length = 100, updatable = false, columnDefinition = "varchar(100)")
     private String slug;
 
     @Column(name = "name", nullable = false, length = 100)
@@ -166,6 +167,7 @@ public class LearnTechnology extends AuditableEntity {
         return featuredOverride;
     }
 
+    @Transient
     public boolean isFeatured() {
         return featuredOverride != null ? featuredOverride : catalogFeatured;
     }

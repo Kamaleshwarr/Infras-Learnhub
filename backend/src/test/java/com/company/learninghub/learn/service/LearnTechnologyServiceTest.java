@@ -23,11 +23,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -193,6 +195,19 @@ class LearnTechnologyServiceTest {
         var page = technologyService.listEmployeeTechnologies(null, null, null, pageable);
 
         assertThat(page.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void listAdminTechnologiesMapsFeaturedSortToCatalogFeatured() {
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        when(technologyRepository.findAll(any(Specification.class), pageableCaptor.capture()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        PageRequest request = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "featured"));
+        technologyService.listAdminTechnologies(null, null, null, null, request);
+
+        assertThat(pageableCaptor.getValue().getSort().iterator().next().getProperty())
+                .isEqualTo("catalogFeatured");
     }
 
     private User user(String employeeId, String email, RoleName roleName) {
