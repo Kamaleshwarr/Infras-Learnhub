@@ -12,6 +12,13 @@ ALTER TABLE learn_technologies
     ADD COLUMN featured_override BOOLEAN,
     ADD COLUMN catalog_present BOOLEAN NOT NULL DEFAULT TRUE;
 
+-- Drop legacy check constraints before rewriting status/category values.
+ALTER TABLE learn_technologies
+    DROP CONSTRAINT IF EXISTS chk_learn_technologies_category;
+
+ALTER TABLE learn_technologies
+    DROP CONSTRAINT IF EXISTS chk_learn_technologies_status;
+
 UPDATE learn_technologies
 SET status = 'HIDDEN'
 WHERE status = 'DRAFT';
@@ -51,12 +58,6 @@ ALTER TABLE learn_technologies
 
 ALTER TABLE learn_technologies
     ALTER COLUMN slug SET NOT NULL;
-
-ALTER TABLE learn_technologies
-    DROP CONSTRAINT IF EXISTS chk_learn_technologies_category;
-
-ALTER TABLE learn_technologies
-    DROP CONSTRAINT IF EXISTS chk_learn_technologies_status;
 
 DROP INDEX IF EXISTS uk_learn_technologies_name_lower;
 
