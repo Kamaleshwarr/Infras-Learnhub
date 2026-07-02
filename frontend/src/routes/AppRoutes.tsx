@@ -6,6 +6,11 @@ import { LoginPage } from '../pages/auth/LoginPage'
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { NotFoundPage } from '../pages/errors/NotFoundPage'
+import { LearnManagePage } from '../pages/learn/LearnManagePage'
+import { LearnHomePage } from '../pages/learn/LearnHomePage'
+import { TechnologyDetailPage } from '../pages/learn/TechnologyDetailPage'
+import { TechnologyListPage } from '../pages/learn/TechnologyListPage'
+import { LearnLayout } from '../layout/LearnLayout'
 import { InitiativeDetailPage } from '../pages/initiatives/InitiativeDetailPage'
 import { InitiativeListPage } from '../pages/initiatives/InitiativeListPage'
 import { GlobalLeaderboardPage } from '../pages/leaderboards/GlobalLeaderboardPage'
@@ -36,6 +41,15 @@ export function AppRoutes() {
             <Route element={<DashboardPage />} index />
             <Route element={<ProfilePage />} path="profile" />
             <Route element={<NotificationsPage />} path="notifications" />
+            <Route element={<LearnLayout />}>
+              <Route element={<LearnHomePage />} path="learn" />
+              <Route element={<TechnologyListPage />} path="learn/technologies" />
+              <Route element={<TechnologyDetailPage />} path="learn/technologies/:technologyId" />
+              <Route element={<RoleRoute roles={['ADMIN']} />}>
+                <Route element={<LearnManagePage />} path="learn/manage" />
+                <Route element={<TechnologyListPage adminMode />} path="learn/manage/technologies" />
+              </Route>
+            </Route>
             <Route element={<InitiativeListPage />} path="initiatives" />
             <Route element={<InitiativeDetailPage />} path="initiatives/:initiativeId" />
             <Route element={<RoleRoute roles={['EMPLOYEE']} />}>

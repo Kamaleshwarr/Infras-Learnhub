@@ -1,5 +1,6 @@
 package com.company.learninghub.projectknowledge.mapper;
 
+import com.company.learninghub.learn.dto.RelatedTechnologySummary;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeFolder;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeItem;
@@ -12,10 +13,16 @@ import com.company.learninghub.projectknowledge.dto.ProjectUserResponse;
 import com.company.learninghub.user.domain.User;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class ProjectKnowledgeMapper {
 
     public ProjectResponse toProjectResponse(Project project) {
+        return toProjectResponse(project, List.of());
+    }
+
+    public ProjectResponse toProjectResponse(Project project, List<RelatedTechnologySummary> relatedTechnologies) {
         return new ProjectResponse(
                 project.getId(),
                 project.getName(),
@@ -23,6 +30,7 @@ public class ProjectKnowledgeMapper {
                 project.getAccessType(),
                 project.isArchived(),
                 toUserResponse(project.getCreatedBy()),
+                relatedTechnologies,
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );

@@ -6,6 +6,32 @@ import { AuthContext } from '../auth/AuthProvider'
 import type { UserProfile } from '../types/auth'
 import { vi } from 'vitest'
 
+vi.mock('../api/learnApi', () => ({
+  learnApi: {
+    listTechnologies: vi.fn().mockResolvedValue({
+      content: [],
+      first: true,
+      last: true,
+      page: 0,
+      size: 20,
+      sort: [],
+      totalElements: 0,
+      totalPages: 0,
+    }),
+    listManageTechnologies: vi.fn().mockResolvedValue({
+      content: [],
+      first: true,
+      last: true,
+      page: 0,
+      size: 20,
+      sort: [],
+      totalElements: 0,
+      totalPages: 0,
+    }),
+    getTechnology: vi.fn(),
+  },
+}))
+
 vi.mock('../api/initiativesApi', () => ({
   initiativesApi: {
     get: vi.fn(),
@@ -83,9 +109,9 @@ describe('AppRoutes certificate workflow preparation', () => {
     expect(screen.getByRole('heading', { name: 'Employee Dashboard' })).toBeInTheDocument()
   })
 
-  it('renders initiative list route for employees', async () => {
-    renderRoute('/initiatives', employeeUser)
+  it('renders learn home route for employees', async () => {
+    renderRoute('/learn', employeeUser)
 
-    expect(await screen.findByRole('heading', { name: 'Learning Initiatives' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Learn' })).toBeInTheDocument()
   })
 })

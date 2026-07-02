@@ -47,14 +47,14 @@ describe('Sidebar role-aware navigation', () => {
     renderSidebar(employeeUser)
 
     expect(screen.getAllByText('Submit Certificate').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('My Submissions').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('My Certifications').length).toBeGreaterThan(0)
   })
 
   it('hides employee-only submission links from admins', () => {
     renderSidebar(adminUser)
 
     expect(screen.queryAllByText('Submit Certificate')).toHaveLength(0)
-    expect(screen.queryAllByText('My Submissions')).toHaveLength(0)
+    expect(screen.queryAllByText('My Certifications')).toHaveLength(0)
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Projects').length).toBeGreaterThan(0)
   })
@@ -62,13 +62,13 @@ describe('Sidebar role-aware navigation', () => {
   it('shows admin-only certificate review navigation to admins', () => {
     renderSidebar(adminUser)
 
-    expect(screen.getAllByText('Certificate Review').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Review Submissions').length).toBeGreaterThan(0)
   })
 
   it('hides admin-only certificate review navigation from employees', () => {
     renderSidebar(employeeUser)
 
-    expect(screen.queryAllByText('Certificate Review')).toHaveLength(0)
+    expect(screen.queryAllByText('Review Submissions')).toHaveLength(0)
   })
 
   it('shows admin-only users navigation to admins', () => {
@@ -89,10 +89,10 @@ describe('Sidebar role-aware navigation', () => {
     expect(screen.getAllByText('My Profile').length).toBeGreaterThan(0)
   })
 
-  it('shows notifications navigation to all authenticated users', () => {
+  it('shows learn navigation to all authenticated users', () => {
     renderSidebar(employeeUser)
 
-    expect(screen.getAllByText('Notifications').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Learn').length).toBeGreaterThan(0)
   })
 })
 

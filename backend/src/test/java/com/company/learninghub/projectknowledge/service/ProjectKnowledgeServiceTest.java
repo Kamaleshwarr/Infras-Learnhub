@@ -2,6 +2,7 @@ package com.company.learninghub.projectknowledge.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
+import com.company.learninghub.learn.service.LearnTechnologyService;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
@@ -66,6 +67,7 @@ class ProjectKnowledgeServiceTest {
     @Mock private ProjectKnowledgeAccessEventRepository accessEventRepository;
     @Mock private UserRepository userRepository;
     @Mock private ProjectKnowledgeStorageService storageService;
+    @Mock private LearnTechnologyService learnTechnologyService;
 
     private ProjectKnowledgeService service;
     private User owner;
@@ -91,7 +93,8 @@ class ProjectKnowledgeServiceTest {
                 userRepository,
                 storageService,
                 storageProperties,
-                new ProjectKnowledgeMapper()
+                new ProjectKnowledgeMapper(),
+                learnTechnologyService
         );
         owner = user("OWNER001", "owner@example.com", RoleName.EMPLOYEE);
         contributor = user("CONTRIB001", "contributor@example.com", RoleName.EMPLOYEE);

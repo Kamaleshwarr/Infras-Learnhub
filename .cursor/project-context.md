@@ -52,12 +52,13 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 ## Current Release
 
 **v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
+**v0.8.0** — Learn module (**In progress** — F16 Technology Discovery & Search implemented)  
 **Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
 
 Release notes: `docs/releases/release-v0.7.1.md`  
-Prior release: `docs/releases/release-v0.7.0.md`  
-Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`  
+v0.8.0 implementation report: `docs/releases/release-v0.8.0-f16-implementation-report.md`  
+v0.8.0 product design: `docs/v0.8.0/`  
 Roadmap: `docs/project-roadmap.md`
 
 ### v0.7.1 Highlights (complete)
@@ -155,10 +156,19 @@ Roadmap: `docs/project-roadmap.md`
 - Password reset tokens and email reset flow
 - Cursor project governance documentation (`.cursor/`)
 
+### v0.8.0 F16 — Technology Discovery & Search (implemented)
+
+- Learn module shell: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, admin `/learn/manage`
+- Technology entity, CRUD, publish/archive, search/filters, Technology ↔ Project cross-navigation
+- Flyway `V12__learn_technologies.sql` with dev seed technologies
+- Sidebar: Learn (position 2), Projects retained; My Certifications / Review Submissions renames
+- **F17 not started**
+
 ## Completed Backend Modules
 
 - Authentication
 - Learning Initiatives
+- **Learn — Technologies (F16)**
 - Certificate Submissions
 - Leaderboards
 - Study Materials Repository
@@ -181,6 +191,7 @@ Roadmap: `docs/project-roadmap.md`
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
 11. Initiative Management UI — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — complete, PR #43 pending merge)
+12. Learn UI — Technology discovery, search, detail, admin management (v0.8.0 F16)
 
 ## Completed Features
 
