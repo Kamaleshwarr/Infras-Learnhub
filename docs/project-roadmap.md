@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
+Last updated: 2026-07-02 (v0.8.0 — product design in review)
 
 ## Release Overview
 
@@ -15,10 +15,33 @@ Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
 | **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
+| **v0.8.0** | **Learn — Learning Guidance Platform** | **Product design — awaiting approval** |
 
 Release notes: `docs/releases/release-v0.7.1.md`  
+v0.8.0 product design: `docs/v0.8.0/`  
 Prior: `docs/releases/release-v0.7.0.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
+
+---
+
+## In design — v0.8.0 Learn (Learning Guidance Platform)
+
+**Status:** Product discovery and design complete — **awaiting product owner approval** before implementation (F16+).
+
+**Objective:** Introduce the **Learn** module — a Learning Guidance Platform that helps engineers discover Career Paths, follow Technology Roadmaps, use curated Learning Resources, complete recommended Projects, and prepare for industry Certifications. Learn does not host content or deliver exams.
+
+**Product design:** `docs/v0.8.0/` (master: `docs/v0.8.0/00-product-design.md`)
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| Design | Product vision, IA, business rules, user flows | **Draft for approval** |
+| F16 | Learn foundation (routes, nav, schema) | Not started |
+| F17–F21 | Employee experience (browse, progress, certifications) | Not started |
+| F22 | Admin content management | Not started |
+| F23 | Initiative ↔ Certification integration | Not started |
+| F24 | Dashboard polish & release | Not started |
+
+**Key product decisions:** Guidance not LMS; Resources are external links; Industry Certifications in Learn (distinct from Company Initiatives); learning never depends on initiatives; self-reported progress in v1.
 
 ---
 
