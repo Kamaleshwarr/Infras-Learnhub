@@ -2,13 +2,21 @@ package com.company.learninghub.learn.catalog;
 
 import com.company.learninghub.learn.catalog.dto.CatalogManifest;
 import com.company.learninghub.learn.catalog.dto.CatalogManifestPackage;
+import com.company.learninghub.learn.catalog.dto.CatalogRoadmapRecord;
+import com.company.learninghub.learn.catalog.dto.CatalogRoadmapResourceRecord;
+import com.company.learninghub.learn.catalog.dto.CatalogRoadmapStageRecord;
 import com.company.learninghub.learn.catalog.dto.CatalogTechnologyPackage;
 import com.company.learninghub.learn.catalog.dto.CatalogTechnologyRecord;
 import com.company.learninghub.learn.domain.CatalogImportStatus;
 import com.company.learninghub.learn.domain.LearnCatalogImport;
+import com.company.learninghub.learn.domain.LearnRoadmap;
+import com.company.learninghub.learn.domain.LearnRoadmapStage;
+import com.company.learninghub.learn.domain.LearnRoadmapStageResource;
 import com.company.learninghub.learn.domain.LearnTechnology;
+import com.company.learninghub.learn.domain.RoadmapResourceKind;
 import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.learn.repository.LearnCatalogImportRepository;
+import com.company.learninghub.learn.repository.LearnRoadmapRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
@@ -19,6 +27,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +36,9 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +54,13 @@ public class CatalogImportService implements ApplicationRunner {
     private static final String CATALOG_ROOT = "catalog/";
     private static final String MANIFEST_PATH = CATALOG_ROOT + "manifest.json";
     private static final String TECHNOLOGIES_PACKAGE_TYPE = "technologies";
+    private static final String ROADMAPS_PACKAGE_TYPE = "roadmaps";
     private static final String DEFAULT_ADMIN_EMAIL = "admin@learninghub.local";
 
     private final CatalogImportProperties properties;
     private final CatalogSchemaValidator schemaValidator;
     private final LearnTechnologyRepository technologyRepository;
+    private final LearnRoadmapRepository roadmapRepository;
     private final LearnCatalogImportRepository catalogImportRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
@@ -54,6 +69,7 @@ public class CatalogImportService implements ApplicationRunner {
             CatalogImportProperties properties,
             CatalogSchemaValidator schemaValidator,
             LearnTechnologyRepository technologyRepository,
+            LearnRoadmapRepository roadmapRepository,
             LearnCatalogImportRepository catalogImportRepository,
             UserRepository userRepository,
             ObjectMapper objectMapper
@@ -61,6 +77,7 @@ public class CatalogImportService implements ApplicationRunner {
         this.properties = properties;
         this.schemaValidator = schemaValidator;
         this.technologyRepository = technologyRepository;
+        this.roadmapRepository = roadmapRepository;
         this.catalogImportRepository = catalogImportRepository;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
@@ -88,30 +105,33 @@ public class CatalogImportService implements ApplicationRunner {
         CatalogManifest manifest = readManifest();
         validateManifest(manifest);
 
-        if (isCatalogVersionAlreadyImported(manifest.catalogVersion())) {
-            LOGGER.info("Catalog version {} already imported; skipping", manifest.catalogVersion());
-            return;
-        }
-
-        int totalUpserted = 0;
         for (CatalogManifestPackage catalogPackage : manifest.packages()) {
-            if (!TECHNOLOGIES_PACKAGE_TYPE.equals(catalogPackage.type())) {
-                continue;
+            if (TECHNOLOGIES_PACKAGE_TYPE.equals(catalogPackage.type())) {
+                if (isPackageAlreadyImported(manifest.catalogVersion(), TECHNOLOGIES_PACKAGE_TYPE)) {
+                    LOGGER.info(
+                            "Technologies package for catalog {} already imported; skipping",
+                            manifest.catalogVersion()
+                    );
+                    continue;
+                }
+                importTechnologyPackage(manifest.catalogVersion(), catalogPackage);
+            } else if (ROADMAPS_PACKAGE_TYPE.equals(catalogPackage.type())) {
+                if (isPackageAlreadyImported(manifest.catalogVersion(), ROADMAPS_PACKAGE_TYPE)) {
+                    LOGGER.info(
+                            "Roadmaps package for catalog {} already imported; skipping",
+                            manifest.catalogVersion()
+                    );
+                    continue;
+                }
+                importRoadmapsPackage(manifest.catalogVersion(), catalogPackage);
             }
-            totalUpserted += importTechnologyPackage(manifest.catalogVersion(), catalogPackage);
         }
-
-        LOGGER.info(
-                "Catalog version {} imported successfully ({} technology records upserted)",
-                manifest.catalogVersion(),
-                totalUpserted
-        );
     }
 
-    private boolean isCatalogVersionAlreadyImported(String catalogVersion) {
+    private boolean isPackageAlreadyImported(String catalogVersion, String packageType) {
         return catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
                 catalogVersion,
-                TECHNOLOGIES_PACKAGE_TYPE,
+                packageType,
                 CatalogImportStatus.SUCCESS
         );
     }
@@ -142,7 +162,150 @@ public class CatalogImportService implements ApplicationRunner {
                 CatalogImportStatus.SUCCESS
         ));
 
+        LOGGER.info("Imported {} technologies for catalog {}", upserted, catalogVersion);
         return upserted;
+    }
+
+    private int importRoadmapsPackage(String catalogVersion, CatalogManifestPackage catalogPackage) {
+        List<String> roadmapPaths = listRoadmapFilePaths(catalogPackage.path());
+        if (roadmapPaths.isEmpty()) {
+            throw new CatalogImportException("No roadmap files found in package path: " + catalogPackage.path());
+        }
+
+        Set<String> importedSlugs = new HashSet<>();
+        int upserted = 0;
+
+        for (String roadmapPath : roadmapPaths) {
+            CatalogRoadmapRecord record = readRoadmap(roadmapPath);
+            schemaValidator.validateRoadmapRecord(roadmapPath, record);
+            validateRoadmapTechnologyReference(record);
+            upsertRoadmap(record);
+            importedSlugs.add(record.technologySlug());
+            upserted++;
+        }
+
+        markAbsentRoadmaps(importedSlugs);
+
+        catalogImportRepository.save(new LearnCatalogImport(
+                catalogVersion,
+                Instant.now(),
+                ROADMAPS_PACKAGE_TYPE,
+                upserted,
+                CatalogImportStatus.SUCCESS
+        ));
+
+        LOGGER.info("Imported {} roadmaps for catalog {}", upserted, catalogVersion);
+        return upserted;
+    }
+
+    private void validateRoadmapTechnologyReference(CatalogRoadmapRecord record) {
+        LearnTechnology technology = technologyRepository.findBySlug(record.technologySlug())
+                .orElseThrow(() -> new CatalogImportException(
+                        "Roadmap references unknown technology slug: " + record.technologySlug()
+                ));
+        if (!technology.isCatalogPresent()) {
+            throw new CatalogImportException(
+                    "Roadmap references technology not present in catalog: " + record.technologySlug()
+            );
+        }
+    }
+
+    private void upsertRoadmap(CatalogRoadmapRecord record) {
+        LearnTechnology technology = technologyRepository.findBySlug(record.technologySlug())
+                .orElseThrow();
+
+        LearnRoadmap roadmap = roadmapRepository.findByTechnologySlug(record.technologySlug())
+                .orElseGet(() -> new LearnRoadmap(technology));
+
+        roadmap.applyCatalogData(
+                record.version(),
+                record.description(),
+                record.source(),
+                record.sourceUrl(),
+                parseInstant(record.updatedAt())
+        );
+
+        List<LearnRoadmapStage> stages = buildStages(record);
+        roadmap.replaceStages(stages);
+        roadmapRepository.save(roadmap);
+    }
+
+    private List<LearnRoadmapStage> buildStages(CatalogRoadmapRecord record) {
+        List<LearnRoadmapStage> stages = new ArrayList<>();
+        for (CatalogRoadmapStageRecord stageRecord : record.stages()) {
+            LearnRoadmapStage stage = LearnRoadmapStage.create();
+            stage.setStageOrder(stageRecord.order());
+            stage.setSlug(stageRecord.slug());
+            stage.setTitle(stageRecord.title());
+            stage.setDescription(stageRecord.description());
+            stage.setEstimatedEffort(stageRecord.estimatedEffort());
+            stage.setNotes(stageRecord.notes());
+
+            List<LearnRoadmapStageResource> resources = new ArrayList<>();
+            int learningOrder = 0;
+            for (CatalogRoadmapResourceRecord resourceRecord : stageRecord.learningResources()) {
+                resources.add(buildResource(resourceRecord, RoadmapResourceKind.LEARNING, learningOrder++));
+            }
+            if (stageRecord.practiceResources() != null) {
+                int practiceOrder = 0;
+                for (CatalogRoadmapResourceRecord resourceRecord : stageRecord.practiceResources()) {
+                    resources.add(buildResource(resourceRecord, RoadmapResourceKind.PRACTICE, practiceOrder++));
+                }
+            }
+            stage.replaceResources(resources);
+            stages.add(stage);
+        }
+        return stages;
+    }
+
+    private LearnRoadmapStageResource buildResource(
+            CatalogRoadmapResourceRecord record,
+            RoadmapResourceKind kind,
+            int order
+    ) {
+        LearnRoadmapStageResource resource = LearnRoadmapStageResource.create();
+        resource.setResourceKind(kind);
+        resource.setResourceOrder(order);
+        resource.setSlug(record.slug());
+        resource.setTitle(record.title());
+        resource.setUrl(record.url());
+        resource.setResourceType(record.type());
+        resource.setProvider(record.provider());
+        resource.setFreePaid(record.freePaid());
+        resource.setVersion(record.version());
+        resource.setSource(record.source());
+        resource.setUpdatedAt(parseInstant(record.updatedAt()));
+        return resource;
+    }
+
+    private void markAbsentRoadmaps(Set<String> importedSlugs) {
+        Map<String, LearnRoadmap> existingBySlug = roadmapRepository.findByCatalogPresentTrue()
+                .stream()
+                .collect(Collectors.toMap(LearnRoadmap::getTechnologySlug, Function.identity()));
+
+        for (Map.Entry<String, LearnRoadmap> entry : existingBySlug.entrySet()) {
+            if (!importedSlugs.contains(entry.getKey())) {
+                LearnRoadmap roadmap = entry.getValue();
+                roadmap.markCatalogAbsent();
+                roadmapRepository.save(roadmap);
+            }
+        }
+    }
+
+    private List<String> listRoadmapFilePaths(String directoryPath) {
+        try {
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            String normalizedPath = directoryPath.endsWith("/") ? directoryPath : directoryPath + "/";
+            Resource[] resources = resolver.getResources("classpath:" + CATALOG_ROOT + normalizedPath + "*.json");
+            return Arrays.stream(resources)
+                    .map(Resource::getFilename)
+                    .filter(StringUtils::hasText)
+                    .sorted(Comparator.naturalOrder())
+                    .map(filename -> CATALOG_ROOT + normalizedPath + filename)
+                    .toList();
+        } catch (IOException exception) {
+            throw new CatalogImportException("Unable to list roadmap files in " + directoryPath, exception);
+        }
     }
 
     private void upsertTechnology(String catalogVersion, CatalogTechnologyRecord record, User importOwner) {
@@ -239,6 +402,10 @@ public class CatalogImportService implements ApplicationRunner {
 
     private CatalogTechnologyPackage readTechnologyPackage(String path) {
         return readJson(path, CatalogTechnologyPackage.class);
+    }
+
+    private CatalogRoadmapRecord readRoadmap(String path) {
+        return readJson(path, CatalogRoadmapRecord.class);
     }
 
     private <T> T readJson(String path, Class<T> type) {

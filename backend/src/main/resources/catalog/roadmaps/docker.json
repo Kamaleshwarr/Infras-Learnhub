@@ -1,0 +1,216 @@
+{
+  "technologySlug": "docker",
+  "version": "1.0.0",
+  "source": "platform-team",
+  "sourceUrl": "https://roadmap.sh/docker",
+  "updatedAt": "2026-07-03T00:00:00Z",
+  "description": "A structured path from container fundamentals through images, Docker Compose, networking, and production deployment practices for DevOps engineers.",
+  "stages": [
+    {
+      "order": 1,
+      "slug": "introduction",
+      "title": "Introduction",
+      "description": "Understand containers versus virtual machines, the Docker architecture, and install Docker Engine on your development machine.",
+      "estimatedEffort": "2-3 days",
+      "learningResources": [
+        {
+          "slug": "docker-roadmap",
+          "title": "Docker Developer Roadmap",
+          "url": "https://roadmap.sh/docker",
+          "type": "ARTICLE",
+          "provider": "roadmap.sh",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "roadmap.sh",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "docker-get-started",
+          "title": "Get Started with Docker",
+          "url": "https://docs.docker.com/get-started/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "docker-overview",
+          "title": "Docker Overview",
+          "url": "https://docs.docker.com/get-started/overview/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "slug": "images-and-containers",
+      "title": "Images and Containers",
+      "description": "Build Docker images with Dockerfiles, manage containers with CLI commands, use volumes for persistence, and push images to registries.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "docker-build-images",
+          "title": "Build and Run Your Image",
+          "url": "https://docs.docker.com/get-started/workshop/02_build/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "dockerfile-reference",
+          "title": "Dockerfile Reference",
+          "url": "https://docs.docker.com/reference/dockerfile/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-docker-samples",
+          "title": "Docker Official Samples",
+          "url": "https://github.com/docker/awesome-compose",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "slug": "docker-compose",
+      "title": "Docker Compose",
+      "description": "Define multi-container applications with Compose files, manage service dependencies, environment variables, and local development stacks.",
+      "estimatedEffort": "3-5 days",
+      "learningResources": [
+        {
+          "slug": "docker-compose-intro",
+          "title": "Docker Compose Overview",
+          "url": "https://docs.docker.com/compose/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "docker-compose-quickstart",
+          "title": "Quickstart Guide",
+          "url": "https://docs.docker.com/compose/gettingstarted/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-compose-samples",
+          "title": "Docker Compose Sample Applications",
+          "url": "https://github.com/docker/compose/tree/main/docs",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "slug": "networking",
+      "title": "Networking",
+      "description": "Configure container networking with bridge networks, port mapping, DNS resolution between services, and network isolation patterns.",
+      "estimatedEffort": "3-5 days",
+      "learningResources": [
+        {
+          "slug": "docker-networking-overview",
+          "title": "Networking Overview",
+          "url": "https://docs.docker.com/network/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "docker-bridge-network",
+          "title": "Bridge Network Driver",
+          "url": "https://docs.docker.com/engine/network/drivers/bridge/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "slug": "production-best-practices",
+      "title": "Production Best Practices",
+      "description": "Apply image optimization, multi-stage builds, security scanning, resource limits, and orchestration-ready container patterns for production.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "docker-production-checklist",
+          "title": "Best Practices for Writing Dockerfiles",
+          "url": "https://docs.docker.com/build/building/best-practices/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "docker-security",
+          "title": "Docker Security",
+          "url": "https://docs.docker.com/engine/security/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-dockersamples",
+          "title": "Docker Samples Repository",
+          "url": "https://github.com/dockersamples",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "notes": "Use multi-stage builds and non-root users before pushing images to production registries."
+    }
+  ]
+}

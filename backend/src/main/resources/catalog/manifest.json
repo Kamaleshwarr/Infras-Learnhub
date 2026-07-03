@@ -1,13 +1,19 @@
 {
-  "catalogVersion": "1.0.0",
-  "releasedAt": "2026-07-02T00:00:00Z",
-  "description": "Engineering Learning Hub platform catalog — Wave 1",
+  "catalogVersion": "1.1.0",
+  "releasedAt": "2026-07-03T00:00:00Z",
+  "description": "Engineering Learning Hub platform catalog — Wave 1 with initial roadmaps",
   "packages": [
     {
       "type": "technologies",
       "path": "technologies/wave-1.json",
       "version": "1.0.0",
       "recordCount": 30
+    },
+    {
+      "type": "roadmaps",
+      "path": "roadmaps/",
+      "version": "1.0.0",
+      "pattern": "*.json"
     }
   ]
 }

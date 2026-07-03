@@ -70,24 +70,22 @@ function renderDetail(path = `/learn/technologies/${technology.id}`) {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route element={<TechnologyDetailPage />} path="/learn/technologies/:technologyId" />
-          <Route element={<div>Not Found Page</div>} path="*" />
+          <Route element={<div>Roadmap Page</div>} path="/learn/technologies/:technologyId/roadmap" />
         </Routes>
       </MemoryRouter>
     </AuthContext.Provider>,
   )
 }
 
-describe('TechnologyDetailPage roadmap placeholder', () => {
-  it('shows a disabled roadmap action instead of navigating to a missing route', async () => {
+describe('TechnologyDetailPage roadmap navigation', () => {
+  it('links to the roadmap page for the current technology', async () => {
     vi.mocked(learnApi.getTechnology).mockResolvedValue(technology)
 
     renderDetail()
 
     expect(await screen.findByRole('heading', { name: 'Java' })).toBeInTheDocument()
 
-    const roadmapButton = screen.getByRole('button', { name: 'View Roadmap' })
-    expect(roadmapButton).toBeDisabled()
-    expect(screen.getByText('Coming in F17')).toBeInTheDocument()
-    expect(screen.queryByText('Not Found Page')).not.toBeInTheDocument()
+    const roadmapLink = screen.getByRole('link', { name: 'View Roadmap' })
+    expect(roadmapLink).toHaveAttribute('href', `/learn/technologies/${technology.id}/roadmap`)
   })
 })

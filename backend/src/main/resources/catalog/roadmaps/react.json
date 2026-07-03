@@ -1,0 +1,247 @@
+{
+  "technologySlug": "react",
+  "version": "1.0.0",
+  "source": "platform-team",
+  "sourceUrl": "https://roadmap.sh/react",
+  "updatedAt": "2026-07-03T00:00:00Z",
+  "description": "A structured path from React fundamentals through components, state management, routing, data fetching, and production-ready frontend patterns.",
+  "stages": [
+    {
+      "order": 1,
+      "slug": "introduction",
+      "title": "Introduction",
+      "description": "Learn what React is, how JSX works, the component model, and set up a modern development environment with Vite or Create React App.",
+      "estimatedEffort": "3-5 days",
+      "learningResources": [
+        {
+          "slug": "react-roadmap",
+          "title": "React Developer Roadmap",
+          "url": "https://roadmap.sh/react",
+          "type": "ARTICLE",
+          "provider": "roadmap.sh",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "roadmap.sh",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "react-quick-start",
+          "title": "Quick Start",
+          "url": "https://react.dev/learn",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "mdn-javascript-guide",
+          "title": "JavaScript Guide",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "MDN",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "developer.mozilla.org",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "freecodecamp-react-course",
+          "title": "Front End Development Libraries",
+          "url": "https://www.freecodecamp.org/learn/front-end-development-libraries/",
+          "type": "OPEN_EDUCATIONAL_RESOURCE",
+          "provider": "freeCodeCamp",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "freecodecamp.org",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "slug": "components-and-props",
+      "title": "Components and Props",
+      "description": "Build reusable UI with function components, props, composition, conditional rendering, and lists with keys.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "react-describing-ui",
+          "title": "Describing the UI",
+          "url": "https://react.dev/learn/describing-the-ui",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "react-passing-props",
+          "title": "Passing Props to a Component",
+          "url": "https://react.dev/learn/passing-props-to-a-component",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-react-examples",
+          "title": "React Official Examples",
+          "url": "https://github.com/reactjs/react.dev/tree/main/src/content/learn",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "slug": "state-and-hooks",
+      "title": "State and Hooks",
+      "description": "Manage component state with useState, side effects with useEffect, context with useContext, and custom hooks for shared logic.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "react-adding-interactivity",
+          "title": "Adding Interactivity",
+          "url": "https://react.dev/learn/adding-interactivity",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "react-state-as-snapshot",
+          "title": "State as a Snapshot",
+          "url": "https://react.dev/learn/state-as-a-snapshot",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "slug": "routing",
+      "title": "Routing",
+      "description": "Implement client-side navigation with React Router, nested routes, route parameters, and protected route patterns.",
+      "estimatedEffort": "3-5 days",
+      "learningResources": [
+        {
+          "slug": "react-router-tutorial",
+          "title": "React Router Tutorial",
+          "url": "https://reactrouter.com/en/main/start/tutorial",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "reactrouter.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "mdn-spa-routing",
+          "title": "Single Page Application Architecture",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/SPA",
+          "type": "ARTICLE",
+          "provider": "MDN",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "developer.mozilla.org",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "slug": "data-fetching",
+      "title": "Data Fetching",
+      "description": "Fetch data from APIs using fetch and async patterns, handle loading and error states, and integrate with backend REST services.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "react-synchronizing-effects",
+          "title": "Synchronizing with Effects",
+          "url": "https://react.dev/learn/synchronizing-with-effects",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "mdn-fetch-api",
+          "title": "Using the Fetch API",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "MDN",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "developer.mozilla.org",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-react-todo-app",
+          "title": "React TodoMVC Example",
+          "url": "https://github.com/tastejs/todomvc/tree/master/examples/react",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "slug": "testing-and-performance",
+      "title": "Testing and Performance",
+      "description": "Test React components with React Testing Library, optimize rendering with memoization, and apply production build and deployment practices.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "react-escape-hatches",
+          "title": "Escape Hatches",
+          "url": "https://react.dev/learn/escape-hatches",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "react-optimizing",
+          "title": "Optimizing Performance",
+          "url": "https://react.dev/learn/render-and-commit",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "notes": "Profile with React DevTools before applying premature optimizations."
+    }
+  ]
+}

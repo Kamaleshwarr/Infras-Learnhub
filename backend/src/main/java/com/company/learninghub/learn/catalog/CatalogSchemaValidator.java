@@ -1,5 +1,8 @@
 package com.company.learninghub.learn.catalog;
 
+import com.company.learninghub.learn.catalog.dto.CatalogRoadmapRecord;
+import com.company.learninghub.learn.catalog.dto.CatalogRoadmapResourceRecord;
+import com.company.learninghub.learn.catalog.dto.CatalogRoadmapStageRecord;
 import com.company.learninghub.learn.catalog.dto.CatalogTechnologyPackage;
 import com.company.learninghub.learn.catalog.dto.CatalogTechnologyRecord;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +18,7 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,13 +26,16 @@ import java.util.stream.Collectors;
 public class CatalogSchemaValidator {
 
     private static final String TECHNOLOGY_SCHEMA_PATH = "catalog/schemas/technology.schema.json";
+    private static final String ROADMAP_SCHEMA_PATH = "catalog/schemas/roadmap.schema.json";
 
     private final ObjectMapper objectMapper;
     private final JsonSchema technologySchema;
+    private final JsonSchema roadmapSchema;
 
     public CatalogSchemaValidator(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.technologySchema = loadSchema(TECHNOLOGY_SCHEMA_PATH);
+        this.roadmapSchema = loadSchema(ROADMAP_SCHEMA_PATH);
     }
 
     public void validateTechnologyPackage(String packagePath, CatalogTechnologyPackage technologyPackage) {
@@ -44,11 +51,72 @@ public class CatalogSchemaValidator {
         }
 
         for (CatalogTechnologyRecord record : technologyPackage.technologies()) {
-            validateRecord(record);
+            validateTechnologyRecord(record);
         }
     }
 
-    private void validateRecord(CatalogTechnologyRecord record) {
+    public void validateRoadmapRecord(String filePath, CatalogRoadmapRecord record) {
+        if (!StringUtils.hasText(record.technologySlug())) {
+            throw new CatalogImportException("Roadmap technologySlug is required: " + filePath);
+        }
+        if (record.stages() == null || record.stages().size() < 3) {
+            throw new CatalogImportException(
+                    "Roadmap " + record.technologySlug() + " must contain at least 3 stages"
+            );
+        }
+
+        Set<String> stageSlugs = new HashSet<>();
+        int expectedOrder = 1;
+        for (CatalogRoadmapStageRecord stage : record.stages()) {
+            if (stage.order() != expectedOrder) {
+                throw new CatalogImportException(
+                        "Roadmap " + record.technologySlug() + " stages must have contiguous order starting at 1"
+                );
+            }
+            if (!stageSlugs.add(stage.slug())) {
+                throw new CatalogImportException(
+                        "Duplicate stage slug in roadmap " + record.technologySlug() + ": " + stage.slug()
+                );
+            }
+            if (stage.learningResources() == null || stage.learningResources().isEmpty()) {
+                throw new CatalogImportException(
+                        "Stage " + stage.slug() + " in roadmap " + record.technologySlug()
+                                + " requires at least one learning resource"
+                );
+            }
+            validateStageResources(record.technologySlug(), stage.slug(), stage.learningResources());
+            if (stage.practiceResources() != null) {
+                validateStageResources(record.technologySlug(), stage.slug(), stage.practiceResources());
+            }
+            expectedOrder++;
+        }
+
+        validateRoadmapSchema(record);
+    }
+
+    private void validateStageResources(
+            String technologySlug,
+            String stageSlug,
+            List<CatalogRoadmapResourceRecord> resources
+    ) {
+        Set<String> resourceSlugs = new HashSet<>();
+        for (CatalogRoadmapResourceRecord resource : resources) {
+            if (!resourceSlugs.add(resource.slug())) {
+                throw new CatalogImportException(
+                        "Duplicate resource slug in roadmap " + technologySlug
+                                + " stage " + stageSlug + ": " + resource.slug()
+                );
+            }
+            if (!StringUtils.hasText(resource.url()) || !resource.url().startsWith("https://")) {
+                throw new CatalogImportException(
+                        "Resource " + resource.slug() + " in roadmap " + technologySlug
+                                + " must use HTTPS"
+                );
+            }
+        }
+    }
+
+    private void validateTechnologyRecord(CatalogTechnologyRecord record) {
         try {
             JsonNode node = objectMapper.valueToTree(record);
             Set<ValidationMessage> errors = technologySchema.validate(node);
@@ -68,6 +136,31 @@ public class CatalogSchemaValidator {
         } catch (RuntimeException exception) {
             throw new CatalogImportException(
                     "Unable to validate technology record for slug " + record.slug(),
+                    exception
+            );
+        }
+    }
+
+    private void validateRoadmapSchema(CatalogRoadmapRecord record) {
+        try {
+            JsonNode node = objectMapper.valueToTree(record);
+            Set<ValidationMessage> errors = roadmapSchema.validate(node);
+            if (!errors.isEmpty()) {
+                String message = errors.stream()
+                        .map(ValidationMessage::getMessage)
+                        .collect(Collectors.joining("; "));
+                throw new CatalogImportException(
+                        "Roadmap record failed schema validation for "
+                                + record.technologySlug()
+                                + ": "
+                                + message
+                );
+            }
+        } catch (CatalogImportException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new CatalogImportException(
+                    "Unable to validate roadmap record for " + record.technologySlug(),
                     exception
             );
         }

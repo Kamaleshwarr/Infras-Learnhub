@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
-import { Alert, Box, Button, Card, CardContent, Chip, Link, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Link, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
 import { useAuth } from '../../auth/useAuth'
@@ -153,15 +153,16 @@ export function TechnologyDetailPage() {
               <Typography color="text.secondary" variant="body2">
                 {LEARN_MESSAGES.whatNext}
               </Typography>
-              <Stack alignItems="flex-start" spacing={1}>
-                <Button disabled variant="contained">
-                  {LEARN_MESSAGES.viewRoadmap}
-                </Button>
-                <Chip color="default" label={LEARN_MESSAGES.viewRoadmapComingSoon} size="small" variant="outlined" />
-                <Typography color="text.secondary" variant="caption">
-                  {LEARN_MESSAGES.viewRoadmapHelper}
-                </Typography>
-              </Stack>
+              <Button
+                component={RouterLink}
+                to={`/learn/technologies/${technology.id}/roadmap`}
+                variant="contained"
+              >
+                {LEARN_MESSAGES.viewRoadmap}
+              </Button>
+              <Typography color="text.secondary" variant="caption">
+                {LEARN_MESSAGES.viewRoadmapHelper}
+              </Typography>
             </Stack>
           </CardContent>
         </Card>

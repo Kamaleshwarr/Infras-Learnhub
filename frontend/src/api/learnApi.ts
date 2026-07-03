@@ -6,6 +6,7 @@ import type {
   TechnologyCurationRequest,
   TechnologyListParams,
 } from '../types/learn'
+import type { Roadmap } from '../types/roadmap'
 
 export const learnApi = {
   listTechnologies: async (params?: TechnologyListParams) => {
@@ -14,6 +15,14 @@ export const learnApi = {
   },
   getTechnology: async (technologyId: string) => {
     const response = await httpClient.get<Technology>(`/learn/technologies/${technologyId}`)
+    return response.data
+  },
+  getRoadmapByTechnologyId: async (technologyId: string) => {
+    const response = await httpClient.get<Roadmap>(`/learn/technologies/id/${technologyId}/roadmap`)
+    return response.data
+  },
+  getRoadmapBySlug: async (slug: string) => {
+    const response = await httpClient.get<Roadmap>(`/learn/technologies/${slug}/roadmap`)
     return response.data
   },
   listManageTechnologies: async (params?: TechnologyListParams) => {

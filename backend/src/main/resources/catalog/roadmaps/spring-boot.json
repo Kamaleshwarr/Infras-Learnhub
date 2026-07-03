@@ -1,0 +1,260 @@
+{
+  "technologySlug": "spring-boot",
+  "version": "1.0.0",
+  "source": "platform-team",
+  "sourceUrl": "https://roadmap.sh/spring-boot",
+  "updatedAt": "2026-07-03T00:00:00Z",
+  "description": "A structured path from Spring Boot fundamentals through REST APIs, data access, security, testing, and production deployment for Java backend services.",
+  "stages": [
+    {
+      "order": 1,
+      "slug": "foundations",
+      "title": "Spring Boot Foundations",
+      "description": "Understand auto-configuration, starters, project structure, dependency injection, and building your first Spring Boot application.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "spring-boot-roadmap",
+          "title": "Spring Boot Developer Roadmap",
+          "url": "https://roadmap.sh/spring-boot",
+          "type": "ARTICLE",
+          "provider": "roadmap.sh",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "roadmap.sh",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-boot-reference",
+          "title": "Spring Boot Reference Documentation",
+          "url": "https://docs.spring.io/spring-boot/docs/current/reference/html/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-boot-getting-started",
+          "title": "Getting Started with Spring Boot",
+          "url": "https://spring.io/guides/gs/spring-boot/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "spring-petclinic",
+          "title": "Spring PetClinic Sample Application",
+          "url": "https://github.com/spring-projects/spring-petclinic",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "slug": "rest-apis",
+      "title": "REST APIs",
+      "description": "Build RESTful web services with Spring MVC, request mapping, validation, exception handling, and OpenAPI documentation.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "spring-rest-service-guide",
+          "title": "Building a RESTful Web Service",
+          "url": "https://spring.io/guides/gs/rest-service/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-rest-controller-docs",
+          "title": "Developing Web Applications",
+          "url": "https://docs.spring.io/spring-boot/docs/current/reference/html/web.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "spring-rest-docs-sample",
+          "title": "Spring REST Docs Sample",
+          "url": "https://github.com/spring-projects/spring-restdocs/tree/main/samples",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "slug": "data-access",
+      "title": "Data Access",
+      "description": "Integrate databases using Spring Data JPA, repositories, transactions, and connection pooling for persistent backend services.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "spring-data-jpa-guide",
+          "title": "Accessing Data with JPA",
+          "url": "https://spring.io/guides/gs/accessing-data-jpa/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-data-jpa-reference",
+          "title": "Spring Data JPA Reference",
+          "url": "https://docs.spring.io/spring-data/jpa/docs/current/reference/html/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "slug": "security",
+      "title": "Security",
+      "description": "Secure Spring Boot applications with Spring Security, authentication, authorization, JWT, and OAuth2 resource server patterns.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "spring-security-guide",
+          "title": "Securing a Web Application",
+          "url": "https://spring.io/guides/gs/securing-web/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-security-reference",
+          "title": "Spring Security Reference",
+          "url": "https://docs.spring.io/spring-security/reference/index.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "spring-authorization-server",
+          "title": "Spring Authorization Server Samples",
+          "url": "https://github.com/spring-projects/spring-authorization-server/tree/main/samples",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "slug": "testing",
+      "title": "Testing",
+      "description": "Write unit and integration tests using JUnit 5, Mockito, Spring Boot Test, Testcontainers, and test slice annotations.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "spring-boot-testing-guide",
+          "title": "Testing the Web Layer",
+          "url": "https://spring.io/guides/gs/testing-web/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-boot-test-reference",
+          "title": "Testing Spring Boot Applications",
+          "url": "https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.testing",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "slug": "production-readiness",
+      "title": "Production Readiness",
+      "description": "Prepare applications for production with Actuator health checks, metrics, logging, configuration profiles, and container deployment.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "spring-boot-actuator",
+          "title": "Production-Ready Features",
+          "url": "https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "spring-boot-docker-guide",
+          "title": "Spring Boot with Docker",
+          "url": "https://spring.io/guides/topicals/spring-boot-docker/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Spring Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "spring-boot-docker-compose",
+          "title": "Spring Boot Docker Compose Support",
+          "url": "https://github.com/spring-projects/spring-boot/tree/main/spring-boot-project/spring-boot-docker-compose",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "notes": "Configure health probes and structured logging before deploying to a container orchestrator."
+    }
+  ]
+}

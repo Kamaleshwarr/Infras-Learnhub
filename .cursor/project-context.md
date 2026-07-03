@@ -52,7 +52,7 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 ## Current Release
 
 **v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
-**v0.8.0** — Learn module (**F16-R shipped**; **F17 blocked**)  
+**v0.8.0** — Learn module (**F16-R shipped**; **F17 Roadmap Viewer shipped**; **F18 blocked**)  
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*  
 **Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)

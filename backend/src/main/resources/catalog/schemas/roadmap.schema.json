@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learninghub.local/catalog/schemas/roadmap.schema.json",
+  "title": "CatalogRoadmapRecord",
+  "type": "object",
+  "required": ["technologySlug", "version", "source", "updatedAt", "stages"],
+  "properties": {
+    "technologySlug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "sourceUrl": {
+      "type": ["string", "null"],
+      "maxLength": 2048,
+      "pattern": "^https://"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 2000
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["order", "slug", "title", "description", "estimatedEffort", "learningResources"],
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "estimatedEffort": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "maxLength": 2000
+          },
+          "learningResources": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/resource" }
+          },
+          "practiceResources": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/$defs/resource" }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "resource": {
+      "type": "object",
+      "required": ["slug", "title", "url", "type", "provider", "freePaid", "version", "source", "updatedAt"],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https://"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL_DOCUMENTATION",
+            "OFFICIAL_TUTORIAL",
+            "OPEN_EDUCATIONAL_RESOURCE",
+            "VIDEO",
+            "ARTICLE",
+            "GITHUB",
+            "INTERACTIVE_TUTORIAL",
+            "PRACTICE_LAB",
+            "OTHER"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "freePaid": {
+          "type": "string",
+          "enum": ["FREE", "PAID", "FREEMIUM"]
+        },
+        "version": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

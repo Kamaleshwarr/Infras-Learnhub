@@ -29,6 +29,28 @@ vi.mock('../api/learnApi', () => ({
       totalPages: 0,
     }),
     getTechnology: vi.fn(),
+    getRoadmapByTechnologyId: vi.fn().mockResolvedValue({
+      technologyId: '11111111-1111-1111-1111-111111111111',
+      technologySlug: 'java',
+      technologyName: 'Java',
+      version: '1.0.0',
+      description: 'Java roadmap',
+      stageCount: 1,
+      estimatedTotalEffort: '1 week',
+      recommendedStageOrder: 1,
+      nextStageOrder: 1,
+      stages: [
+        {
+          order: 1,
+          slug: 'introduction',
+          title: 'Introduction',
+          description: 'Get started',
+          estimatedEffort: '1 week',
+          learningResources: [],
+          practiceResources: [],
+        },
+      ],
+    }),
   },
 }))
 
@@ -113,5 +135,11 @@ describe('AppRoutes certificate workflow preparation', () => {
     renderRoute('/learn', employeeUser)
 
     expect(await screen.findByRole('heading', { name: 'Learn' })).toBeInTheDocument()
+  })
+
+  it('renders roadmap route for employees', async () => {
+    renderRoute('/learn/technologies/11111111-1111-1111-1111-111111111111/roadmap', employeeUser)
+
+    expect(await screen.findByRole('heading', { name: /Java — Learning Roadmap/i })).toBeInTheDocument()
   })
 })
