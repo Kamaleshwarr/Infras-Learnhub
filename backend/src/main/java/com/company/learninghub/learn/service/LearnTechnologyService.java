@@ -15,11 +15,13 @@ import com.company.learninghub.learn.dto.TechnologyResponse;
 import com.company.learninghub.learn.mapper.LearnTechnologyMapper;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
+import com.company.learninghub.learn.search.TechnologySearchMatching;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.user.domain.RoleName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -197,7 +198,6 @@ public class LearnTechnologyService {
         String normalizedSearch = normalizeSearch(search);
         Specification<LearnTechnology> specification = Specification
                 .where(hasStatus(status))
-                .and(matchesSearch(normalizedSearch))
                 .and(hasCategory(category))
                 .and(hasDifficulty(difficulty));
 
@@ -205,8 +205,43 @@ public class LearnTechnologyService {
             specification = specification.and(hasCatalogPresent(true));
         }
 
-        return technologyRepository.findAll(specification, pageable)
-                .map(technology -> technologyMapper.toResponse(technology, List.of()));
+        if (!StringUtils.hasText(normalizedSearch)) {
+            return technologyRepository.findAll(specification, pageable)
+                    .map(technology -> technologyMapper.toResponse(technology, List.of()));
+        }
+
+        /*
+         * Search ranking is performed in memory intentionally.
+         *
+         * The platform catalog is expected to remain approximately 100–500 technologies.
+         * For that size, loading filtered candidates and applying deterministic relevance
+         * scoring in Java keeps the implementation simple, testable, and free of external
+         * search infrastructure.
+         *
+         * If the catalog grows significantly (for example, beyond 1,000 technologies),
+         * redesign search ranking in SQL (ORDER BY CASE / tsvector) or adopt a dedicated
+         * search solution. Do not extend this in-memory path without measuring latency
+         * and memory use under realistic catalog sizes.
+         */
+        List<LearnTechnology> ranked = technologyRepository.findAll(specification)
+                .stream()
+                .filter(technology -> TechnologySearchMatching.matches(technology, normalizedSearch))
+                .sorted(TechnologySearchMatching.relevanceComparator(normalizedSearch))
+                .toList();
+
+        int start = Math.toIntExact(pageable.getOffset());
+        int end = Math.min(start + pageable.getPageSize(), ranked.size());
+        List<LearnTechnology> pageContent = start >= ranked.size()
+                ? List.of()
+                : ranked.subList(start, end);
+
+        return new PageImpl<>(
+                pageContent.stream()
+                        .map(technology -> technologyMapper.toResponse(technology, List.of()))
+                        .toList(),
+                pageable,
+                ranked.size()
+        );
     }
 
     private List<RelatedProjectSummary> loadRelatedProjects(UUID technologyId) {
@@ -283,21 +318,6 @@ public class LearnTechnologyService {
         return (root, query, criteriaBuilder) -> difficulty == null
                 ? criteriaBuilder.conjunction()
                 : criteriaBuilder.equal(root.get("difficulty"), difficulty);
-    }
-
-    private Specification<LearnTechnology> matchesSearch(String search) {
-        return (root, query, criteriaBuilder) -> {
-            if (!StringUtils.hasText(search)) {
-                return criteriaBuilder.conjunction();
-            }
-            String pattern = "%" + search.toLowerCase(Locale.ROOT) + "%";
-            return criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("shortName")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern),
-                    criteriaBuilder.like(root.get("slug"), pattern)
-            );
-        };
     }
 
     private Pageable normalizePageable(Pageable pageable) {
