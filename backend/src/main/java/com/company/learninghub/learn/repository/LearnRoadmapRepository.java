@@ -17,5 +17,8 @@ public interface LearnRoadmapRepository extends JpaRepository<LearnRoadmap, UUID
     @Query("SELECT r FROM LearnRoadmap r WHERE r.catalogPresent = true")
     List<LearnRoadmap> findByCatalogPresentTrue();
 
+    @Query("SELECT r FROM LearnRoadmap r JOIN FETCH r.technology WHERE r.catalogPresent = true")
+    List<LearnRoadmap> findCatalogPresentWithTechnology();
+
     boolean existsByTechnology_SlugAndCatalogPresentTrue(String slug);
 }

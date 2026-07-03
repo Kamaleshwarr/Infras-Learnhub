@@ -23,9 +23,11 @@ import com.company.learninghub.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -64,6 +66,7 @@ public class CatalogImportService implements ApplicationRunner {
     private final LearnCatalogImportRepository catalogImportRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private CatalogImportService self;
 
     public CatalogImportService(
             CatalogImportProperties properties,
@@ -83,8 +86,12 @@ public class CatalogImportService implements ApplicationRunner {
         this.objectMapper = objectMapper;
     }
 
+    @Autowired
+    void setSelf(@Lazy CatalogImportService self) {
+        this.self = self;
+    }
+
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
         if (!properties.isEnabled()) {
             LOGGER.info("Catalog import is disabled");
@@ -92,7 +99,7 @@ public class CatalogImportService implements ApplicationRunner {
         }
 
         try {
-            importCatalog();
+            self.importCatalog();
         } catch (RuntimeException exception) {
             if (properties.isFailFast()) {
                 throw exception;
@@ -286,7 +293,7 @@ public class CatalogImportService implements ApplicationRunner {
     }
 
     private void markAbsentRoadmaps(Set<String> importedSlugs) {
-        Map<String, LearnRoadmap> existingBySlug = roadmapRepository.findByCatalogPresentTrue()
+        Map<String, LearnRoadmap> existingBySlug = roadmapRepository.findCatalogPresentWithTechnology()
                 .stream()
                 .collect(Collectors.toMap(LearnRoadmap::getTechnologySlug, Function.identity()));
 
@@ -350,7 +357,7 @@ public class CatalogImportService implements ApplicationRunner {
     }
 
     private void softHideRemovedTechnologies(Set<String> importedSlugs) {
-        Map<String, LearnTechnology> existingBySlug = technologyRepository.findByCatalogPresentTrue()
+        Map<String, LearnTechnology> existingBySlug = technologyRepository.findCatalogPresentWithProjectLinks()
                 .stream()
                 .collect(Collectors.toMap(LearnTechnology::getSlug, Function.identity()));
 

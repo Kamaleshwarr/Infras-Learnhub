@@ -108,7 +108,7 @@ class CatalogImportServiceTest {
                 "roadmaps",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(true);
-        when(technologyRepository.findByCatalogPresentTrue()).thenReturn(List.of());
+        when(technologyRepository.findCatalogPresentWithProjectLinks()).thenReturn(List.of());
 
         LearnTechnology existing = new LearnTechnology(
                 "spring-boot",
