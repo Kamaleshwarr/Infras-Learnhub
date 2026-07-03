@@ -10,17 +10,14 @@ import com.company.learninghub.learn.domain.TechnologyDifficulty;
 import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.learn.dto.RelatedProjectSummary;
 import com.company.learninghub.learn.dto.RelatedTechnologySummary;
-import com.company.learninghub.learn.dto.TechnologyCreateRequest;
+import com.company.learninghub.learn.dto.TechnologyCurationRequest;
 import com.company.learninghub.learn.dto.TechnologyResponse;
-import com.company.learninghub.learn.dto.TechnologyUpdateRequest;
 import com.company.learninghub.learn.mapper.LearnTechnologyMapper;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.user.domain.RoleName;
-import com.company.learninghub.user.domain.User;
-import com.company.learninghub.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,14 +39,11 @@ public class LearnTechnologyService {
     static final String DUPLICATE_PROJECT_LINK_MESSAGE =
             "This organizational project is already linked to the technology.";
 
-    private static final int NAME_MAX_LENGTH = 100;
-    private static final int SHORT_NAME_MAX_LENGTH = 30;
-    private static final int DESCRIPTION_MAX_LENGTH = 2000;
+    private static final int ORG_NOTES_MAX_LENGTH = 2000;
 
     private final LearnTechnologyRepository technologyRepository;
     private final LearnTechnologyProjectLinkRepository projectLinkRepository;
     private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
     private final LearnTechnologyMapper technologyMapper;
 
     @Autowired
@@ -57,67 +51,30 @@ public class LearnTechnologyService {
             LearnTechnologyRepository technologyRepository,
             LearnTechnologyProjectLinkRepository projectLinkRepository,
             ProjectRepository projectRepository,
-            UserRepository userRepository,
             LearnTechnologyMapper technologyMapper
     ) {
         this.technologyRepository = technologyRepository;
         this.projectLinkRepository = projectLinkRepository;
         this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
         this.technologyMapper = technologyMapper;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public TechnologyResponse create(TechnologyCreateRequest request, AuthenticatedUser authenticatedUser) {
-        User createdBy = userRepository.findById(authenticatedUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user was not found"));
-
-        validateMetadata(
-                request.name(),
-                request.shortName(),
-                request.description(),
-                request.category(),
-                request.difficulty()
-        );
-        assertUniqueName(request.name(), null);
-
-        LearnTechnology technology = new LearnTechnology(
-                normalizeRequired(request.name(), "name is required"),
-                normalizeRequired(request.shortName(), "shortName is required"),
-                normalizeOptional(request.description()),
-                request.category(),
-                request.difficulty(),
-                TechnologyStatus.DRAFT,
-                false,
-                createdBy
-        );
-
-        return technologyMapper.toResponse(technologyRepository.save(technology), List.of());
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @Transactional
-    public TechnologyResponse update(UUID technologyId, TechnologyUpdateRequest request) {
+    public TechnologyResponse updateCuration(UUID technologyId, TechnologyCurationRequest request) {
         LearnTechnology technology = findTechnologyOrThrow(technologyId);
-        validateMetadata(
-                request.name(),
-                request.shortName(),
-                request.description(),
-                request.category(),
-                request.difficulty()
-        );
-        assertUniqueName(request.name(), technologyId);
 
-        boolean featured = request.featured() != null ? request.featured() : technology.isFeatured();
-        technology.updateDetails(
-                normalizeRequired(request.name(), "name is required"),
-                normalizeRequired(request.shortName(), "shortName is required"),
-                normalizeOptional(request.description()),
-                request.category(),
-                request.difficulty(),
-                featured
-        );
+        if (request.featured() != null) {
+            technology.setFeaturedOverride(request.featured());
+        }
+        if (request.status() != null) {
+            assertTransition(technology.getStatus(), request.status());
+            technology.setStatus(request.status());
+        }
+        if (request.orgNotes() != null) {
+            validateOrgNotes(request.orgNotes());
+            technology.setOrgNotes(normalizeOptional(request.orgNotes()));
+        }
 
         return technologyMapper.toResponse(technology, loadRelatedProjects(technologyId));
     }
@@ -128,6 +85,15 @@ public class LearnTechnologyService {
         LearnTechnology technology = findTechnologyOrThrow(technologyId);
         assertTransition(technology.getStatus(), TechnologyStatus.PUBLISHED);
         technology.setStatus(TechnologyStatus.PUBLISHED);
+        return technologyMapper.toResponse(technology, loadRelatedProjects(technologyId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public TechnologyResponse hide(UUID technologyId) {
+        LearnTechnology technology = findTechnologyOrThrow(technologyId);
+        assertTransition(technology.getStatus(), TechnologyStatus.HIDDEN);
+        technology.setStatus(TechnologyStatus.HIDDEN);
         return technologyMapper.toResponse(technology, loadRelatedProjects(technologyId));
     }
 
@@ -189,7 +155,8 @@ public class LearnTechnologyService {
                 search,
                 category,
                 difficulty,
-                normalizePageable(pageable)
+                normalizePageable(pageable),
+                true
         );
     }
 
@@ -202,7 +169,7 @@ public class LearnTechnologyService {
             TechnologyDifficulty difficulty,
             Pageable pageable
     ) {
-        return listTechnologies(status, search, category, difficulty, normalizePageable(pageable));
+        return listTechnologies(status, search, category, difficulty, normalizePageable(pageable), false);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -213,7 +180,9 @@ public class LearnTechnologyService {
         }
         return projectLinkRepository.findPublishedTechnologiesByProjectId(projectId, TechnologyStatus.PUBLISHED)
                 .stream()
-                .map(link -> technologyMapper.toRelatedTechnologySummary(link.getTechnology()))
+                .map(LearnTechnologyProjectLink::getTechnology)
+                .filter(LearnTechnology::isCatalogPresent)
+                .map(technologyMapper::toRelatedTechnologySummary)
                 .toList();
     }
 
@@ -222,7 +191,8 @@ public class LearnTechnologyService {
             String search,
             TechnologyCategory category,
             TechnologyDifficulty difficulty,
-            Pageable pageable
+            Pageable pageable,
+            boolean employeeView
     ) {
         String normalizedSearch = normalizeSearch(search);
         Specification<LearnTechnology> specification = Specification
@@ -230,6 +200,10 @@ public class LearnTechnologyService {
                 .and(matchesSearch(normalizedSearch))
                 .and(hasCategory(category))
                 .and(hasDifficulty(difficulty));
+
+        if (employeeView) {
+            specification = specification.and(hasCatalogPresent(true));
+        }
 
         return technologyRepository.findAll(specification, pageable)
                 .map(technology -> technologyMapper.toResponse(technology, List.of()));
@@ -247,9 +221,14 @@ public class LearnTechnologyService {
     }
 
     private void assertTransition(TechnologyStatus currentStatus, TechnologyStatus targetStatus) {
+        if (currentStatus == targetStatus) {
+            return;
+        }
+
         boolean allowed = switch (currentStatus) {
-            case DRAFT -> targetStatus == TechnologyStatus.PUBLISHED;
-            case PUBLISHED -> targetStatus == TechnologyStatus.ARCHIVED;
+            case HIDDEN -> targetStatus == TechnologyStatus.PUBLISHED;
+            case PUBLISHED -> targetStatus == TechnologyStatus.ARCHIVED
+                    || targetStatus == TechnologyStatus.HIDDEN;
             case ARCHIVED -> false;
         };
         if (!allowed) {
@@ -259,43 +238,9 @@ public class LearnTechnologyService {
         }
     }
 
-    private void validateMetadata(
-            String name,
-            String shortName,
-            String description,
-            TechnologyCategory category,
-            TechnologyDifficulty difficulty
-    ) {
-        if (!StringUtils.hasText(name)) {
-            throw new IllegalArgumentException("name is required");
-        }
-        if (name.trim().length() > NAME_MAX_LENGTH) {
-            throw new IllegalArgumentException("name must be 100 characters or fewer");
-        }
-        if (!StringUtils.hasText(shortName)) {
-            throw new IllegalArgumentException("shortName is required");
-        }
-        if (shortName.trim().length() > SHORT_NAME_MAX_LENGTH) {
-            throw new IllegalArgumentException("shortName must be 30 characters or fewer");
-        }
-        if (description != null && description.length() > DESCRIPTION_MAX_LENGTH) {
-            throw new IllegalArgumentException("description must be 2000 characters or fewer");
-        }
-        if (category == null) {
-            throw new IllegalArgumentException("category is required");
-        }
-        if (difficulty == null) {
-            throw new IllegalArgumentException("difficulty is required");
-        }
-    }
-
-    private void assertUniqueName(String name, UUID excludeId) {
-        String normalizedName = normalizeRequired(name, "name is required");
-        boolean duplicate = excludeId == null
-                ? technologyRepository.existsByNameIgnoreCase(normalizedName)
-                : technologyRepository.existsByNameIgnoreCaseAndIdNot(normalizedName, excludeId);
-        if (duplicate) {
-            throw new BusinessConflictException("A technology with this name already exists");
+    private void validateOrgNotes(String orgNotes) {
+        if (orgNotes != null && orgNotes.length() > ORG_NOTES_MAX_LENGTH) {
+            throw new IllegalArgumentException("orgNotes must be 2000 characters or fewer");
         }
     }
 
@@ -310,18 +255,16 @@ public class LearnTechnologyService {
         return search.trim();
     }
 
-    private String normalizeRequired(String value, String message) {
-        if (!StringUtils.hasText(value)) {
-            throw new IllegalArgumentException(message);
-        }
-        return value.trim();
-    }
-
     private String normalizeOptional(String value) {
         if (!StringUtils.hasText(value)) {
             return null;
         }
         return value.trim();
+    }
+
+    private Specification<LearnTechnology> hasCatalogPresent(boolean catalogPresent) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("catalogPresent"), catalogPresent);
     }
 
     private Specification<LearnTechnology> hasStatus(TechnologyStatus status) {
@@ -351,7 +294,8 @@ public class LearnTechnologyService {
             return criteriaBuilder.or(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("shortName")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern)
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern),
+                    criteriaBuilder.like(root.get("slug"), pattern)
             );
         };
     }
@@ -369,14 +313,24 @@ public class LearnTechnologyService {
 
     private Sort.Order toRepositorySortOrder(Sort.Order order) {
         String property = switch (order.getProperty()) {
-            case "id", "name", "shortName", "category", "difficulty", "status", "featured", "createdAt", "updatedAt" ->
+            case "id", "slug", "name", "shortName", "category", "difficulty", "status", "createdAt", "updatedAt" ->
                     order.getProperty();
+            case "featured" -> "catalogFeatured";
             case "createdAtUtc" -> "createdAt";
             case "updatedAtUtc" -> "updatedAt";
             default -> throw new IllegalArgumentException("Unsupported sort property: " + order.getProperty());
         };
 
         Sort.Order translated = new Sort.Order(order.getDirection(), property, order.getNullHandling());
-        return order.isIgnoreCase() ? translated.ignoreCase() : translated;
+        if (order.isIgnoreCase() && isTextSortProperty(property)) {
+            return translated.ignoreCase();
+        }
+        return translated;
+    }
+
+    private boolean isTextSortProperty(String property) {
+        return "slug".equals(property)
+                || "name".equals(property)
+                || "shortName".equals(property);
     }
 }

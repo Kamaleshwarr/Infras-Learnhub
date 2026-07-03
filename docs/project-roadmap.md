@@ -26,7 +26,7 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 
 ## In design — v0.8.0 Learn (Learning Navigation Platform)
 
-**Status:** F16 **shipped** · Architecture revision v2 + catalog spec **APPROVED — FROZEN**
+**Status:** F16-R **shipped** · Architecture revision v2 + catalog spec **APPROVED — FROZEN**
 
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
 
@@ -40,8 +40,8 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | F16 | Technology Discovery & Search (+ Projects cross-nav) | **Shipped** |
-| **F16-R** | Catalog Foundation Refactor | **Ready to begin** |
-| F17 | Roadmap Viewer & Catalog Roadmaps | Blocked until F16-R |
+| **F16-R** | Catalog Foundation Refactor | **Shipped** |
+| F17 | Roadmap Viewer & Catalog Roadmaps | **Ready to begin** |
 | F18 | Progress & Learning Journey | Not started |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |

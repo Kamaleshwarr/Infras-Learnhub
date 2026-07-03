@@ -10,8 +10,7 @@ import { TechnologyCardList, TechnologyTable } from '../../components/learn/Tech
 import { TechnologySearchBar } from '../../components/learn/TechnologySearchBar'
 import { TechnologyStatusFilterTabs } from '../../components/learn/TechnologyStatusFilterTabs'
 import { TechnologyListToolbar } from '../../components/learn/TechnologyListToolbar'
-import { CreateTechnologyDialog } from '../../components/learn/CreateTechnologyDialog'
-import { EditTechnologyDialog } from '../../components/learn/EditTechnologyDialog'
+import { TechnologyCurationPanel } from '../../components/learn/TechnologyCurationPanel'
 import {
   LearnManagementSnackbar,
   type LearnManagementNotification,
@@ -19,7 +18,7 @@ import {
 import { LEARN_MESSAGES } from '../../components/learn/learnMessages'
 import { LearnPageIntro } from '../../layout/LearnLayout'
 import type { PageResponse } from '../../types/api'
-import type { Technology, TechnologyLifecycleAction } from '../../types/learn'
+import type { CatalogStatus, Technology, TechnologyLifecycleAction } from '../../types/learn'
 import { DEFAULT_TECHNOLOGY_LIST_QUERY } from '../../types/learn'
 import { resolveApiError } from '../../utils/apiErrors'
 import {
@@ -54,11 +53,11 @@ export function TechnologyListPage({ adminMode = false }: TechnologyListPageProp
   const appliedQuery = useMemo(() => parseTechnologyListQuery(searchParams), [searchParams])
   const [draftSearch, setDraftSearch] = useState(appliedQuery.search)
   const [pageData, setPageData] = useState<PageResponse<Technology>>(EMPTY_PAGE)
+  const [catalogStatus, setCatalogStatus] = useState<CatalogStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editingTechnology, setEditingTechnology] = useState<Technology | null>(null)
+  const [curatingTechnology, setCuratingTechnology] = useState<Technology | null>(null)
   const [notification, setNotification] = useState<LearnManagementNotification | null>(null)
 
   const showAdminControls = adminMode && isAdmin
@@ -91,6 +90,23 @@ export function TechnologyListPage({ adminMode = false }: TechnologyListPageProp
 
     return () => window.clearTimeout(timer)
   }, [appliedQuery, draftSearch, updateQuery])
+
+  useEffect(() => {
+    if (!showAdminControls) {
+      return
+    }
+
+    let mounted = true
+    void learnApi.getCatalogStatus().then((status) => {
+      if (mounted) {
+        setCatalogStatus(status)
+      }
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [showAdminControls, refreshToken])
 
   useEffect(() => {
     let mounted = true
@@ -139,22 +155,20 @@ export function TechnologyListPage({ adminMode = false }: TechnologyListPageProp
   const showEmptyState = !loading && !error && pageData.content.length === 0
   const showList = !error && (loading || pageData.content.length > 0)
 
-  function handleCreateSuccess() {
-    setCreateOpen(false)
-    showSuccessNotification(LEARN_MESSAGES.createSuccess)
-    refreshTechnologies()
-  }
-
-  function handleEditSuccess() {
-    setEditingTechnology(null)
-    showSuccessNotification(LEARN_MESSAGES.updateSuccess)
+  function handleCurationSuccess() {
+    setCuratingTechnology(null)
+    showSuccessNotification(LEARN_MESSAGES.curationSuccess)
     refreshTechnologies()
   }
 
   function handleLifecycleSuccess(action: TechnologyLifecycleAction) {
-    showSuccessNotification(
-      action === 'publish' ? LEARN_MESSAGES.publishSuccess : LEARN_MESSAGES.archiveSuccess,
-    )
+    const message =
+      action === 'publish'
+        ? LEARN_MESSAGES.publishSuccess
+        : action === 'hide'
+          ? LEARN_MESSAGES.hideSuccess
+          : LEARN_MESSAGES.archiveSuccess
+    showSuccessNotification(message)
     refreshTechnologies()
   }
 
@@ -166,7 +180,7 @@ export function TechnologyListPage({ adminMode = false }: TechnologyListPageProp
       />
       {!showAdminControls ? <LearnPageIntro /> : null}
 
-      {showAdminControls ? <TechnologyListToolbar onCreateTechnology={() => setCreateOpen(true)} /> : null}
+      {showAdminControls ? <TechnologyListToolbar catalogStatus={catalogStatus} /> : null}
 
       <Stack spacing={2} sx={{ mb: 2 }}>
         <TechnologySearchBar onChange={setDraftSearch} value={draftSearch} />
@@ -203,7 +217,7 @@ export function TechnologyListPage({ adminMode = false }: TechnologyListPageProp
           ) : (
             <TechnologyTable
               loading={loading}
-              onEdit={showAdminControls ? setEditingTechnology : undefined}
+              onCurate={showAdminControls ? setCuratingTechnology : undefined}
               onLifecycleSuccess={showAdminControls ? handleLifecycleSuccess : undefined}
               onSort={(property) => updateQuery({ ...appliedQuery, sort: toggleSort(appliedQuery.sort, property) })}
               showStatusColumn={showAdminControls}
@@ -222,15 +236,12 @@ export function TechnologyListPage({ adminMode = false }: TechnologyListPageProp
       ) : null}
 
       {showAdminControls ? (
-        <>
-          <CreateTechnologyDialog onClose={() => setCreateOpen(false)} onSuccess={handleCreateSuccess} open={createOpen} />
-          <EditTechnologyDialog
-            onClose={() => setEditingTechnology(null)}
-            onSuccess={handleEditSuccess}
-            open={Boolean(editingTechnology)}
-            technology={editingTechnology}
-          />
-        </>
+        <TechnologyCurationPanel
+          onClose={() => setCuratingTechnology(null)}
+          onSuccess={handleCurationSuccess}
+          open={Boolean(curatingTechnology)}
+          technology={curatingTechnology}
+        />
       ) : null}
 
       <LearnManagementSnackbar notification={notification} onClose={() => setNotification(null)} />

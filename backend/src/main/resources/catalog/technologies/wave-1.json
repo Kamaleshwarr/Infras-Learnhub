@@ -1,0 +1,611 @@
+{
+  "packageVersion": "1.0.0",
+  "type": "technologies",
+  "updatedAt": "2026-07-02T00:00:00Z",
+  "technologies": [
+    {
+      "slug": "spring-boot",
+      "name": "Spring Boot",
+      "shortName": "Spring Boot",
+      "category": "BACKEND",
+      "shortDescription": "Production-ready Java applications with convention-over-configuration and a rich ecosystem.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://spring.io/projects/spring-boot",
+      "officialDocumentation": "https://docs.spring.io/spring-boot/docs/current/reference/html/",
+      "tags": [
+        "java",
+        "microservices",
+        "rest-api"
+      ],
+      "featured": true,
+      "source": "platform-team",
+      "sourceUrl": "https://roadmap.sh/spring-boot",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "java",
+      "name": "Java",
+      "shortName": "Java",
+      "category": "BACKEND",
+      "shortDescription": "Enterprise-grade language for backend services, APIs, and distributed systems.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "6-8 weeks",
+      "officialWebsite": "https://www.oracle.com/java/",
+      "officialDocumentation": "https://docs.oracle.com/en/java/",
+      "tags": [
+        "jvm",
+        "oop",
+        "backend"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "nodejs",
+      "name": "Node.js",
+      "shortName": "Node.js",
+      "category": "BACKEND",
+      "shortDescription": "JavaScript runtime for building scalable network applications and APIs.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://nodejs.org/",
+      "officialDocumentation": "https://nodejs.org/docs/latest/api/",
+      "tags": [
+        "javascript",
+        "api",
+        "runtime"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "graphql",
+      "name": "GraphQL",
+      "shortName": "GraphQL",
+      "category": "BACKEND",
+      "shortDescription": "Query language and runtime for APIs that lets clients request exactly the data they need.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "2-3 weeks",
+      "officialWebsite": "https://graphql.org/",
+      "officialDocumentation": "https://graphql.org/learn/",
+      "tags": [
+        "api",
+        "schema",
+        "backend"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "react",
+      "name": "React",
+      "shortName": "React",
+      "category": "FRONTEND",
+      "shortDescription": "Component-based library for building interactive user interfaces.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://react.dev/",
+      "officialDocumentation": "https://react.dev/learn",
+      "tags": [
+        "javascript",
+        "ui",
+        "spa"
+      ],
+      "featured": true,
+      "source": "platform-team",
+      "sourceUrl": "https://roadmap.sh/react",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "angular",
+      "name": "Angular",
+      "shortName": "Angular",
+      "category": "FRONTEND",
+      "shortDescription": "Platform for building enterprise web applications with TypeScript.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "6-8 weeks",
+      "officialWebsite": "https://angular.dev/",
+      "officialDocumentation": "https://angular.dev/overview",
+      "tags": [
+        "typescript",
+        "spa",
+        "enterprise"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "typescript",
+      "name": "TypeScript",
+      "shortName": "TypeScript",
+      "category": "FRONTEND",
+      "shortDescription": "Typed superset of JavaScript for safer, more maintainable frontend and full-stack code.",
+      "difficulty": "BEGINNER",
+      "estimatedDuration": "2-4 weeks",
+      "officialWebsite": "https://www.typescriptlang.org/",
+      "officialDocumentation": "https://www.typescriptlang.org/docs/",
+      "tags": [
+        "javascript",
+        "types",
+        "frontend"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "vite",
+      "name": "Vite",
+      "shortName": "Vite",
+      "category": "FRONTEND",
+      "shortDescription": "Fast frontend build tool and dev server for modern web projects.",
+      "difficulty": "BEGINNER",
+      "estimatedDuration": "1-2 weeks",
+      "officialWebsite": "https://vite.dev/",
+      "officialDocumentation": "https://vite.dev/guide/",
+      "tags": [
+        "build-tool",
+        "frontend",
+        "dev-server"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "aws",
+      "name": "Amazon Web Services (AWS)",
+      "shortName": "AWS",
+      "category": "CLOUD",
+      "shortDescription": "Cloud computing platform covering compute, storage, networking, and managed services.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "6-8 weeks",
+      "officialWebsite": "https://aws.amazon.com/",
+      "officialDocumentation": "https://docs.aws.amazon.com/",
+      "tags": [
+        "cloud",
+        "infrastructure",
+        "iaas"
+      ],
+      "featured": true,
+      "source": "platform-team",
+      "sourceUrl": "https://roadmap.sh/aws",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "azure",
+      "name": "Microsoft Azure",
+      "shortName": "Azure",
+      "category": "CLOUD",
+      "shortDescription": "Cloud platform for building, deploying, and managing applications and services.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "6-8 weeks",
+      "officialWebsite": "https://azure.microsoft.com/",
+      "officialDocumentation": "https://learn.microsoft.com/azure/",
+      "tags": [
+        "cloud",
+        "microsoft",
+        "paas"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "google-cloud",
+      "name": "Google Cloud Platform",
+      "shortName": "GCP",
+      "category": "CLOUD",
+      "shortDescription": "Cloud services for compute, data, machine learning, and application hosting.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "6-8 weeks",
+      "officialWebsite": "https://cloud.google.com/",
+      "officialDocumentation": "https://cloud.google.com/docs",
+      "tags": [
+        "cloud",
+        "gcp",
+        "kubernetes"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "kubernetes",
+      "name": "Kubernetes",
+      "shortName": "K8s",
+      "category": "DEVOPS",
+      "shortDescription": "Container orchestration platform for deploying and managing containerized workloads.",
+      "difficulty": "ADVANCED",
+      "estimatedDuration": "6-8 weeks",
+      "officialWebsite": "https://kubernetes.io/",
+      "officialDocumentation": "https://kubernetes.io/docs/home/",
+      "tags": [
+        "containers",
+        "orchestration",
+        "devops"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "sourceUrl": "https://roadmap.sh/kubernetes",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "docker",
+      "name": "Docker",
+      "shortName": "Docker",
+      "category": "DEVOPS",
+      "shortDescription": "Platform for building, shipping, and running applications in containers.",
+      "difficulty": "BEGINNER",
+      "estimatedDuration": "2-3 weeks",
+      "officialWebsite": "https://www.docker.com/",
+      "officialDocumentation": "https://docs.docker.com/",
+      "tags": [
+        "containers",
+        "devops",
+        "images"
+      ],
+      "featured": true,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "terraform",
+      "name": "Terraform",
+      "shortName": "Terraform",
+      "category": "DEVOPS",
+      "shortDescription": "Infrastructure as code tool for provisioning and managing cloud resources.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "3-4 weeks",
+      "officialWebsite": "https://www.terraform.io/",
+      "officialDocumentation": "https://developer.hashicorp.com/terraform/docs",
+      "tags": [
+        "iac",
+        "devops",
+        "automation"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "postgresql",
+      "name": "PostgreSQL",
+      "shortName": "PostgreSQL",
+      "category": "DATABASE",
+      "shortDescription": "Advanced open-source relational database with strong SQL standards compliance.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "3-4 weeks",
+      "officialWebsite": "https://www.postgresql.org/",
+      "officialDocumentation": "https://www.postgresql.org/docs/",
+      "tags": [
+        "sql",
+        "relational",
+        "database"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "mongodb",
+      "name": "MongoDB",
+      "shortName": "MongoDB",
+      "category": "DATABASE",
+      "shortDescription": "Document database for flexible, JSON-like data models at scale.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "3-4 weeks",
+      "officialWebsite": "https://www.mongodb.com/",
+      "officialDocumentation": "https://www.mongodb.com/docs/",
+      "tags": [
+        "nosql",
+        "document",
+        "database"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "redis",
+      "name": "Redis",
+      "shortName": "Redis",
+      "category": "DATABASE",
+      "shortDescription": "In-memory data store used for caching, messaging, and real-time applications.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "2-3 weeks",
+      "officialWebsite": "https://redis.io/",
+      "officialDocumentation": "https://redis.io/docs/latest/",
+      "tags": [
+        "cache",
+        "in-memory",
+        "database"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "python-ml",
+      "name": "Python for Machine Learning",
+      "shortName": "Python ML",
+      "category": "AI_AND_GENAI",
+      "shortDescription": "Python ecosystem for data science, model development, and ML workflows.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://www.python.org/",
+      "officialDocumentation": "https://docs.python.org/3/",
+      "tags": [
+        "python",
+        "ml",
+        "data-science"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "langchain",
+      "name": "LangChain",
+      "shortName": "LangChain",
+      "category": "AI_AND_GENAI",
+      "shortDescription": "Framework for building applications powered by large language models.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "2-4 weeks",
+      "officialWebsite": "https://www.langchain.com/",
+      "officialDocumentation": "https://python.langchain.com/docs/introduction/",
+      "tags": [
+        "llm",
+        "genai",
+        "agents"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "openai-api",
+      "name": "OpenAI API",
+      "shortName": "OpenAI API",
+      "category": "AI_AND_GENAI",
+      "shortDescription": "APIs for integrating generative AI capabilities into applications.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "2-3 weeks",
+      "officialWebsite": "https://openai.com/",
+      "officialDocumentation": "https://platform.openai.com/docs",
+      "tags": [
+        "genai",
+        "api",
+        "llm"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "junit",
+      "name": "JUnit",
+      "shortName": "JUnit",
+      "category": "TESTING",
+      "shortDescription": "Unit testing framework for Java applications.",
+      "difficulty": "BEGINNER",
+      "estimatedDuration": "1-2 weeks",
+      "officialWebsite": "https://junit.org/",
+      "officialDocumentation": "https://docs.junit.org/current/user-guide/",
+      "tags": [
+        "java",
+        "unit-testing",
+        "tdd"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "playwright",
+      "name": "Playwright",
+      "shortName": "Playwright",
+      "category": "TESTING",
+      "shortDescription": "End-to-end testing framework for modern web applications.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "2-3 weeks",
+      "officialWebsite": "https://playwright.dev/",
+      "officialDocumentation": "https://playwright.dev/docs/intro",
+      "tags": [
+        "e2e",
+        "automation",
+        "testing"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "owasp-top-10",
+      "name": "OWASP Top 10",
+      "shortName": "OWASP Top 10",
+      "category": "SECURITY",
+      "shortDescription": "Foundational web application security risks every engineer should understand.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "2-3 weeks",
+      "officialWebsite": "https://owasp.org/",
+      "officialDocumentation": "https://owasp.org/www-project-top-ten/",
+      "tags": [
+        "security",
+        "web",
+        "vulnerabilities"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "oauth2",
+      "name": "OAuth 2.0",
+      "shortName": "OAuth 2.0",
+      "category": "SECURITY",
+      "shortDescription": "Industry-standard authorization framework for secure delegated access.",
+      "difficulty": "ADVANCED",
+      "estimatedDuration": "2-4 weeks",
+      "officialWebsite": "https://oauth.net/2/",
+      "officialDocumentation": "https://datatracker.ietf.org/doc/html/rfc6749",
+      "tags": [
+        "auth",
+        "security",
+        "identity"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "kotlin-android",
+      "name": "Kotlin for Android",
+      "shortName": "Kotlin",
+      "category": "MOBILE",
+      "shortDescription": "Modern language for native Android application development.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://kotlinlang.org/",
+      "officialDocumentation": "https://developer.android.com/kotlin",
+      "tags": [
+        "android",
+        "mobile",
+        "kotlin"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "flutter",
+      "name": "Flutter",
+      "shortName": "Flutter",
+      "category": "MOBILE",
+      "shortDescription": "UI toolkit for building natively compiled applications from a single codebase.",
+      "difficulty": "INTERMEDIATE",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://flutter.dev/",
+      "officialDocumentation": "https://docs.flutter.dev/",
+      "tags": [
+        "mobile",
+        "dart",
+        "cross-platform"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "microservices",
+      "name": "Microservices Architecture",
+      "shortName": "Microservices",
+      "category": "ARCHITECTURE",
+      "shortDescription": "Architectural approach structuring applications as independently deployable services.",
+      "difficulty": "ADVANCED",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://microservices.io/",
+      "officialDocumentation": "https://martinfowler.com/articles/microservices.html",
+      "tags": [
+        "architecture",
+        "distributed",
+        "services"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "event-driven-architecture",
+      "name": "Event-Driven Architecture",
+      "shortName": "EDA",
+      "category": "ARCHITECTURE",
+      "shortDescription": "Architecture pattern using events to decouple producers and consumers.",
+      "difficulty": "ADVANCED",
+      "estimatedDuration": "3-5 weeks",
+      "officialWebsite": "https://www.enterpriseintegrationpatterns.com/",
+      "officialDocumentation": "https://learn.microsoft.com/azure/architecture/guide/architecture-styles/event-driven",
+      "tags": [
+        "architecture",
+        "events",
+        "messaging"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "apache-spark",
+      "name": "Apache Spark",
+      "shortName": "Spark",
+      "category": "DATA_ENGINEERING",
+      "shortDescription": "Unified analytics engine for large-scale data processing.",
+      "difficulty": "ADVANCED",
+      "estimatedDuration": "4-6 weeks",
+      "officialWebsite": "https://spark.apache.org/",
+      "officialDocumentation": "https://spark.apache.org/docs/latest/",
+      "tags": [
+        "big-data",
+        "processing",
+        "analytics"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    },
+    {
+      "slug": "apache-kafka",
+      "name": "Apache Kafka",
+      "shortName": "Kafka",
+      "category": "DATA_ENGINEERING",
+      "shortDescription": "Distributed event streaming platform for real-time data pipelines.",
+      "difficulty": "ADVANCED",
+      "estimatedDuration": "3-5 weeks",
+      "officialWebsite": "https://kafka.apache.org/",
+      "officialDocumentation": "https://kafka.apache.org/documentation/",
+      "tags": [
+        "streaming",
+        "messaging",
+        "data"
+      ],
+      "featured": false,
+      "source": "platform-team",
+      "updatedAt": "2026-07-02T00:00:00Z",
+      "version": "1.0.0"
+    }
+  ]
+}

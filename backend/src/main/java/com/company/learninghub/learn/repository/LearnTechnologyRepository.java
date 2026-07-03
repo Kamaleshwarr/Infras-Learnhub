@@ -5,17 +5,22 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface LearnTechnologyRepository extends JpaRepository<LearnTechnology, UUID>,
         JpaSpecificationExecutor<LearnTechnology> {
 
-    boolean existsByNameIgnoreCase(String name);
-
-    boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
-
     @Override
     @EntityGraph(attributePaths = {"createdBy", "projectLinks", "projectLinks.project"})
     Optional<LearnTechnology> findById(UUID id);
+
+    @EntityGraph(attributePaths = {"createdBy", "projectLinks", "projectLinks.project"})
+    Optional<LearnTechnology> findBySlug(String slug);
+
+    List<LearnTechnology> findBySlugIn(Collection<String> slugs);
+
+    List<LearnTechnology> findByCatalogPresentTrue();
 }

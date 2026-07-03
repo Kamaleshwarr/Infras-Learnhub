@@ -1,0 +1,5 @@
+app:
+  catalog:
+    import:
+      enabled: false
+      fail-fast: false

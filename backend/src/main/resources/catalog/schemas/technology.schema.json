@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learninghub.local/catalog/schemas/technology.schema.json",
+  "title": "CatalogTechnologyRecord",
+  "type": "object",
+  "required": [
+    "slug",
+    "version",
+    "name",
+    "shortName",
+    "category",
+    "shortDescription",
+    "difficulty",
+    "estimatedDuration",
+    "source",
+    "updatedAt"
+  ],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "shortName": {
+      "type": "string",
+      "maxLength": 30
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "BACKEND",
+        "FRONTEND",
+        "CLOUD",
+        "DEVOPS",
+        "DATABASE",
+        "AI_AND_GENAI",
+        "TESTING",
+        "SECURITY",
+        "MOBILE",
+        "ARCHITECTURE",
+        "DATA_ENGINEERING"
+      ]
+    },
+    "shortDescription": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"]
+    },
+    "estimatedDuration": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "officialWebsite": {
+      "type": ["string", "null"],
+      "maxLength": 2048,
+      "pattern": "^https://"
+    },
+    "officialDocumentation": {
+      "type": ["string", "null"],
+      "maxLength": 2048,
+      "pattern": "^https://"
+    },
+    "tags": {
+      "type": ["array", "null"],
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "maxLength": 50
+      }
+    },
+    "featured": {
+      "type": ["boolean", "null"]
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "sourceUrl": {
+      "type": ["string", "null"],
+      "maxLength": 2048,
+      "pattern": "^https://"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

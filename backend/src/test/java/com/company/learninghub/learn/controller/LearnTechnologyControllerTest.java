@@ -70,12 +70,23 @@ class LearnTechnologyControllerTest {
     private TechnologyResponse technologyResponse() {
         return new TechnologyResponse(
                 UUID.randomUUID(),
+                "aws",
                 "Amazon Web Services (AWS)",
                 "AWS",
                 "Cloud platform",
                 TechnologyCategory.CLOUD,
                 TechnologyDifficulty.INTERMEDIATE,
                 TechnologyStatus.PUBLISHED,
+                true,
+                null,
+                true,
+                "6-8 weeks",
+                "https://aws.amazon.com/",
+                "https://docs.aws.amazon.com/",
+                List.of("cloud"),
+                null,
+                "1.0.0",
+                "platform-team",
                 true,
                 List.of(),
                 new TechnologyCreatedByResponse(

@@ -1,14 +1,12 @@
 package com.company.learninghub.learn.controller;
 
-import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.learn.domain.TechnologyCategory;
 import com.company.learninghub.learn.domain.TechnologyDifficulty;
 import com.company.learninghub.learn.domain.TechnologyStatus;
-import com.company.learninghub.learn.dto.TechnologyCreateRequest;
+import com.company.learninghub.learn.dto.TechnologyCurationRequest;
 import com.company.learninghub.learn.dto.TechnologyProjectLinkRequest;
 import com.company.learninghub.learn.dto.TechnologyResponse;
-import com.company.learninghub.learn.dto.TechnologyUpdateRequest;
 import com.company.learninghub.learn.service.LearnTechnologyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,24 +18,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/learn/manage/technologies")
-@Tag(name = "Learn Technology Management", description = "Admin management for Learn technologies")
+@Tag(name = "Learn Technology Management", description = "Admin curation for Learn technologies")
 @SecurityRequirement(name = "bearerAuth")
 public class LearnTechnologyManageController {
 
@@ -49,7 +44,7 @@ public class LearnTechnologyManageController {
 
     @GetMapping
     @Operation(
-            summary = "List technologies for admin management",
+            summary = "List technologies for admin curation",
             description = "Supports status, search, category, difficulty, pagination, and sorting."
     )
     public ResponseEntity<PageResponse<TechnologyResponse>> list(
@@ -58,7 +53,7 @@ public class LearnTechnologyManageController {
             @RequestParam(required = false) TechnologyCategory category,
             @RequestParam(required = false) TechnologyDifficulty difficulty,
             @Parameter(
-                    description = "Pagination and sorting. Supported sort fields include name, status, category, difficulty, featured, createdAtUtc, and updatedAtUtc."
+                    description = "Pagination and sorting. Supported sort fields include slug, name, status, category, difficulty, featured, createdAtUtc, and updatedAtUtc."
             )
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdAtUtc", direction = Sort.Direction.DESC) Pageable pageable
@@ -68,33 +63,25 @@ public class LearnTechnologyManageController {
         ));
     }
 
-    @PostMapping
-    @Operation(summary = "Create a technology", description = "Admin only. Creates a DRAFT technology.")
-    public ResponseEntity<TechnologyResponse> create(
-            @Valid @RequestBody TechnologyCreateRequest request,
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
-    ) {
-        TechnologyResponse response = technologyService.create(request, authenticatedUser);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{technologyId}")
-                .buildAndExpand(response.id())
-                .toUri();
-        return ResponseEntity.created(location).body(response);
-    }
-
-    @PutMapping("/{technologyId}")
-    @Operation(summary = "Update a technology", description = "Admin only.")
-    public ResponseEntity<TechnologyResponse> update(
+    @PatchMapping("/{technologyId}/curation")
+    @Operation(summary = "Update organization curation", description = "Admin only. Updates featured override, status, and org notes.")
+    public ResponseEntity<TechnologyResponse> updateCuration(
             @PathVariable UUID technologyId,
-            @Valid @RequestBody TechnologyUpdateRequest request
+            @Valid @RequestBody TechnologyCurationRequest request
     ) {
-        return ResponseEntity.ok(technologyService.update(technologyId, request));
+        return ResponseEntity.ok(technologyService.updateCuration(technologyId, request));
     }
 
     @PostMapping("/{technologyId}/publish")
-    @Operation(summary = "Publish a draft technology", description = "Admin only. Transitions DRAFT to PUBLISHED.")
+    @Operation(summary = "Publish a hidden technology", description = "Admin only. Transitions HIDDEN to PUBLISHED.")
     public ResponseEntity<TechnologyResponse> publish(@PathVariable UUID technologyId) {
         return ResponseEntity.ok(technologyService.publish(technologyId));
+    }
+
+    @PostMapping("/{technologyId}/hide")
+    @Operation(summary = "Hide a published technology", description = "Admin only. Transitions PUBLISHED to HIDDEN.")
+    public ResponseEntity<TechnologyResponse> hide(@PathVariable UUID technologyId) {
+        return ResponseEntity.ok(technologyService.hide(technologyId));
     }
 
     @PostMapping("/{technologyId}/archive")

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
+import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
+import { Alert, Box, Button, Card, CardContent, Link, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
 import { useAuth } from '../../auth/useAuth'
 import { PageHeader } from '../../components/common/PageHeader'
-import { EditTechnologyDialog } from '../../components/learn/EditTechnologyDialog'
+import { TechnologyCurationPanel } from '../../components/learn/TechnologyCurationPanel'
 import { RelatedOrganizationProjectsCard } from '../../components/learn/RelatedOrganizationProjectsCard'
 import { TechnologyCategoryChip, TechnologyDifficultyChip } from '../../components/learn/TechnologyMetaChips'
 import { TechnologyLifecycleActions } from '../../components/learn/TechnologyLifecycleActions'
@@ -26,7 +26,7 @@ export function TechnologyDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [editOpen, setEditOpen] = useState(false)
+  const [curationOpen, setCurationOpen] = useState(false)
   const [notification, setNotification] = useState<LearnManagementNotification | null>(null)
 
   useEffect(() => {
@@ -71,14 +71,22 @@ export function TechnologyDetailPage() {
     }
   }, [technologyId])
 
-  function handleLifecycleSuccess(action: TechnologyLifecycleAction) {
-    setNotification({
-      message: action === 'publish' ? LEARN_MESSAGES.publishSuccess : LEARN_MESSAGES.archiveSuccess,
-      severity: 'success',
-    })
-    if (technologyId) {
-      void learnApi.getTechnology(technologyId).then(setTechnology).catch(() => undefined)
+  function reloadTechnology() {
+    if (!technologyId) {
+      return
     }
+    void learnApi.getTechnology(technologyId).then(setTechnology).catch(() => undefined)
+  }
+
+  function handleLifecycleSuccess(action: TechnologyLifecycleAction) {
+    const message =
+      action === 'publish'
+        ? LEARN_MESSAGES.publishSuccess
+        : action === 'hide'
+          ? LEARN_MESSAGES.hideSuccess
+          : LEARN_MESSAGES.archiveSuccess
+    setNotification({ message, severity: 'success' })
+    reloadTechnology()
   }
 
   if (loading) {
@@ -126,6 +134,23 @@ export function TechnologyDetailPage() {
             <Stack spacing={2}>
               <Typography variant="h6">About this technology</Typography>
               <Typography>{technology.description || technology.shortName}</Typography>
+              {technology.estimatedDuration ? (
+                <Typography color="text.secondary" variant="body2">
+                  {LEARN_MESSAGES.curationEstimatedDuration}: {technology.estimatedDuration}
+                </Typography>
+              ) : null}
+              <Stack direction="row" spacing={2}>
+                {technology.officialWebsite ? (
+                  <Link href={technology.officialWebsite} rel="noopener noreferrer" target="_blank">
+                    {LEARN_MESSAGES.curationOfficialWebsite}
+                  </Link>
+                ) : null}
+                {technology.officialDocumentation ? (
+                  <Link href={technology.officialDocumentation} rel="noopener noreferrer" target="_blank">
+                    {LEARN_MESSAGES.curationOfficialDocumentation}
+                  </Link>
+                ) : null}
+              </Stack>
               <Typography color="text.secondary" variant="body2">
                 {LEARN_MESSAGES.whatNext}
               </Typography>
@@ -149,9 +174,9 @@ export function TechnologyDetailPage() {
             <CardContent>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between' }}>
                 <Stack spacing={1}>
-                  <Typography variant="h6">Admin actions</Typography>
+                  <Typography variant="h6">{LEARN_MESSAGES.curationAdminTitle}</Typography>
                   <Typography color="text.secondary" variant="body2">
-                    Publish, archive, or edit this technology and its project links.
+                    {LEARN_MESSAGES.curationAdminDescription}
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={1}>
@@ -160,8 +185,8 @@ export function TechnologyDetailPage() {
                     onSuccess={handleLifecycleSuccess}
                     technology={technology}
                   />
-                  <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
-                    Edit
+                  <Button onClick={() => setCurationOpen(true)} startIcon={<TuneOutlinedIcon />} variant="outlined">
+                    {LEARN_MESSAGES.curationAction}
                   </Button>
                 </Stack>
               </Stack>
@@ -171,16 +196,14 @@ export function TechnologyDetailPage() {
       </Stack>
 
       {isAdmin ? (
-        <EditTechnologyDialog
-          onClose={() => setEditOpen(false)}
+        <TechnologyCurationPanel
+          onClose={() => setCurationOpen(false)}
           onSuccess={() => {
-            setEditOpen(false)
-            setNotification({ message: LEARN_MESSAGES.updateSuccess, severity: 'success' })
-            if (technologyId) {
-              void learnApi.getTechnology(technologyId).then(setTechnology).catch(() => undefined)
-            }
+            setCurationOpen(false)
+            setNotification({ message: LEARN_MESSAGES.curationSuccess, severity: 'success' })
+            reloadTechnology()
           }}
-          open={editOpen}
+          open={curationOpen}
           technology={technology}
         />
       ) : null}

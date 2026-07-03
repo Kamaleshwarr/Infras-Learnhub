@@ -1,11 +1,15 @@
 package com.company.learninghub.learn.domain;
 
 public enum TechnologyCategory {
+    BACKEND,
+    FRONTEND,
     CLOUD,
-    LANGUAGES,
     DEVOPS,
-    DATA,
+    DATABASE,
+    AI_AND_GENAI,
+    TESTING,
     SECURITY,
-    PLATFORM,
-    OTHER
+    MOBILE,
+    ARCHITECTURE,
+    DATA_ENGINEERING
 }
