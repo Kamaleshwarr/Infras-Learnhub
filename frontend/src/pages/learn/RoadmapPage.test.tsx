@@ -132,7 +132,7 @@ describe('RoadmapPage', () => {
 
     renderRoadmap()
 
-    expect(await screen.findByRole('heading', { name: /Java — Learning Roadmap/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Java Learning Roadmap/i })).toBeInTheDocument()
     expect(screen.getByText('Structured Java learning path.')).toBeInTheDocument()
     expect(screen.getAllByText('Introduction').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Core Java').length).toBeGreaterThan(0)
@@ -149,10 +149,13 @@ describe('RoadmapPage', () => {
 
     renderRoadmap()
 
-    expect(await screen.findByText('Roadmap progress')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Roadmap progress')).toBeInTheDocument()
+    expect(screen.getByText('0% Complete')).toBeInTheDocument()
+    expect(screen.getByText('0 of 2 stages completed')).toBeInTheDocument()
+    expect(screen.getByText('Current Stage')).toBeInTheDocument()
+    expect(screen.getByText('Next Stage')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Complete Stage' })).toBeInTheDocument()
-    expect(screen.getByText('Start here: Introduction')).toBeInTheDocument()
-    expect(screen.getByText('Next recommended stage: Core Java')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue Learning' })).toBeInTheDocument()
   })
 
   it('completes the current stage and refreshes progress', async () => {

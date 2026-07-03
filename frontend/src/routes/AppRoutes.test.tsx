@@ -157,6 +157,6 @@ describe('AppRoutes certificate workflow preparation', () => {
   it('renders roadmap route for employees', async () => {
     renderRoute('/learn/technologies/11111111-1111-1111-1111-111111111111/roadmap', employeeUser)
 
-    expect(await screen.findByRole('heading', { name: /Java — Learning Roadmap/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Java Learning Roadmap/i })).toBeInTheDocument()
   })
 })

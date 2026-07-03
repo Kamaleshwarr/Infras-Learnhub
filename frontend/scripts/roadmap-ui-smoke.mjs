@@ -42,7 +42,7 @@ async function smoke() {
 
   await page.goto(`${appUrl}/learn/technologies/${technologyId}/roadmap`, { waitUntil: 'networkidle' })
   await page.getByRole('heading', { name: /Learning Roadmap/i }).waitFor()
-  await page.getByText('Roadmap progress').waitFor()
+  await page.getByLabel('Roadmap progress').waitFor()
   await page.getByText(/\d+ of \d+ stages completed/).waitFor()
 
   const completeButton = page.getByRole('button', { name: 'Complete Stage' })
