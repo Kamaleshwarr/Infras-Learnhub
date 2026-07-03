@@ -227,6 +227,12 @@ public class CatalogImportService implements ApplicationRunner {
         );
 
         List<LearnRoadmapStage> stages = buildStages(record);
+
+        if (roadmap.getId() != null) {
+            roadmap.getStages().clear();
+            roadmapRepository.saveAndFlush(roadmap);
+        }
+
         roadmap.replaceStages(stages);
         roadmapRepository.save(roadmap);
     }

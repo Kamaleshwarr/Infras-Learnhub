@@ -18,12 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * Regression for F17 startup failure: {@code LazyInitializationException} on
- * {@code LearnRoadmap.stages} during roadmap catalog reimport.
- *
- * <p>Reimport loads an existing {@link LearnRoadmap} whose {@code stages} collection is lazy.
- * {@link com.company.learninghub.learn.domain.LearnRoadmap#replaceStages} must run inside an
- * active persistence context so Hibernate can initialize and replace the collection.
+ * Regression for F17 roadmap catalog reimport failures:
+ * <ul>
+ *   <li>{@code LazyInitializationException} on lazy {@code LearnRoadmap.stages}</li>
+ *   <li>{@code uk_learn_roadmap_stages_roadmap_slug} when Hibernate inserts new stages before
+ *       deleting replaced orphans</li>
+ * </ul>
  */
 @SpringBootTest
 @Testcontainers(disabledWithoutDocker = true)
@@ -61,9 +61,11 @@ class CatalogRoadmapReimportIntegrationTest {
     }
 
     @Test
-    void reimportExistingRoadmapsReplacesStagesWithoutLazyInitializationFailure() {
-        LearnRoadmap javaRoadmap = roadmapRepository.findByTechnologySlug("java").orElseThrow();
-        assertThat(stageRepository.findByRoadmapIdOrderByStageOrder(javaRoadmap.getId())).isNotEmpty();
+    void reimportExistingRoadmapsReplacesStagesWithoutConstraintViolation() {
+        LearnRoadmap awsRoadmap = roadmapRepository.findByTechnologySlug("aws").orElseThrow();
+        assertThat(stageRepository.findByRoadmapIdOrderByStageOrder(awsRoadmap.getId()))
+                .extracting("slug")
+                .contains("cloud-fundamentals");
 
         catalogImportRepository.findByCatalogVersionOrderByImportedAtDesc("1.1.1").stream()
                 .filter(record -> "roadmaps".equals(record.getPackageType()))
@@ -71,7 +73,13 @@ class CatalogRoadmapReimportIntegrationTest {
 
         assertThatCode(() -> catalogImportService.importCatalog()).doesNotThrowAnyException();
 
-        LearnRoadmap reimported = roadmapRepository.findByTechnologySlug("java").orElseThrow();
-        assertThat(stageRepository.findByRoadmapIdOrderByStageOrder(reimported.getId())).hasSize(7);
+        LearnRoadmap reimportedAws = roadmapRepository.findByTechnologySlug("aws").orElseThrow();
+        assertThat(stageRepository.findByRoadmapIdOrderByStageOrder(reimportedAws.getId()))
+                .hasSize(6)
+                .extracting("slug")
+                .contains("cloud-fundamentals");
+
+        LearnRoadmap reimportedJava = roadmapRepository.findByTechnologySlug("java").orElseThrow();
+        assertThat(stageRepository.findByRoadmapIdOrderByStageOrder(reimportedJava.getId())).hasSize(7);
     }
 }
