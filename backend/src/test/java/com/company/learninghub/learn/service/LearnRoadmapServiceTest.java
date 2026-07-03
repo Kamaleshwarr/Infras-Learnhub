@@ -52,6 +52,9 @@ class LearnRoadmapServiceTest {
     @Mock
     private LearnRoadmapStageResourceRepository resourceRepository;
 
+    @Mock
+    private LearnResourceOverrideService overrideService;
+
     private LearnRoadmapService roadmapService;
 
     @BeforeEach
@@ -61,7 +64,8 @@ class LearnRoadmapServiceTest {
                 roadmapRepository,
                 stageRepository,
                 resourceRepository,
-                new LearnRoadmapMapper()
+                new LearnRoadmapMapper(new ResourceOverrideResolver()),
+                overrideService
         );
     }
 
@@ -76,6 +80,7 @@ class LearnRoadmapServiceTest {
         when(roadmapRepository.findByTechnologySlug("java")).thenReturn(Optional.of(roadmap));
         when(stageRepository.findByRoadmapIdOrderByStageOrder(roadmap.getId())).thenReturn(List.of(stage));
         when(resourceRepository.findByStageIdIn(List.of(stage.getId()))).thenReturn(List.of(resource));
+        when(overrideService.listEnabledOverrides("java")).thenReturn(List.of());
 
         RoadmapResponse response = roadmapService.getRoadmapBySlug("java", employeePrincipal());
 
@@ -107,6 +112,7 @@ class LearnRoadmapServiceTest {
         when(roadmapRepository.findByTechnologySlug("java")).thenReturn(Optional.of(roadmap));
         when(stageRepository.findByRoadmapIdOrderByStageOrder(roadmap.getId())).thenReturn(List.of(stage));
         when(resourceRepository.findByStageIdIn(List.of(stage.getId()))).thenReturn(List.of());
+        when(overrideService.listEnabledOverrides("java")).thenReturn(List.of());
 
         RoadmapResponse response = roadmapService.getRoadmapBySlug("java", adminPrincipal());
 

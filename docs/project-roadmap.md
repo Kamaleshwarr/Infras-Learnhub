@@ -43,6 +43,7 @@ v0.8.0 product design: `docs/v0.8.0/`
 | F16-R | Catalog Foundation Refactor | ✓ **Complete** |
 | F17 | Roadmap Viewer & Catalog Roadmaps | ✓ **Complete** |
 | F18 | Progress & Learning Journey | ✓ **Complete** |
+| Learn v1.1 | Resource Override Management | ✓ **Complete** |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |
 | F21 | Optional Initiative Association | Not started |

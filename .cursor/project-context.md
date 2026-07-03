@@ -199,6 +199,12 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 - Roadmap page with hero, journey timeline, stage cards
 - Flyway `V14__learn_roadmap_catalog.sql`
 
+### v0.8.0 Learn v1.1 — Resource Override Management (complete)
+
+- Organization-owned optional overrides for catalog stage resources (`V16__learn_resource_overrides.sql`)
+- Admin manage-resources dialog on roadmap stage cards; employee UI unchanged
+- Effective resource resolution server-side before roadmap API response
+
 ### v0.8.0 F18 — Learning Journey & Progress (complete)
 
 - Employee-owned enrollments and sequential stage completion
@@ -210,7 +216,7 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 
 - Authentication
 - Learning Initiatives
-- **Learn — Technologies, roadmaps, and employee progress (F16–F18)**
+- **Learn — Technologies, roadmaps, employee progress, and resource overrides (F16–F18 + v1.1)**
 - Certificate Submissions
 - Leaderboards
 - Study Materials Repository

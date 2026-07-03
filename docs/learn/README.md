@@ -1,6 +1,6 @@
 # Learn Module Documentation
 
-**Version:** 1.0 (F16–F18 complete)  
+**Version:** 1.1 (F16–F18 + resource overrides)  
 **Status:** Shipped — catalog-first learning navigation with employee-owned progress
 
 The Learn module is a **Learning Navigation Platform**. The platform owns guidance (catalog, roadmaps, progress); external providers own content (videos, docs, labs).
@@ -33,6 +33,7 @@ The Learn module is a **Learning Navigation Platform**. The platform owns guidan
 | F16-R | ✓ Complete | Catalog foundation, import pipeline, admin curation |
 | F17 | ✓ Complete | Roadmap viewer (read-only catalog roadmaps) |
 | F18 | ✓ Complete | Enrollments, sequential stage progress, Continue Learning |
+| Learn v1.1 | ✓ Complete | Organization resource overrides (URL, disable, restore, org-only) |
 | F19+ | Not started | Career paths, certifications, initiatives overlay |
 
 ## Key principles
@@ -41,7 +42,8 @@ The Learn module is a **Learning Navigation Platform**. The platform owns guidan
 2. **Progress overlay** — Employee progress references catalog stage IDs; catalog rows are not mutated.
 3. **Employee-owned journey** — Each user has independent enrollments; admins cannot edit progress.
 4. **Sequential progression** — Stages complete in order only.
-5. **Curation, not authoring** — Admins publish, hide, feature, and link projects; they do not write learning content.
+5. **Curation, not authoring** — Admins publish, hide, feature, link projects, and override resource URLs; they do not write roadmap structure or edit catalog metadata.
+6. **Effective resources** — Employees receive merged catalog + override resources transparently.
 
 ## Implementation reports
 
@@ -51,3 +53,4 @@ The Learn module is a **Learning Navigation Platform**. The platform owns guidan
 | F16-R | `docs/releases/release-v0.8.0-f16-r-implementation-report.md` |
 | F17 | `docs/releases/release-v0.8.0-f17-implementation-report.md` |
 | F18 | `docs/releases/release-v0.8.0-f18-implementation-report.md` |
+| Learn v1.1 | `docs/releases/release-v0.8.0-learn-v11-resource-overrides-report.md` |
