@@ -134,6 +134,19 @@
           "source": "react.dev",
           "updatedAt": "2026-07-03T00:00:00Z"
         }
+      ],
+      "practiceResources": [
+        {
+          "slug": "react-tic-tac-toe-tutorial",
+          "title": "React Tutorial — Tic-Tac-Toe",
+          "url": "https://react.dev/learn/tutorial-tic-tac-toe",
+          "type": "INTERACTIVE_TUTORIAL",
+          "provider": "React docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "react.dev",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
       ]
     },
     {
@@ -164,6 +177,19 @@
           "version": "1.0.0",
           "source": "developer.mozilla.org",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "react-router-examples",
+          "title": "React Router Official Examples",
+          "url": "https://github.com/remix-run/react-router/tree/main/examples",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "reactrouter.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ]
     },
@@ -239,6 +265,19 @@
           "version": "1.0.0",
           "source": "react.dev",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "react-testing-library",
+          "title": "React Testing Library",
+          "url": "https://github.com/testing-library/react-testing-library",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ],
       "notes": "Profile with React DevTools before applying premature optimizations."

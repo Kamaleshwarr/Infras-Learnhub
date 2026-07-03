@@ -134,6 +134,19 @@
           "source": "spring.io",
           "updatedAt": "2026-07-03T00:00:00Z"
         }
+      ],
+      "practiceResources": [
+        {
+          "slug": "spring-guides-data-jpa",
+          "title": "Spring Guide — Accessing Data with JPA",
+          "url": "https://github.com/spring-guides/gs-accessing-data-jpa",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
       ]
     },
     {
@@ -208,6 +221,19 @@
           "version": "1.0.0",
           "source": "spring.io",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "spring-guides-testing-web",
+          "title": "Spring Guide — Testing the Web Layer",
+          "url": "https://github.com/spring-guides/gs-testing-web",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "spring.io",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ]
     },

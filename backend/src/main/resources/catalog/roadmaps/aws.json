@@ -46,6 +46,19 @@
           "source": "aws.amazon.com",
           "updatedAt": "2026-07-03T00:00:00Z"
         }
+      ],
+      "practiceResources": [
+        {
+          "slug": "aws-getting-started-hands-on",
+          "title": "AWS Getting Started Hands-On Tutorials",
+          "url": "https://aws.amazon.com/getting-started/hands-on/",
+          "type": "PRACTICE_LAB",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
       ]
     },
     {
@@ -121,6 +134,19 @@
           "source": "aws.amazon.com",
           "updatedAt": "2026-07-03T00:00:00Z"
         }
+      ],
+      "practiceResources": [
+        {
+          "slug": "aws-s3-hands-on-backup",
+          "title": "Hands-On — Backup Files to Amazon S3",
+          "url": "https://aws.amazon.com/getting-started/hands-on/backup-to-s3-cli/",
+          "type": "PRACTICE_LAB",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
       ]
     },
     {
@@ -195,6 +221,19 @@
           "version": "1.0.0",
           "source": "aws.amazon.com",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "aws-iam-policy-generator",
+          "title": "AWS IAM Policy Generator Samples",
+          "url": "https://github.com/aws-samples/aws-iam-policy-generator",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ]
     },

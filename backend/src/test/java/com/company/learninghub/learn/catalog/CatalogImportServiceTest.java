@@ -79,12 +79,12 @@ class CatalogImportServiceTest {
     @Test
     void importCatalogSkipsWhenVersionAlreadyImported() {
         when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
-                "1.1.0",
+                "1.1.1",
                 "technologies",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(true);
         when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
-                "1.1.0",
+                "1.1.1",
                 "roadmaps",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(true);
@@ -99,12 +99,12 @@ class CatalogImportServiceTest {
     void importCatalogPreservesOrganizationOverridesOnReimport() {
         stubImportOwner();
         when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
-                "1.1.0",
+                "1.1.1",
                 "technologies",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(false);
         when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
-                "1.1.0",
+                "1.1.1",
                 "roadmaps",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(true);

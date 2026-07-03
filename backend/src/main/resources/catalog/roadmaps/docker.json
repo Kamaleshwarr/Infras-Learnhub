@@ -46,6 +46,19 @@
           "source": "docker.com",
           "updatedAt": "2026-07-03T00:00:00Z"
         }
+      ],
+      "practiceResources": [
+        {
+          "slug": "docker-get-started-workshop",
+          "title": "Docker Get Started Workshop",
+          "url": "https://docs.docker.com/get-started/workshop/",
+          "type": "PRACTICE_LAB",
+          "provider": "Docker docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
       ]
     },
     {
@@ -164,6 +177,19 @@
           "version": "1.0.0",
           "source": "docker.com",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "docker-labs-networking",
+          "title": "Docker Labs — Networking",
+          "url": "https://github.com/docker/labs/tree/master/networking",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "docker.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ]
     },

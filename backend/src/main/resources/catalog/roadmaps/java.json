@@ -124,6 +124,19 @@
           "source": "oracle.com",
           "updatedAt": "2026-07-03T00:00:00Z"
         }
+      ],
+      "practiceResources": [
+        {
+          "slug": "exercism-java-collections",
+          "title": "Exercism Java Track — Collections Exercises",
+          "url": "https://exercism.org/tracks/java",
+          "type": "PRACTICE_LAB",
+          "provider": "Exercism",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "exercism.org",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
       ]
     },
     {
@@ -187,6 +200,19 @@
           "version": "1.0.0",
           "source": "oracle.com",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "hackerrank-java-streams",
+          "title": "HackerRank Java Domain",
+          "url": "https://www.hackerrank.com/domains/java",
+          "type": "PRACTICE_LAB",
+          "provider": "HackerRank",
+          "freePaid": "FREEMIUM",
+          "version": "1.0.0",
+          "source": "hackerrank.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ]
     },
@@ -252,6 +278,19 @@
           "version": "1.0.0",
           "source": "oracle.com",
           "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "openjdk-jmc",
+          "title": "Java Mission Control (OpenJDK)",
+          "url": "https://github.com/openjdk/jmc",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
         }
       ]
     }

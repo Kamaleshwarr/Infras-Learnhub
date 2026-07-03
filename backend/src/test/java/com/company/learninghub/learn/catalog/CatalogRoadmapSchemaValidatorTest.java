@@ -45,7 +45,7 @@ class CatalogRoadmapSchemaValidatorTest {
                 "1 week",
                 null,
                 List.of(resource(slug + "-docs")),
-                List.of()
+                List.of(resource(slug + "-practice"))
         );
     }
 
@@ -53,7 +53,7 @@ class CatalogRoadmapSchemaValidatorTest {
         return new CatalogRoadmapResourceRecord(
                 slug,
                 "Docs",
-                "https://example.com/docs",
+                "https://example.com/" + slug,
                 RoadmapResourceType.OFFICIAL_DOCUMENTATION,
                 "Provider",
                 RoadmapResourceCost.FREE,
