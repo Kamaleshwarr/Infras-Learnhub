@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-07-02 (v0.8.0 — product design in review)
+Last updated: 2026-07-03 (v0.8.0 — Learn module v1 complete)
 
 ## Release Overview
 
@@ -13,40 +13,66 @@ Last updated: 2026-07-02 (v0.8.0 — product design in review)
 | v0.6 | In-App Notification Infrastructure | Shipped (PR #28) |
 | v0.6.1 | Certificate Workflow UI & Notification E2E Validation | Shipped (PR #29) |
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
-| **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
-| **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
-| **v0.8.0** | **Learn — Learning Guidance Platform** | **In progress — F18 shipped** |
+| v0.7.0 | Initiatives Experience (List, Detail, Submit Integration) | Shipped (PR #36) |
+| v0.7.1 | Initiative Management (Create, Edit, Lifecycle, Delete) | Shipped (PR #43) |
+| **v0.8.0** | **Learn — Learning Navigation Platform (v1)** | **F16–F18 complete** |
 
-Release notes: `docs/releases/release-v0.7.1.md`  
-v0.8.0 product design: `docs/v0.8.0/`  
-Prior: `docs/releases/release-v0.7.0.md`  
-Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
+Release notes: `docs/releases/`  
+Learn documentation: `docs/learn/`  
+v0.8.0 product design: `docs/v0.8.0/`
 
 ---
 
-## In design — v0.8.0 Learn (Learning Navigation Platform)
+## v0.8.0 Learn — Learning Navigation Platform (v1 complete)
 
-**Status:** F16-R **shipped** · Architecture revision v2 + catalog spec **APPROVED — FROZEN**
+**Status:** ✓ **F16 Complete** · ✓ **F16-R Complete** · ✓ **F17 Complete** · ✓ **F18 Complete**
 
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
 
-**Objective:** Learn module as a **Learning Navigation Platform** — catalog-first, curation-only admin model.
+**Objective:** Catalog-first learning navigation — technology discovery, read-only roadmaps, employee-owned progress.
 
 **Product design:** `docs/v0.8.0/00-product-design.md` (vision frozen)  
 **Architecture revision:** `docs/v0.8.0/08-navigation-platform-revision.md`  
 **Catalog specification:** `docs/v0.8.0/10-catalog-specification.md`  
-**Implementation plan v2:** `docs/v0.8.0/09-implementation-plan-v2.md`
+**Implementation plan v2:** `docs/v0.8.0/09-implementation-plan-v2.md`  
+**Learn module docs:** `docs/learn/README.md`
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| F16 | Technology Discovery & Search (+ Projects cross-nav) | **Shipped** |
-| **F16-R** | Catalog Foundation Refactor | **Shipped** |
-| F17 | Roadmap Viewer & Catalog Roadmaps | **Shipped** |
-| F18 | Progress & Learning Journey | **Shipped** |
+| F16 | Technology Discovery & Search (+ Projects cross-nav) | ✓ **Complete** |
+| F16-R | Catalog Foundation Refactor | ✓ **Complete** |
+| F17 | Roadmap Viewer & Catalog Roadmaps | ✓ **Complete** |
+| F18 | Progress & Learning Journey | ✓ **Complete** |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |
 | F21 | Optional Initiative Association | Not started |
 | F22 | Dashboard, Unified Search & Release | Not started |
+
+### F16 delivered
+- Learn shell: `/learn`, technology list/detail, admin manage
+- Technology search, filters, featured section
+- Technology ↔ Project cross-navigation
+- Flyway V12
+
+### F16-R delivered
+- Catalog manifest import (`catalog/manifest.json`, 30 technologies)
+- `CatalogImportService` — idempotent startup import
+- Admin curation (publish/hide/archive, org notes, project links)
+- Flyway V13 — catalog foundation
+
+### F17 delivered
+- Catalog roadmaps (5 seed roadmaps)
+- Roadmap viewer with stages and external resources
+- Read-only roadmap model
+- Flyway V14
+
+### F18 delivered
+- Employee enrollments and sequential stage progress
+- Continue Learning on Learn home
+- Roadmap progress overlay
+- Flyway V15
+
+**F19 has NOT been started.**
 
 ---
 
@@ -275,6 +301,7 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 
 - Authentication
 - Learning Initiatives
+- **Learn — Technologies, catalog, roadmaps, employee progress (v0.8.0 F16–F18)**
 - Certificate Submissions
 - Leaderboards
 - Study Materials Repository
@@ -292,8 +319,9 @@ Backlog detail: `docs/backlog/user-management-ui.md`
 4. Password Management UI
 5. User Management UI — Phases 1–4 (list, CRUD, activate/deactivate/reset, bulk import)
 6. Profile Management UI — Phases 1–4 (view, edit, change-password entry, avatar)
-7. **Notifications UI** — bell, dropdown, inbox page, badge sync (consumer only; producers not UI-triggerable)
+7. **Notifications UI** — bell, dropdown, inbox page, badge sync
 8. **Certificate Workflow UI** — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. **Certificate Review enhancements** — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
-10. **Initiatives Experience UI** — List, detail, submit integration, F2.1 polish (v0.7.0 — PR #36 pending merge)
-11. **Initiative Management UI** — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — **complete**)
+10. **Initiatives Experience UI** — List, detail, submit integration (v0.7.0)
+11. **Initiative Management UI** — Create, Edit, Lifecycle, Delete (v0.7.1)
+12. **Learn module v1** — Technology discovery, roadmap viewer, learning journey (v0.8.0 F16–F18)

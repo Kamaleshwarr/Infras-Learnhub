@@ -1,6 +1,6 @@
 # Learning Hub Architecture
 
-**Current release:** v0.7.1 (Initiative Management)
+**Current release:** v0.8.0 (Learn module v1 — F16–F18 complete)
 
 ## Backend Architecture
 
@@ -580,6 +580,10 @@ V8__profile_avatar.sql
 V9__create_notifications.sql
 V10__relax_learning_initiative_date_constraint.sql
 V11__tighten_learning_initiative_text_limits.sql
+V12__learn_technologies.sql
+V13__learn_catalog_foundation.sql
+V14__learn_roadmap_catalog.sql
+V15__learn_progress.sql
 ```
 
 - Add migrations only for schema changes.
@@ -612,3 +616,164 @@ Required test types:
   - Users
   - Profile
   - Notifications
+  - **Learn** (technologies, roadmaps, progress, catalog manage)
+
+---
+
+## Learn Module Architecture (v0.8.0 — F16–F18)
+
+> **Engineering Learning Hub owns guidance, not knowledge.**
+
+The Learn module is a **Learning Navigation Platform**: catalog-first technology discovery, read-only roadmaps, and employee-owned progress overlay.
+
+Full documentation: `docs/learn/README.md`
+
+### Technology Catalog
+
+- **Source:** `backend/src/main/resources/catalog/technologies/wave-1.json` (30 technologies)
+- **Import:** `CatalogImportService` on startup — upsert by `slug`
+- **Storage:** `learn_technologies` with catalog metadata columns (V13)
+- **Admin model:** Curation only — publish, hide, archive, feature override, org notes, project links
+- **Employee view:** Published + `catalog_present` technologies with search and filters
+
+### Roadmap Framework
+
+- **Source:** `backend/src/main/resources/catalog/roadmaps/*.json` (5 seed roadmaps)
+- **Storage:** `learn_roadmaps` → `learn_roadmap_stages` → `learn_roadmap_stage_resources`
+- **Read-only at runtime** — no admin API to edit roadmap content
+- **Service:** `LearnRoadmapService` loads ordered stages with learning/practice resources
+- **Relationship:** One roadmap per technology via `technology_slug` FK
+
+### Progress Tracking
+
+- **Tables:** `learn_learning_enrollments`, `learn_stage_progress` (V15)
+- **Service:** `LearningProgressService`
+- **Overlay model:** Progress references catalog `stage_id` UUIDs — no roadmap duplication
+- **Status lifecycle:** NOT_STARTED → IN_PROGRESS → COMPLETED; LEFT on abandon
+- **BR-PR10:** No admin API to edit employee progress
+
+### Catalog Import Pipeline
+
+```mermaid
+flowchart LR
+    A[manifest.json] --> B[CatalogImportService]
+    B --> C[Schema Validation]
+    C --> D[Upsert Technologies]
+    C --> E[Upsert Roadmaps]
+    D --> F[learn_catalog_imports]
+    E --> F
+```
+
+- **Trigger:** `ApplicationRunner` on startup
+- **Idempotent:** Skip if `(catalogVersion, packageType)` already imported
+- **Config:** `app.catalog.import.enabled`, `app.catalog.import.fail-fast`
+- **Validator:** `CatalogSchemaValidator` (JSON Schema)
+
+### Search Architecture
+
+- **Backend:** `LearnTechnologyService` — whole-term case-insensitive search across name, slug, tags, description
+- **Ranking:** In-memory relevance scoring after DB filter
+- **Filters:** category, difficulty, status (admin)
+- **Frontend:** `TechnologySearchBar`, `TechnologyFilterBar`, URL query sync via `learnListParams.ts`
+
+### Enrollment
+
+- **API:** `POST /api/v1/learn/enrollments`
+- **Rules:** One active enrollment per user per technology; auto-start at stage 1
+- **Storage:** `learn_learning_enrollments` with partial unique index
+- **Owner-scoped:** `@AuthenticationPrincipal` on all progress operations
+
+### Stage Progress
+
+- **API:** `POST /api/v1/learn/enrollments/{id}/complete-stage`
+- **Sequential validation:** Only next incomplete stage may be completed
+- **Storage:** `learn_stage_progress` — one row per completed stage per enrollment
+- **Computed:** `progressPercent`, `currentStageId`, `estimatedRemainingEffort` in service layer
+
+### Roadmap Relationships
+
+```text
+learn_technologies (slug)
+    └── learn_roadmaps (technology_slug FK)
+            └── learn_roadmap_stages (roadmap_id FK)
+                    └── learn_roadmap_stage_resources (stage_id FK)
+
+users
+    └── learn_learning_enrollments (user_id, technology_slug)
+            └── learn_stage_progress (enrollment_id, stage_id FK → learn_roadmap_stages)
+
+learn_technologies ←→ projects (learn_technology_project_links)
+```
+
+### Database Overview (Learn tables)
+
+| Table | Migration | Purpose |
+|-------|-----------|---------|
+| `learn_technologies` | V12, V13 | Technology catalog |
+| `learn_technology_project_links` | V12 | Tech ↔ project cross-nav |
+| `learn_catalog_imports` | V13 | Import audit |
+| `learn_roadmaps` | V14 | Roadmap header |
+| `learn_roadmap_stages` | V14 | Ordered stages |
+| `learn_roadmap_stage_resources` | V14 | External resources |
+| `learn_learning_enrollments` | V15 | User enrollments |
+| `learn_stage_progress` | V15 | Completed stages |
+
+ER diagram: `docs/learn/database-overview.md`
+
+### API Flow (Learn)
+
+```text
+Employee browse:
+  GET /learn/technologies → GET /learn/technologies/{id}
+  → POST /learn/enrollments → GET /learn/progress/technologies/{id}
+  → POST /learn/enrollments/{id}/complete-stage
+
+Journey resume:
+  GET /learn/journey → continueLearning → roadmap page
+
+Admin curation:
+  GET /learn/manage/technologies → PATCH .../curation
+  → POST .../publish|hide|archive
+
+Catalog status:
+  GET /learn/manage/catalog/status
+```
+
+Full API reference: `docs/learn/api-reference.md`
+
+### Frontend Flow (Learn)
+
+```text
+/learn (LearnHomePage)
+  ├── Featured technologies
+  ├── Continue Learning (from journey API)
+  └── Search → /learn/technologies
+
+/learn/technologies (TechnologyListPage)
+  └── /learn/technologies/:id (TechnologyDetailPage)
+        ├── Start Learning / Continue Learning
+        ├── Related projects
+        └── /learn/technologies/:id/roadmap (RoadmapPage)
+              ├── RoadmapHero (progress-first)
+              ├── RoadmapJourneyTimeline
+              └── RoadmapStageCard[] (Complete Stage)
+
+/learn/manage (LearnManagePage) [ADMIN]
+  └── Technology curation + catalog status
+```
+
+**Key files:**
+- `frontend/src/api/learnApi.ts`
+- `frontend/src/pages/learn/*`
+- `frontend/src/components/learn/*`
+- `frontend/src/types/learn.ts`, `roadmap.ts`, `progress.ts`
+
+### Learn Controllers
+
+| Controller | Base path |
+|------------|-----------|
+| `LearnTechnologyController` | `/learn/technologies` |
+| `LearnRoadmapController` | `/learn/technologies/{slug\|id}/roadmap` |
+| `LearningProgressController` | `/learn/enrollments`, `/learn/journey`, `/learn/progress` |
+| `LearnTechnologyManageController` | `/learn/manage/technologies` |
+| `LearnCatalogManageController` | `/learn/manage/catalog` |
