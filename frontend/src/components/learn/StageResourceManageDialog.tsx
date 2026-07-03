@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined'
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
+import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined'
+import RestoreOutlinedIcon from '@mui/icons-material/RestoreOutlined'
+import StarBorderOutlinedIcon from '@mui/icons-material/StarBorderOutlined'
+import StarOutlinedIcon from '@mui/icons-material/StarOutlined'
 import {
   Alert,
   Box,
@@ -11,19 +17,23 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  IconButton,
   MenuItem,
   Stack,
   Switch,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
+  alpha,
 } from '@mui/material'
 import { learnApi } from '../../api/learnApi'
-import type { ManagedResource, ResourceOverrideStatus } from '../../types/resourceOverride'
+import type { ManagedResource } from '../../types/resourceOverride'
 import type { RoadmapResourceCost, RoadmapResourceType } from '../../types/roadmap'
 import { resolveApiError } from '../../utils/apiErrors'
 import { LEARN_MESSAGES } from './learnMessages'
@@ -57,36 +67,267 @@ const RESOURCE_COST_OPTIONS: Array<{ value: RoadmapResourceCost; label: string }
   { value: 'FREEMIUM', label: 'Freemium' },
 ]
 
-function statusLabel(status: ResourceOverrideStatus) {
-  switch (status) {
-    case 'URL_OVERRIDE':
-      return 'URL override'
-    case 'DISABLED':
-      return 'Disabled'
-    case 'PREFERRED':
-      return 'Preferred'
-    case 'ORGANIZATION':
-      return 'Organization'
-    case 'INACTIVE':
-      return 'Inactive'
-    default:
-      return 'Catalog default'
-  }
+const ROW_MIN_HEIGHT = 72
+
+type StatusChip = {
+  label: string
+  color: 'default' | 'primary' | 'warning' | 'error' | 'success' | 'info'
 }
 
-function statusColor(status: ResourceOverrideStatus): 'default' | 'primary' | 'warning' | 'error' | 'success' | 'info' {
-  switch (status) {
-    case 'URL_OVERRIDE':
-      return 'info'
-    case 'DISABLED':
-      return 'error'
-    case 'PREFERRED':
-      return 'success'
-    case 'ORGANIZATION':
-      return 'primary'
-    default:
-      return 'default'
+function getStatusChips(resource: ManagedResource): StatusChip[] {
+  const chips: StatusChip[] = []
+
+  if (resource.overrideStatus === 'ORGANIZATION' || (!resource.catalog && resource.effective)) {
+    chips.push({ label: LEARN_MESSAGES.roadmapStatusOrganization, color: 'primary' })
+    return chips
   }
+
+  if (resource.overrideStatus === 'DISABLED') {
+    chips.push({ label: LEARN_MESSAGES.roadmapStatusDisabled, color: 'error' })
+    return chips
+  }
+
+  if (resource.overrideStatus === 'URL_OVERRIDE') {
+    chips.push({ label: LEARN_MESSAGES.roadmapStatusUrlOverride, color: 'info' })
+  } else if (resource.overrideStatus === 'PREFERRED') {
+    chips.push({ label: LEARN_MESSAGES.roadmapStatusPreferred, color: 'success' })
+  } else if (resource.overrideStatus === 'INACTIVE') {
+    chips.push({ label: 'Inactive', color: 'default' })
+  } else {
+    chips.push({ label: LEARN_MESSAGES.roadmapStatusCatalogDefault, color: 'default' })
+  }
+
+  if (resource.override?.preferred && resource.overrideStatus !== 'PREFERRED') {
+    chips.push({ label: LEARN_MESSAGES.roadmapStatusPreferred, color: 'success' })
+  }
+
+  return chips
+}
+
+function urlsMatch(resource: ManagedResource) {
+  if (!resource.catalog || !resource.effective) {
+    return false
+  }
+  return resource.catalog.url === resource.effective.url
+}
+
+function isHiddenFromEmployees(resource: ManagedResource) {
+  return resource.overrideStatus === 'DISABLED' || (resource.catalog != null && resource.effective == null)
+}
+
+function ResourceCell({ resource }: { resource: ManagedResource }) {
+  const hidden = isHiddenFromEmployees(resource)
+  const organizationOnly = !resource.catalog && resource.effective
+
+  if (organizationOnly) {
+    return (
+      <Stack spacing={0.5}>
+        <Typography sx={{ fontWeight: 600 }} variant="body2">
+          {resource.effective!.title}
+        </Typography>
+        <Typography
+          color="text.secondary"
+          sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}
+          variant="caption"
+        >
+          {resource.effective!.url}
+        </Typography>
+      </Stack>
+    )
+  }
+
+  if (!resource.catalog) {
+    return (
+      <Typography color="text.secondary" variant="body2">
+        —
+      </Typography>
+    )
+  }
+
+  const showEmployeeUrl = resource.effective != null && !urlsMatch(resource)
+
+  return (
+    <Stack spacing={0.75}>
+      <Typography
+        color={hidden ? 'text.disabled' : 'text.primary'}
+        sx={{ fontWeight: 600, textDecoration: hidden ? 'line-through' : 'none' }}
+        variant="body2"
+      >
+        {resource.catalog.title}
+      </Typography>
+
+      <Box>
+        {showEmployeeUrl ? (
+          <Stack spacing={0.35}>
+            <Typography color="text.secondary" variant="caption">
+              {LEARN_MESSAGES.roadmapCatalogUrl}
+            </Typography>
+            <Typography
+              color={hidden ? 'text.disabled' : 'text.secondary'}
+              sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}
+              variant="caption"
+            >
+              {resource.catalog.url}
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="caption">
+              {LEARN_MESSAGES.roadmapEmployeeUrl}
+            </Typography>
+            <Typography
+              color="info.main"
+              sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}
+              variant="caption"
+            >
+              {resource.effective!.url}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography
+            color={hidden ? 'text.disabled' : 'text.secondary'}
+            sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}
+            variant="caption"
+          >
+            {resource.catalog.url}
+          </Typography>
+        )}
+      </Box>
+
+      {hidden ? (
+        <Chip
+          color="default"
+          label={LEARN_MESSAGES.roadmapOverrideHidden}
+          size="small"
+          sx={{ alignSelf: 'flex-start', height: 22 }}
+          variant="outlined"
+        />
+      ) : null}
+    </Stack>
+  )
+}
+
+function StatusCell({ resource }: { resource: ManagedResource }) {
+  const chips = getStatusChips(resource)
+
+  return (
+    <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+      {chips.map((chip) => (
+        <Chip
+          color={chip.color}
+          key={chip.label}
+          label={chip.label}
+          size="small"
+          sx={{ height: 24 }}
+          variant="outlined"
+        />
+      ))}
+    </Stack>
+  )
+}
+
+function ActionsCell({
+  resource,
+  submitting,
+  onReplaceUrl,
+  onDisable,
+  onRestore,
+  onTogglePreferred,
+  onRemoveOrganization,
+}: {
+  resource: ManagedResource
+  submitting: boolean
+  onReplaceUrl: (resource: ManagedResource) => void
+  onDisable: (resource: ManagedResource) => void
+  onRestore: (resource: ManagedResource) => void
+  onTogglePreferred: (resource: ManagedResource) => void
+  onRemoveOrganization: (resource: ManagedResource) => void
+}) {
+  const organizationOnly = !resource.catalog
+
+  if (organizationOnly) {
+    return (
+      <Box sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end', minHeight: 40 }}>
+        <Tooltip title={LEARN_MESSAGES.roadmapRemoveOrganizationResource}>
+          <span>
+            <IconButton
+              aria-label={LEARN_MESSAGES.roadmapRemoveOrganizationResource}
+              color="error"
+              disabled={submitting}
+              onClick={() => onRemoveOrganization(resource)}
+              size="small"
+            >
+              <DeleteOutlineOutlinedIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Box>
+    )
+  }
+
+  const hidden = isHiddenFromEmployees(resource)
+  const hasOverride = resource.override != null
+  const isPreferred = resource.override?.preferred ?? false
+
+  return (
+    <Box sx={{ alignItems: 'center', display: 'flex', gap: 0.5, justifyContent: 'flex-end', minHeight: 40 }}>
+      <Tooltip title={LEARN_MESSAGES.roadmapReplaceUrl}>
+        <span>
+          <IconButton
+            aria-label={LEARN_MESSAGES.roadmapReplaceUrl}
+            disabled={submitting || hidden}
+            onClick={() => onReplaceUrl(resource)}
+            size="small"
+          >
+            <LinkOutlinedIcon fontSize="small" />
+          </IconButton>
+        </span>
+      </Tooltip>
+
+      {!hidden ? (
+        <Tooltip title={LEARN_MESSAGES.roadmapDisableResource}>
+          <span>
+            <IconButton
+              aria-label={LEARN_MESSAGES.roadmapDisableResource}
+              disabled={submitting}
+              onClick={() => onDisable(resource)}
+              size="small"
+            >
+              <BlockOutlinedIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      ) : null}
+
+      {hasOverride ? (
+        <>
+          <Tooltip title={LEARN_MESSAGES.roadmapRestoreDefault}>
+            <span>
+              <IconButton
+                aria-label={LEARN_MESSAGES.roadmapRestoreDefault}
+                disabled={submitting}
+                onClick={() => onRestore(resource)}
+                size="small"
+              >
+                <RestoreOutlinedIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+
+          <Tooltip title={isPreferred ? LEARN_MESSAGES.roadmapUnmarkPreferred : LEARN_MESSAGES.roadmapMarkPreferred}>
+            <span>
+              <IconButton
+                aria-label={isPreferred ? LEARN_MESSAGES.roadmapUnmarkPreferred : LEARN_MESSAGES.roadmapMarkPreferred}
+                color={isPreferred ? 'warning' : 'default'}
+                disabled={submitting || hidden}
+                onClick={() => onTogglePreferred(resource)}
+                size="small"
+              >
+                {isPreferred ? <StarOutlinedIcon fontSize="small" /> : <StarBorderOutlinedIcon fontSize="small" />}
+              </IconButton>
+            </span>
+          </Tooltip>
+        </>
+      ) : null}
+    </Box>
+  )
 }
 
 export function StageResourceManageDialog({
@@ -317,26 +558,42 @@ export function StageResourceManageDialog({
 
   return (
     <Dialog fullWidth maxWidth="lg" onClose={onClose} open={open}>
-      <DialogTitle>
-        {LEARN_MESSAGES.roadmapManageResourcesTitle}: {stageTitle}
+      <DialogTitle sx={{ pb: 1 }}>
+        <Typography component="span" variant="h6">
+          {LEARN_MESSAGES.roadmapManageResourcesTitle}
+        </Typography>
+        <Typography color="text.secondary" sx={{ display: 'block', mt: 0.5 }} variant="body2">
+          {stageTitle}
+        </Typography>
       </DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ mt: 0.5 }}>
-          <Typography color="text.secondary" variant="body2">
-            {LEARN_MESSAGES.roadmapManageResourcesDescription}
-          </Typography>
+
+      <DialogContent dividers sx={{ pt: 2 }}>
+        <Stack spacing={2.5}>
+          {mode === 'list' ? (
+            <Typography color="text.secondary" variant="body2">
+              {LEARN_MESSAGES.roadmapManageResourcesDescription}
+            </Typography>
+          ) : null}
 
           {error ? <Alert severity="error">{error}</Alert> : null}
 
           {mode === 'replace-url' && selectedResource?.catalog ? (
             <Box component="form" id="replace-url-form" onSubmit={(event) => void handleReplaceUrl(event)}>
-              <Stack spacing={2}>
-                <Typography variant="subtitle2">{selectedResource.catalog.title}</Typography>
+              <Stack spacing={2.5}>
+                <Box>
+                  <Typography color="text.secondary" gutterBottom variant="overline">
+                    {LEARN_MESSAGES.roadmapReplaceUrl}
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
+                    {selectedResource.catalog.title}
+                  </Typography>
+                </Box>
                 <TextField
                   fullWidth
                   label={LEARN_MESSAGES.roadmapOverrideUrl}
                   onChange={(event) => setOverrideUrl(event.target.value)}
                   required
+                  size="small"
                   value={overrideUrl}
                 />
                 <TextField
@@ -345,6 +602,7 @@ export function StageResourceManageDialog({
                   multiline
                   onChange={(event) => setReason(event.target.value)}
                   rows={2}
+                  size="small"
                   value={reason}
                 />
                 <FormControlLabel
@@ -357,12 +615,16 @@ export function StageResourceManageDialog({
 
           {mode === 'add-org' ? (
             <Box component="form" id="add-org-form" onSubmit={(event) => void handleAddOrganizationResource(event)}>
-              <Stack spacing={2}>
+              <Stack spacing={2.5}>
+                <Typography color="text.secondary" variant="overline">
+                  {LEARN_MESSAGES.roadmapAddOrganizationResource}
+                </Typography>
                 <TextField
                   fullWidth
                   label={LEARN_MESSAGES.roadmapOrganizationResourceTitle}
                   onChange={(event) => setOrgTitle(event.target.value)}
                   required
+                  size="small"
                   value={orgTitle}
                 />
                 <TextField
@@ -370,6 +632,7 @@ export function StageResourceManageDialog({
                   label={LEARN_MESSAGES.roadmapOrganizationResourceSlug}
                   onChange={(event) => setOrgSlug(event.target.value)}
                   required
+                  size="small"
                   value={orgSlug}
                 />
                 <TextField
@@ -377,46 +640,53 @@ export function StageResourceManageDialog({
                   label={LEARN_MESSAGES.roadmapOverrideUrl}
                   onChange={(event) => setOverrideUrl(event.target.value)}
                   required
+                  size="small"
                   value={overrideUrl}
                 />
-                <TextField
-                  fullWidth
-                  label={LEARN_MESSAGES.roadmapOrganizationResourceType}
-                  onChange={(event) => setOrgType(event.target.value as RoadmapResourceType)}
-                  select
-                  value={orgType}
-                >
-                  {RESOURCE_TYPE_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                <Stack direction={{ sm: 'row' }} spacing={2}>
+                  <TextField
+                    fullWidth
+                    label={LEARN_MESSAGES.roadmapOrganizationResourceType}
+                    onChange={(event) => setOrgType(event.target.value as RoadmapResourceType)}
+                    select
+                    size="small"
+                    value={orgType}
+                  >
+                    {RESOURCE_TYPE_OPTIONS.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    fullWidth
+                    label={LEARN_MESSAGES.roadmapOrganizationResourceCost}
+                    onChange={(event) => setOrgCost(event.target.value as RoadmapResourceCost)}
+                    select
+                    size="small"
+                    value={orgCost}
+                  >
+                    {RESOURCE_COST_OPTIONS.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Stack>
                 <TextField
                   fullWidth
                   label={LEARN_MESSAGES.roadmapOrganizationResourceProvider}
                   onChange={(event) => setOrgProvider(event.target.value)}
+                  size="small"
                   value={orgProvider}
                 />
-                <TextField
-                  fullWidth
-                  label={LEARN_MESSAGES.roadmapOrganizationResourceCost}
-                  onChange={(event) => setOrgCost(event.target.value as RoadmapResourceCost)}
-                  select
-                  value={orgCost}
-                >
-                  {RESOURCE_COST_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
                 <TextField
                   fullWidth
                   label={LEARN_MESSAGES.roadmapOverrideReason}
                   multiline
                   onChange={(event) => setReason(event.target.value)}
                   rows={2}
+                  size="small"
                   value={reason}
                 />
                 <FormControlLabel
@@ -430,113 +700,78 @@ export function StageResourceManageDialog({
           {mode === 'list' ? (
             <>
               {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
                   <CircularProgress size={28} />
                 </Box>
               ) : (
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{LEARN_MESSAGES.roadmapCatalogResource}</TableCell>
-                      <TableCell>{LEARN_MESSAGES.roadmapEffectiveResource}</TableCell>
-                      <TableCell>{LEARN_MESSAGES.roadmapOverrideStatus}</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {resources.map((resource) => {
-                      const key = resource.catalog?.slug ?? resource.effective?.slug ?? resource.override?.id ?? 'resource'
-                      return (
-                        <TableRow key={key}>
-                          <TableCell>
-                            {resource.catalog ? (
-                              <Stack spacing={0.25}>
-                                <Typography variant="body2">{resource.catalog.title}</Typography>
-                                <Typography color="text.secondary" variant="caption">
-                                  {resource.catalog.url}
-                                </Typography>
-                              </Stack>
-                            ) : (
-                              <Typography color="text.secondary" variant="body2">
-                                —
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {resource.effective ? (
-                              <Stack spacing={0.25}>
-                                <Typography variant="body2">{resource.effective.title}</Typography>
-                                <Typography color="text.secondary" variant="caption">
-                                  {resource.effective.url}
-                                </Typography>
-                              </Stack>
-                            ) : (
-                              <Typography color="text.secondary" variant="body2">
-                                {LEARN_MESSAGES.roadmapOverrideHidden}
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              color={statusColor(resource.overrideStatus)}
-                              label={statusLabel(resource.overrideStatus)}
-                              size="small"
-                              variant="outlined"
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                              {resource.catalog ? (
-                                <>
-                                  <Button disabled={submitting} onClick={() => openReplaceUrl(resource)} size="small">
-                                    {LEARN_MESSAGES.roadmapReplaceUrl}
-                                  </Button>
-                                  <Button disabled={submitting} onClick={() => void handleDisable(resource)} size="small">
-                                    {LEARN_MESSAGES.roadmapDisableResource}
-                                  </Button>
-                                  {resource.override ? (
-                                    <>
-                                      <Button disabled={submitting} onClick={() => void handleRestore(resource)} size="small">
-                                        {LEARN_MESSAGES.roadmapRestoreDefault}
-                                      </Button>
-                                      <Button
-                                        disabled={submitting}
-                                        onClick={() => void handleTogglePreferred(resource)}
-                                        size="small"
-                                      >
-                                        {resource.override.preferred ? 'Unmark preferred' : 'Mark preferred'}
-                                      </Button>
-                                    </>
-                                  ) : null}
-                                </>
-                              ) : (
-                                <Button
-                                  color="error"
-                                  disabled={submitting}
-                                  onClick={() => void handleDeleteOrganizationResource(resource)}
-                                  size="small"
-                                >
-                                  Remove
-                                </Button>
-                              )}
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
+                <TableContainer
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    overflowX: 'auto',
+                  }}
+                >
+                  <Table size="small" sx={{ minWidth: 640 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600, width: '46%' }}>{LEARN_MESSAGES.roadmapResourceColumn}</TableCell>
+                        <TableCell sx={{ fontWeight: 600, width: '24%' }}>{LEARN_MESSAGES.roadmapStatusColumn}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, width: '30%' }}>
+                          {LEARN_MESSAGES.roadmapActionsColumn}
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {resources.map((resource) => {
+                        const key = resource.catalog?.slug ?? resource.effective?.slug ?? resource.override?.id ?? 'resource'
+                        const hidden = isHiddenFromEmployees(resource)
+
+                        return (
+                          <TableRow
+                            key={key}
+                            sx={(theme) => ({
+                              '&:last-child td': { borderBottom: 0 },
+                              bgcolor: hidden ? alpha(theme.palette.action.disabled, 0.04) : 'transparent',
+                              minHeight: ROW_MIN_HEIGHT,
+                            })}
+                          >
+                            <TableCell sx={{ py: 1.75, verticalAlign: 'top' }}>
+                              <ResourceCell resource={resource} />
+                            </TableCell>
+                            <TableCell sx={{ py: 1.75, verticalAlign: 'middle' }}>
+                              <StatusCell resource={resource} />
+                            </TableCell>
+                            <TableCell align="right" sx={{ py: 1.25, verticalAlign: 'middle' }}>
+                              <ActionsCell
+                                onDisable={(item) => void handleDisable(item)}
+                                onRemoveOrganization={(item) => void handleDeleteOrganizationResource(item)}
+                                onReplaceUrl={openReplaceUrl}
+                                onRestore={(item) => void handleRestore(item)}
+                                onTogglePreferred={(item) => void handleTogglePreferred(item)}
+                                resource={resource}
+                                submitting={submitting}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
             </>
           ) : null}
         </Stack>
       </DialogContent>
-      <DialogActions>
+
+      <DialogActions sx={{ px: 3, py: 2 }}>
         {mode === 'list' ? (
           <>
             <Button onClick={() => setMode('add-org')} variant="outlined">
               {LEARN_MESSAGES.roadmapAddOrganizationResource}
             </Button>
+            <Box sx={{ flex: 1 }} />
             <Button onClick={onClose}>{LEARN_MESSAGES.formCancel}</Button>
           </>
         ) : (

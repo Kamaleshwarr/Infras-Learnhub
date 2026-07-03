@@ -220,3 +220,21 @@ Catalog import pipeline unchanged. Startup log confirms idempotent catalog impor
 | End-to-end smoke test | ✓ (automated coverage) |
 | Regression passes | ✓ |
 | Documentation updated | ✓ |
+
+---
+
+## UI Polish (2026-07-03)
+
+Admin **Manage stage resources** dialog refined for clarity and consistency. No backend or API changes.
+
+| Before | After |
+|--------|-------|
+| Duplicate Catalog / Effective columns | Single **Resource** column; employee URL shown only when different |
+| Stacked blue text action links | Horizontal **IconButton** actions with tooltips |
+| Variable row heights | Consistent row layout and action bar height |
+| Status mixed with actions | **Status** column uses chips only (Catalog Default, URL Override, Disabled, Preferred, Organization Resource) |
+| Preferred as text link | Star toggle icon with Mark/Unmark preferred tooltip |
+
+Screenshot: `docs/screenshots/learn-v11-resource-overrides-ui-polish/after/resource-override-dialog-polished.png`
+
+Capture script: `frontend/scripts/capture-resource-override-dialog-screenshots.mjs`

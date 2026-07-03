@@ -54,3 +54,5 @@ The Learn module is a **Learning Navigation Platform**. The platform owns guidan
 | F17 | `docs/releases/release-v0.8.0-f17-implementation-report.md` |
 | F18 | `docs/releases/release-v0.8.0-f18-implementation-report.md` |
 | Learn v1.1 | `docs/releases/release-v0.8.0-learn-v11-resource-overrides-report.md` |
+
+**UI polish (resource override dialog):** `docs/screenshots/learn-v11-resource-overrides-ui-polish/`
