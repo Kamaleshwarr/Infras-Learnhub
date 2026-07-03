@@ -1,20 +1,147 @@
 # Engineering Learning Hub
 
-Enterprise-grade internal web application for managing learning initiatives, certification
-programs, study materials, project knowledge, KT documents, leaderboards, user administration,
-and in-app notifications.
+Enterprise internal learning platform for engineering teams. The application combines **learning initiatives and certification workflows** with a **Learn module** that guides employees through a curated technology catalog, structured roadmaps, and personal learning progress.
 
-**Current release:** [v0.7.1 Initiative Management](docs/releases/release-v0.7.1.md) (validated, PR #43) · [v0.7.0 Initiatives Experience](docs/releases/release-v0.7.0.md) (validated, PR #36) · [v0.6.2](docs/releases/release-v0.6.2.md) (shipped)
+**Current release focus:** v0.8.0 **Learn module v1** (F16–F18 complete)  
+**Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
+
+---
+
+## Project overview
+
+| Area | Description |
+|------|-------------|
+| **Learn** | Catalog-first technology discovery, roadmap viewer, employee-owned learning progress (F16–F18) |
+| **Initiatives** | Admin-managed learning initiatives with lifecycle and employee visibility (v0.7.x) |
+| **Certificates** | Submit, review, approve/reject; file preview and download (v0.6.x) |
+| **Platform** | Auth, users, profile, notifications, leaderboards, study materials, project knowledge |
+
+Employees browse technologies, follow catalog roadmaps, track stage completion, and resume via **Continue Learning**. Administrators curate catalog visibility — they do not author roadmap content or edit employee progress.
+
+---
+
+## Architecture (high level)
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                     React + TypeScript (MUI)                     │
+│  api/ → auth/ → routes/ → pages/ → components/                  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTPS /api/v1  (JWT Bearer)
+┌────────────────────────────▼────────────────────────────────────┐
+│              Spring Boot 3 — Controller → Service → Repository     │
+│  learn · initiative · certificate · user · profile · notification  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ JDBC
+┌────────────────────────────▼────────────────────────────────────┐
+│                    PostgreSQL 16 (Flyway V1–V15)                   │
+│  Catalog tables (read-only content) + progress overlay (F18)       │
+└─────────────────────────────────────────────────────────────────┘
+
+Startup: CatalogImportService reads backend/src/main/resources/catalog/
+```
+
+Detailed architecture: [`.cursor/architecture.md`](.cursor/architecture.md) · Learn-specific: [`docs/learn/`](docs/learn/)
+
+---
+
+## Technology stack
+
+### Backend
+
+| Technology | Version / notes |
+|------------|-----------------|
+| Java | 21 |
+| Spring Boot | 3.x |
+| Spring Security | JWT bearer authentication |
+| Spring Data JPA | PostgreSQL |
+| Flyway | Schema migrations V1–V15 |
+| Maven | Build and test |
+| OpenAPI / Swagger | API docs at `/swagger-ui.html` |
+| Testcontainers | Integration tests |
+
+### Frontend
+
+| Technology | Version / notes |
+|------------|-----------------|
+| React | 18 |
+| TypeScript | Strict |
+| Material UI | 9.x |
+| React Router | 7.x |
+| Axios | HTTP client with JWT interceptor |
+| Vite | Dev server and build |
+| Vitest + Testing Library | Unit and component tests |
+
+### Infrastructure
+
+| Technology | Purpose |
+|------------|---------|
+| Docker Compose | PostgreSQL + backend container |
+| PostgreSQL 16 | Primary database |
+
+---
+
+## Folder structure
+
+```text
+/
+├── backend/                          # Spring Boot API
+│   ├── src/main/java/.../learninghub/
+│   │   ├── learn/                    # Learn module (F16–F18)
+│   │   │   ├── catalog/              # Catalog import pipeline
+│   │   │   ├── controller/
+│   │   │   ├── domain/
+│   │   │   ├── dto/
+│   │   │   ├── mapper/
+│   │   │   ├── repository/
+│   │   │   └── service/
+│   │   ├── auth/ · initiative/ · certificate/ · user/ · profile/ · notification/ …
+│   └── src/main/resources/
+│       ├── catalog/                  # Platform catalog (manifest, technologies, roadmaps)
+│       └── db/migration/             # Flyway SQL (V1–V15)
+├── frontend/
+│   └── src/
+│       ├── api/learnApi.ts           # Learn HTTP client
+│       ├── pages/learn/              # Learn pages
+│       ├── components/learn/         # Learn UI components
+│       ├── types/                    # learn.ts, roadmap.ts, progress.ts
+│       └── routes/AppRoutes.tsx
+├── docs/
+│   ├── learn/                        # Learn module documentation (v1)
+│   ├── project-roadmap.md            # Release and phase roadmap
+│   ├── development-workflow.md       # Mandatory feature workflow
+│   ├── testing-guide.md              # Test strategy and commands
+│   ├── contributing.md                 # Contributor guide
+│   └── releases/                     # Per-release reports
+├── .cursor/
+│   ├── architecture.md               # System architecture
+│   └── project-context.md            # Agent and developer context
+└── docker-compose.yml
+```
+
+---
 
 ## Quick start
 
-Run the backend and PostgreSQL with Docker Compose:
+### Prerequisites
+
+- Docker and Docker Compose
+- Node.js 20+ and npm (frontend)
+- Java 21 and Maven (optional — backend runs in Docker)
+
+### 1. Start backend and database
 
 ```bash
 docker compose up --build
 ```
 
-Run the frontend dev server (separate terminal):
+Backend: `http://localhost:8080`  
+Health: `curl http://localhost:8080/api/v1/health`  
+Swagger: `http://localhost:8080/swagger-ui.html`
+
+On startup, Flyway applies migrations and **CatalogImportService** imports catalog v1.1.1 (30 technologies, 5 roadmaps).
+
+### 2. Start frontend
 
 ```bash
 cd frontend
@@ -22,163 +149,192 @@ npm install
 npm run dev
 ```
 
-Backend health check:
+Frontend: `http://localhost:5173`
+
+For API calls from the dev server, set the backend base URL:
 
 ```bash
-curl http://localhost:8080/api/v1/health
+VITE_API_BASE_URL=http://localhost:8080/api/v1 npm run dev
 ```
 
-Swagger UI:
-
-```text
-http://localhost:8080/swagger-ui.html
-```
-
-### Default bootstrap login credentials
-
-These accounts are seeded by Flyway for local validation and bootstrap access. Change or remove
-them before using a shared or production environment.
+### Default bootstrap accounts
 
 | Role | Email | Password |
-| --- | --- | --- |
+|------|-------|----------|
 | Admin | `admin@learninghub.local` | `Admin@12345` |
 | Employee | `employee@learninghub.local` | `Employee@12345` |
 
-### Test authentication APIs
+Change or remove these before any shared or production environment.
 
-Login:
+### Login example
 
 ```bash
 curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"admin@learninghub.local","password":"Admin@12345"}'
+  -d '{"email":"employee@learninghub.local","password":"Employee@12345"}'
 ```
 
-Use the returned `accessToken` to call the authenticated user endpoint:
+Use the returned `accessToken` for authenticated requests:
 
 ```bash
-TOKEN="<accessToken-from-login-response>"
-
-curl -s http://localhost:8080/api/v1/auth/me \
+TOKEN="<accessToken>"
+curl -s http://localhost:8080/api/v1/learn/technologies?size=5 \
   -H "Authorization: Bearer ${TOKEN}"
 ```
 
-## Technology stack
+---
+
+## Flyway
+
+Migrations live in `backend/src/main/resources/db/migration/`.
+
+| Version | Learn-related content |
+|---------|----------------------|
+| V12 | `learn_technologies`, `learn_technology_project_links` |
+| V13 | Catalog foundation — slug, catalog columns, `learn_catalog_imports` |
+| V14 | `learn_roadmaps`, `learn_roadmap_stages`, `learn_roadmap_stage_resources` |
+| V15 | `learn_learning_enrollments`, `learn_stage_progress` |
+
+Never modify applied migrations after merge. Add new versioned files only.
+
+---
+
+## Catalog
+
+Platform-owned learning content ships as JSON under `backend/src/main/resources/catalog/`:
+
+- `manifest.json` — catalog version and package manifest
+- `technologies/wave-1.json` — 30 technology records
+- `roadmaps/*.json` — 5 seed roadmaps (Java, Spring Boot, React, Docker, AWS)
+- `schemas/` — JSON Schema validation
+
+Import runs on application startup. Roadmaps are **read-only** at runtime; employee progress overlays catalog stage IDs without mutating catalog data.
+
+Full catalog documentation: [`docs/learn/catalog.md`](docs/learn/catalog.md)
+
+---
+
+## Running tests
 
 ### Backend
-
-- Java 21
-- Spring Boot 3
-- Maven
-- PostgreSQL
-- Flyway
-- Spring Security with JWT
-- OpenAPI / Swagger
-
-### Frontend
-
-- React 18
-- TypeScript
-- Material UI
-- React Router
-- Axios
-- Vitest / Testing Library
-
-## Run tests
-
-Backend:
 
 ```bash
 mvn -f backend/pom.xml test
 ```
 
-Frontend:
+Learn-focused:
+
+```bash
+mvn -f backend/pom.xml test -Dtest="*Learn*,*Catalog*,*LearningProgress*"
+```
+
+### Frontend
 
 ```bash
 cd frontend && npm test
 ```
 
-## Important configuration
+Learn-focused:
 
-The default JWT secret is only for local development. Set `JWT_SECRET` to a strong Base64-encoded
-secret in shared or production environments.
+```bash
+cd frontend && npm test -- --run src/pages/learn src/components/learn src/utils/roadmapEffort.test.ts
+```
 
-## Project status (v0.7.1)
+### Build verification
 
-High-level snapshot. Detailed release notes, validation history, and backlog live under `docs/`.
+```bash
+mvn -f backend/pom.xml compile -DskipTests
+cd frontend && npm run build
+```
 
-**Shipped:** v0.6.2 · **v0.8.0 Learn (F16–F18):** catalog technologies, roadmaps, employee learning progress
+See [`docs/testing-guide.md`](docs/testing-guide.md) for integration tests, Testcontainers, and regression checklists.
 
-### Shipped platform modules (backend)
+---
 
-- Authentication & password management
-- Learning initiatives
-- Certificate submissions (submit, approve, reject, **file streaming**)
-- Leaderboards
-- Study materials repository
-- Project knowledge repository
-- User management (API + bulk import)
-- Profile management (including avatar storage)
-- In-app notifications (persistence, inbox APIs, certificate producers)
+## Development workflow
 
-### Shipped frontend modules
+Every feature must pass the **11-step completion checklist** before it is considered done:
 
-- Authentication, role-aware dashboard, password management
-- User management UI — list, CRUD, activate/deactivate, reset password, bulk import (v0.3–v0.4)
-- Profile management UI — view, edit, change-password entry, avatar upload (v0.5)
-- Notifications UI — bell, dropdown, inbox page, badge sync (v0.6)
-- Certificate workflow UI — Submit Certificate (`/submissions/new`), My Submissions
-  (`/submissions`), Admin Review (`/submissions/review`) with notification E2E validation (v0.6.1)
-- **Certificate review enhancements** — admin preview/download in review queue; Pending Reviews
-  dashboard drilldown to `/submissions/review` (v0.6.2)
-- **Initiatives Experience UI** — list, detail, submit pre-selection, F2.1 polish (v0.7.0 — PR #36)
-- **Initiative Management UI** — create (F12), edit (F13), lifecycle (F14), delete (F15) (v0.7.1 — complete)
+1. Backend compile · 2. Frontend build · 3. Docker build · 4. Flyway migration · 5. Backend startup · 6. Frontend startup · 7. Automated tests · 8. E2E smoke test · 9. Regression checklist · 10. Documentation update · 11. Implementation report
 
-### Recent release highlights (v0.7.1 — complete)
+Full workflow: [`docs/development-workflow.md`](docs/development-workflow.md)
 
-- **F12 — Create Initiative** — admin create dialog, validation, list integration
-- **F13 — Edit Initiative** — admin edit dialog (list + detail), metadata panel, date/lifecycle business rules (manual QA passed)
-- **F14 — Initiative Lifecycle Management** — dedicated lifecycle actions (Publish, Return to Draft, Mark Expired, Reactivate), confirmation dialogs, backend transition enforcement (manual QA passed)
-- **F15 — Delete Initiative** — hard delete with submission-count eligibility, blocked/confirm dialogs (list + detail), HTTP 409 enforcement (manual QA passed)
-- App-wide long-text display standard (truncation, wrapping, tooltips)
+Contributor guide: [`docs/contributing.md`](docs/contributing.md)
 
-### Prior release highlights (v0.7.0 — validated)
+---
 
-- Initiative list at `/initiatives` — search, sort, pagination, admin status filters
-- Initiative detail at `/initiatives/:initiativeId` — progress, top learner, submit CTA
-- Submit Certificate pre-selection via `?initiativeId=`
-- **Reward / Benefits** column label; **Back to Initiatives** navigation
+## Implemented modules
 
-### Prior release highlights (v0.6.2)
+### Learn module v1 (v0.8.0 — F16–F18) ✓
 
-- Admin previews and downloads submitted certificates (PDF, PNG, JPEG) before approve/reject
-- Admin Dashboard **Pending Reviews** metric links directly to Certificate Review queue
-- Backend `GET /submissions/{id}/certificate?disposition=inline|attachment`
+| Phase | Deliverable |
+|-------|-------------|
+| **F16** | Technology discovery, search, detail, Projects cross-navigation |
+| **F16-R** | Catalog foundation — manifest import, admin curation, org overrides |
+| **F17** | Roadmap viewer — catalog roadmaps, stages, external resources |
+| **F18** | Learning journey — enroll, sequential stage completion, Continue Learning |
 
-### Post-v0.7.0 backlog (summary)
+Routes: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, `/learn/technologies/:id/roadmap`, `/learn/manage` (admin).
 
-- Initiative leaderboard full page; top 3 learners; dashboard initiative drilldowns
-- Rejected submission resubmission workflow
-- Global search
-- Employee self-service certificate download (My Submissions)
-- Dashboard drilldowns for other metrics; status chips and filtering
-- Email notification channel (account lifecycle)
-- Study materials / projects full UI surfaces
-- AI features
+### Platform modules (shipped)
 
-## Documentation
+- Authentication and password management (v0.2)
+- User management UI — list, CRUD, bulk import (v0.3–v0.4)
+- Profile management — view, edit, avatar (v0.5)
+- Notifications — bell, inbox, certificate producers (v0.6)
+- Certificate workflow — submit, review, preview/download (v0.6.1–v0.6.2)
+- Initiatives experience and management (v0.7.0–v0.7.1)
+
+---
+
+## Upcoming roadmap (not started)
+
+| Phase | Deliverable |
+|-------|-------------|
+| F19 | Career Path Catalog |
+| F20 | Certification Catalog |
+| F21 | Optional Initiative Association |
+| F22 | Dashboard, Unified Search & Release |
+
+Authoritative roadmap: [`docs/project-roadmap.md`](docs/project-roadmap.md)
+
+---
+
+## Screenshots
+
+| Feature | Location |
+|---------|----------|
+| F17 Featured technologies | `docs/screenshots/f17-featured-section/` |
+| F18 Roadmap UI polish | `docs/screenshots/f18-roadmap-ui-polish/` |
+| F18 Roadmap hero redesign | `docs/screenshots/f18-roadmap-hero-redesign/` |
+
+---
+
+## Documentation index
 
 | Topic | Location |
-| --- | --- |
-| **Roadmap & release overview** | [`docs/project-roadmap.md`](docs/project-roadmap.md) |
-| **v0.7.1 release notes** | [`docs/releases/release-v0.7.1.md`](docs/releases/release-v0.7.1.md) |
-| **v0.7.0 release notes** | [`docs/releases/release-v0.7.0.md`](docs/releases/release-v0.7.0.md) |
-| **v0.6.2 release notes** | [`docs/releases/release-v0.6.2.md`](docs/releases/release-v0.6.2.md) |
-| **v0.6.1 release notes** | [`docs/releases/release-v0.6.1.md`](docs/releases/release-v0.6.1.md) |
-| **Testing & defect history** | [`docs/testing-and-defect-history.md`](docs/testing-and-defect-history.md) |
-| **Backend architecture** | [`docs/backend-architecture-and-roadmap.md`](docs/backend-architecture-and-roadmap.md) |
-| **Prior releases** | [`docs/releases/`](docs/releases/) |
+|-------|----------|
+| Project roadmap | [`docs/project-roadmap.md`](docs/project-roadmap.md) |
+| Architecture | [`.cursor/architecture.md`](.cursor/architecture.md) |
+| Learn module docs | [`docs/learn/README.md`](docs/learn/README.md) |
+| Learn database ER | [`docs/learn/database-overview.md`](docs/learn/database-overview.md) |
+| Learn API reference | [`docs/learn/api-reference.md`](docs/learn/api-reference.md) |
+| Catalog specification | [`docs/learn/catalog.md`](docs/learn/catalog.md) |
+| Contributor guide | [`docs/contributing.md`](docs/contributing.md) |
+| Testing guide | [`docs/testing-guide.md`](docs/testing-guide.md) |
+| Development workflow | [`docs/development-workflow.md`](docs/development-workflow.md) |
+| v0.8.0 product design | [`docs/v0.8.0/`](docs/v0.8.0/) |
+| Release reports | [`docs/releases/`](docs/releases/) |
 
-The README is an entry point for setup and orientation. Authoritative project status, roadmap
-detail, validation results, and per-release scope are maintained in `docs/` and updated with each
-release.
+---
+
+## Configuration
+
+| Variable | Purpose |
+|----------|---------|
+| `JWT_SECRET` | Base64-encoded JWT signing secret (required in shared environments) |
+| `SPRING_DATASOURCE_*` | Database connection (set in `docker-compose.yml` for local) |
+| `VITE_API_BASE_URL` | Frontend API base (default `/api/v1`; use `http://localhost:8080/api/v1` for local dev) |
+| `app.catalog.import.enabled` | Enable startup catalog import (default `true`) |
+
+The default JWT secret is for local development only.

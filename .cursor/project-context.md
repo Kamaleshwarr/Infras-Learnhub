@@ -51,15 +51,22 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 
 ## Current Release
 
-**v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
-**v0.8.0** — Learn module (**F16-R shipped**; **F17 Roadmap Viewer shipped**; **F18 Learning Journey shipped**)  
-**Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*  
-**Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
-**Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
+**v0.8.0** — Learn module v1 (**Complete** — F16, F16-R, F17, F18; manual QA passed)  
+**v0.7.1** — Initiative Management (Complete — F11–F15)  
+**Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
 
-Release notes: `docs/releases/release-v0.7.1.md`  
-v0.8.0 catalog specification: `docs/v0.8.0/10-catalog-specification.md`
-Roadmap: `docs/project-roadmap.md`
+**Learn module v1 is the current development baseline.** F19 has NOT been started.
+
+Documentation:
+- `README.md` — project entry point
+- `docs/learn/` — Learn module reference (database, API, catalog)
+- `docs/development-workflow.md` — mandatory 11-step feature workflow
+- `docs/contributing.md` — contributor guide
+- `docs/testing-guide.md` — test strategy
+- `.cursor/architecture.md` — system architecture including Learn
+- `docs/project-roadmap.md` — release roadmap
+
+Catalog specification: `docs/v0.8.0/10-catalog-specification.md` (frozen)
 
 ### v0.7.1 Highlights (complete)
 
@@ -183,9 +190,16 @@ Roadmap: `docs/project-roadmap.md`
 
 See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implementation-plan-v2.md`, `docs/v0.8.0/10-catalog-specification.md`
 
-**F16-R shipped. F17 shipped. F18 shipped. F19 may begin after F18 merge.**
+**F16–F18 complete. F19 has NOT been started.**
 
-### v0.8.0 F18 — Learning Journey & Progress (shipped)
+### v0.8.0 F17 — Roadmap Viewer (complete)
+
+- Catalog roadmaps: 5 seed roadmaps (Java, Spring Boot, React, Docker, AWS)
+- `LearnRoadmapService` — read-only roadmap with stages and resources
+- Roadmap page with hero, journey timeline, stage cards
+- Flyway `V14__learn_roadmap_catalog.sql`
+
+### v0.8.0 F18 — Learning Journey & Progress (complete)
 
 - Employee-owned enrollments and sequential stage completion
 - `V15__learn_progress.sql` — enrollments + stage progress tables referencing catalog stages
@@ -217,9 +231,9 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 7. Notifications UI (bell, dropdown, inbox — consumer only)
 8. Certificate Workflow UI — Submit Certificate, My Submissions, Admin Review (v0.6.1)
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
-10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
-11. Initiative Management UI — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — complete, PR #43 pending merge)
-12. Learn UI — Technology discovery, roadmaps, and learning progress (v0.8.0 F16–F18)
+10. Initiatives Experience UI — List, detail, submit integration (v0.7.0)
+11. Initiative Management UI — Create, Edit, Lifecycle, Delete (v0.7.1)
+12. **Learn module v1** — Technology discovery, roadmap viewer, learning journey (v0.8.0 F16–F18)
 
 ## Completed Features
 
@@ -271,18 +285,19 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 
 ## Pending Features
 
-1. Initiative leaderboard full page UI (`InitiativeLeaderboardPage` — placeholder)
-2. Top 3 learners + leaderboard navigation from detail (future)
-3. Rejected submission resubmission workflow (future — backend constraint)
-4. Clone Initiative (future enhancement — deferred from F14)
-5. Employee self-service certificate download from My Submissions (deferred from v0.6.2)
-6. Dashboard drilldowns for Active/Expiring Initiatives and Top Learners (deferred from v0.6.2)
-7. Dashboard status chips / filtering (deferred from v0.6.1)
-8. User Management UI backlog (UM-002, UM-003, UM-004, UM-006)
-9. Study materials and projects full UI surfaces (placeholder pages remain)
-10. Global Search
-11. Email notifications (account lifecycle)
-12. AI Features
+1. **F19 Career Path Catalog** — not started
+2. F20 Certification Catalog
+3. F21 Optional Initiative Association
+4. F22 Dashboard, Unified Search & Release
+5. Initiative leaderboard full page UI
+6. Rejected submission resubmission workflow
+7. Employee self-service certificate download
+8. Dashboard drilldowns (initiatives, top learners)
+9. User Management UI backlog (UM-002–UM-006)
+10. Study materials and projects full UI surfaces
+11. Global Search
+12. Email notifications (account lifecycle)
+13. AI Features
 
 ## Current Backend Package Pattern
 
@@ -330,6 +345,9 @@ frontend/src/
 - Notifications schema is in `V9__create_notifications.sql` (`notifications` table).
 - Learning initiative date constraint: `V10__relax_learning_initiative_date_constraint.sql` (`expiry_date_utc >= start_date_utc`).
 - Learning initiative text limits: `V11__tighten_learning_initiative_text_limits.sql` (title `VARCHAR(100)`).
+- **Learn module schema:** `V12` technologies, `V13` catalog foundation, `V14` roadmaps, `V15` progress.
+- **Learn catalog:** `backend/src/main/resources/catalog/` — imported on startup by `CatalogImportService`.
+- **Learn docs:** `docs/learn/` — database ER, API reference, catalog guide.
 - Reuse `PasswordService` for all password mutations (change, admin reset, email reset).
 - Store only hashed reset tokens (SHA-256); never persist raw tokens.
 - Use `app.mail.mode=log` for local development (reset URL logged); use `smtp` in production.
