@@ -1,5 +1,6 @@
 package com.company.learninghub.projectknowledge.service;
 
+import com.company.learninghub.learn.service.LearnTechnologyService;
 import com.company.learninghub.projectknowledge.mapper.ProjectKnowledgeMapper;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeAccessEventRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeFolderRepository;
@@ -72,10 +73,11 @@ class ProjectKnowledgeMethodSecurityTest {
                 UserRepository userRepository,
                 ProjectKnowledgeStorageService storageService,
                 StorageProperties storageProperties,
-                ProjectKnowledgeMapper mapper
+                ProjectKnowledgeMapper mapper,
+                LearnTechnologyService learnTechnologyService
         ) {
             return new ProjectKnowledgeService(projectRepository, memberRepository, folderRepository, itemRepository,
-                    accessEventRepository, userRepository, storageService, storageProperties, mapper);
+                    accessEventRepository, userRepository, storageService, storageProperties, mapper, learnTechnologyService);
         }
 
         @Bean ProjectRepository projectRepository() { return mock(ProjectRepository.class); }
@@ -87,6 +89,7 @@ class ProjectKnowledgeMethodSecurityTest {
         @Bean ProjectKnowledgeStorageService projectKnowledgeStorageService() { return mock(ProjectKnowledgeStorageService.class); }
         @Bean StorageProperties storageProperties() { return new StorageProperties(); }
         @Bean ProjectKnowledgeMapper projectKnowledgeMapper() { return new ProjectKnowledgeMapper(); }
+        @Bean LearnTechnologyService learnTechnologyService() { return mock(LearnTechnologyService.class); }
     }
 }
 

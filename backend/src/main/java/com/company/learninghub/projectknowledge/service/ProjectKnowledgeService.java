@@ -2,6 +2,7 @@ package com.company.learninghub.projectknowledge.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
+import com.company.learninghub.learn.service.LearnTechnologyService;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
@@ -61,6 +62,7 @@ public class ProjectKnowledgeService {
     private final ProjectKnowledgeStorageService storageService;
     private final StorageProperties storageProperties;
     private final ProjectKnowledgeMapper mapper;
+    private final LearnTechnologyService learnTechnologyService;
 
     public ProjectKnowledgeService(
             ProjectRepository projectRepository,
@@ -71,7 +73,8 @@ public class ProjectKnowledgeService {
             UserRepository userRepository,
             ProjectKnowledgeStorageService storageService,
             StorageProperties storageProperties,
-            ProjectKnowledgeMapper mapper
+            ProjectKnowledgeMapper mapper,
+            LearnTechnologyService learnTechnologyService
     ) {
         this.projectRepository = projectRepository;
         this.memberRepository = memberRepository;
@@ -82,6 +85,7 @@ public class ProjectKnowledgeService {
         this.storageService = storageService;
         this.storageProperties = storageProperties;
         this.mapper = mapper;
+        this.learnTechnologyService = learnTechnologyService;
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -144,7 +148,10 @@ public class ProjectKnowledgeService {
     public ProjectResponse getProject(UUID projectId, AuthenticatedUser principal) {
         Project project = findProject(projectId);
         requireReadAccess(project, principal);
-        return mapper.toProjectResponse(project);
+        return mapper.toProjectResponse(
+                project,
+                learnTechnologyService.listPublishedTechnologiesForProject(projectId)
+        );
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")

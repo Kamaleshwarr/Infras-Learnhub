@@ -15,7 +15,7 @@ Last updated: 2026-07-02 (v0.8.0 — product design in review)
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
 | **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
-| **v0.8.0** | **Learn — Learning Guidance Platform** | **Implementation plan FINAL — F16 ready after sign-off** |
+| **v0.8.0** | **Learn — Learning Guidance Platform** | **In progress — F16 implemented** |
 
 Release notes: `docs/releases/release-v0.7.1.md`  
 v0.8.0 product design: `docs/v0.8.0/`  
@@ -37,7 +37,7 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 |-------|-------------|--------|
 | Design v1.1 | Product architecture | **Approved — frozen** |
 | Plan | F16–F23 implementation plan | **FINAL — frozen** |
-| F16 | Technology Discovery & Search (+ Projects cross-nav) | Ready after sign-off |
+| F16 | Technology Discovery & Search (+ Projects cross-nav) | **Implemented — manual QA pending** |
 | F17 | Roadmap & Learning Resources | Not started |
 | F18 | Progress & Learning Journey | Not started |
 | F19 | Practice Resources | Not started |
