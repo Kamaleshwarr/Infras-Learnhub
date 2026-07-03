@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
+Last updated: 2026-07-02 (v0.8.0 — product design in review)
 
 ## Release Overview
 
@@ -15,10 +15,38 @@ Last updated: 2026-06-19 (v0.7.1 — release readiness complete)
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
 | **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
+| **v0.8.0** | **Learn — Learning Guidance Platform** | **Implementation plan FINAL — F16 ready after sign-off** |
 
 Release notes: `docs/releases/release-v0.7.1.md`  
+v0.8.0 product design: `docs/v0.8.0/`  
 Prior: `docs/releases/release-v0.7.0.md`  
 Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
+
+---
+
+## In design — v0.8.0 Learn (Learning Guidance Platform)
+
+**Status:** Product design v1.1 **approved (frozen)** · Implementation plan **FINAL — frozen** (`docs/v0.8.0/07-implementation-plan.md`)
+
+**Objective:** Introduce the **Learn** module — 8 implementation phases (F16–F23).
+
+**Product design:** `docs/v0.8.0/00-product-design.md`  
+**Implementation plan:** `docs/v0.8.0/07-implementation-plan.md`
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| Design v1.1 | Product architecture | **Approved — frozen** |
+| Plan | F16–F23 implementation plan | **FINAL — frozen** |
+| F16 | Technology Discovery & Search (+ Projects cross-nav) | Ready after sign-off |
+| F17 | Roadmap & Learning Resources | Not started |
+| F18 | Progress & Learning Journey | Not started |
+| F19 | Practice Resources | Not started |
+| F20 | Career Paths | Not started |
+| F21 | Industry Certifications | Not started |
+| F22 | Optional Initiative Association | Not started |
+| F23 | Dashboard, Unified Search & Release | Not started |
+
+**Final plan:** Cross-navigation merged into F16; no standalone cross-nav phase; F22 renamed Optional Initiative Association; four-questions UX principle; admin–employee parity per phase.
 
 ---
 
