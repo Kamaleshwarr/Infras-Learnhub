@@ -18,6 +18,8 @@ import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.user.domain.RoleName;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -290,14 +292,60 @@ public class LearnTechnologyService {
             if (!StringUtils.hasText(search)) {
                 return criteriaBuilder.conjunction();
             }
-            String pattern = "%" + search.toLowerCase(Locale.ROOT) + "%";
+            String term = search.toLowerCase(Locale.ROOT);
             return criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("shortName")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern),
-                    criteriaBuilder.like(root.get("slug"), pattern)
+                    textFieldContainsWholeTerm(criteriaBuilder, root.get("name"), term),
+                    textFieldContainsWholeTerm(criteriaBuilder, root.get("shortName"), term),
+                    textFieldContainsWholeTerm(criteriaBuilder, root.get("description"), term),
+                    slugFieldContainsTerm(criteriaBuilder, root.get("slug"), term),
+                    tagsContainExactTerm(criteriaBuilder, root.get("tags"), term)
             );
         };
+    }
+
+    private Predicate textFieldContainsWholeTerm(
+            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+            Expression<String> field,
+            String term
+    ) {
+        Expression<String> lowered = criteriaBuilder.lower(field);
+        return criteriaBuilder.or(
+                criteriaBuilder.equal(lowered, term),
+                criteriaBuilder.like(lowered, term + " %"),
+                criteriaBuilder.like(lowered, "% " + term + " %"),
+                criteriaBuilder.like(lowered, "% " + term),
+                criteriaBuilder.like(lowered, term + ",%"),
+                criteriaBuilder.like(lowered, "% " + term + ",%"),
+                criteriaBuilder.like(lowered, "%(" + term + ")%"),
+                criteriaBuilder.like(lowered, "%(" + term + " %")
+        );
+    }
+
+    private Predicate slugFieldContainsTerm(
+            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+            Expression<String> slugField,
+            String term
+    ) {
+        return criteriaBuilder.or(
+                criteriaBuilder.equal(slugField, term),
+                criteriaBuilder.like(slugField, term + "-%"),
+                criteriaBuilder.like(slugField, "%-" + term),
+                criteriaBuilder.like(slugField, "%-" + term + "-%")
+        );
+    }
+
+    private Predicate tagsContainExactTerm(
+            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+            Expression<?> tagsField,
+            String term
+    ) {
+        String sanitizedTerm = term.replace("\"", "");
+        Expression<String> tagsText = criteriaBuilder.function(
+                "text",
+                String.class,
+                tagsField
+        );
+        return criteriaBuilder.like(criteriaBuilder.lower(tagsText), "%\"" + sanitizedTerm + "\"%");
     }
 
     private Pageable normalizePageable(Pageable pageable) {

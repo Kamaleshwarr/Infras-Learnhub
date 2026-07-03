@@ -43,7 +43,8 @@ export const LEARN_MESSAGES = {
   backToLearn: 'Back to Learn',
   browseTechnologies: 'Browse Technologies',
   viewRoadmap: 'View Roadmap',
-  viewRoadmapHelper: 'Roadmap content will be available in a future release.',
+  viewRoadmapHelper: 'Roadmap viewer is planned for F17 and is not available yet.',
+  viewRoadmapComingSoon: 'Coming in F17',
   relatedProjectsTitle: 'Related Organization Projects',
   relatedProjectsDescription:
     'See how your organization applies this technology in real projects. These links open the independent Projects module.',
