@@ -1,0 +1,298 @@
+{
+  "technologySlug": "java",
+  "version": "1.0.0",
+  "source": "platform-team",
+  "sourceUrl": "https://roadmap.sh/java",
+  "updatedAt": "2026-07-03T00:00:00Z",
+  "description": "A structured path from Java fundamentals through core language features, collections, error handling, functional APIs, concurrency, and JVM internals for backend engineers.",
+  "stages": [
+    {
+      "order": 1,
+      "slug": "introduction",
+      "title": "Introduction",
+      "description": "Learn what Java is, how the JVM fits into the ecosystem, and set up a development environment with JDK, IDE, and build tooling.",
+      "estimatedEffort": "3-5 days",
+      "learningResources": [
+        {
+          "slug": "java-roadmap-overview",
+          "title": "Java Developer Roadmap",
+          "url": "https://roadmap.sh/java",
+          "type": "ARTICLE",
+          "provider": "roadmap.sh",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "roadmap.sh",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "oracle-java-tutorial-intro",
+          "title": "Getting Started with Java",
+          "url": "https://docs.oracle.com/javase/tutorial/getStarted/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "freecodecamp-java-course",
+          "title": "Java Programming for Beginners",
+          "url": "https://www.freecodecamp.org/learn/java-programming/",
+          "type": "OPEN_EDUCATIONAL_RESOURCE",
+          "provider": "freeCodeCamp",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "freecodecamp.org",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "notes": "Complete JDK installation and run your first Hello World program before moving on."
+    },
+    {
+      "order": 2,
+      "slug": "core-java",
+      "title": "Core Java",
+      "description": "Master object-oriented programming, classes, interfaces, inheritance, polymorphism, access modifiers, and essential language syntax.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "oracle-oop-concepts",
+          "title": "Object-Oriented Programming Concepts",
+          "url": "https://docs.oracle.com/javase/tutorial/java/concepts/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "oracle-classes-objects",
+          "title": "Classes and Objects",
+          "url": "https://docs.oracle.com/javase/tutorial/java/javaOO/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-java-samples",
+          "title": "Oracle Java Samples",
+          "url": "https://github.com/openjdk/jdk/tree/master/sample",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "slug": "collections",
+      "title": "Collections",
+      "description": "Understand the Java Collections Framework including List, Set, Map, Queue, iterators, generics, and choosing the right data structure.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "oracle-collections-tutorial",
+          "title": "The Collections Framework",
+          "url": "https://docs.oracle.com/javase/tutorial/collections/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "oracle-generics",
+          "title": "Generics",
+          "url": "https://docs.oracle.com/javase/tutorial/java/generics/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "exercism-java-collections",
+          "title": "Exercism Java Track — Collections Exercises",
+          "url": "https://exercism.org/tracks/java",
+          "type": "PRACTICE_LAB",
+          "provider": "Exercism",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "exercism.org",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "slug": "exception-handling",
+      "title": "Exception Handling",
+      "description": "Learn checked and unchecked exceptions, try-catch-finally blocks, try-with-resources, custom exceptions, and effective error-handling patterns.",
+      "estimatedEffort": "3-5 days",
+      "learningResources": [
+        {
+          "slug": "oracle-exceptions-tutorial",
+          "title": "Exceptions",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/exceptions/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-java-examples",
+          "title": "Java Examples Repository",
+          "url": "https://github.com/javaee-samples/javaee7-samples",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "slug": "streams",
+      "title": "Streams",
+      "description": "Use the Stream API for declarative data processing with map, filter, reduce, collectors, optional chaining, and functional-style operations on collections.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "oracle-streams-tutorial",
+          "title": "Aggregate Operations",
+          "url": "https://docs.oracle.com/javase/tutorial/collections/streams/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "oracle-lambda-expressions",
+          "title": "Lambda Expressions",
+          "url": "https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "hackerrank-java-streams",
+          "title": "HackerRank Java Domain",
+          "url": "https://www.hackerrank.com/domains/java",
+          "type": "PRACTICE_LAB",
+          "provider": "HackerRank",
+          "freePaid": "FREEMIUM",
+          "version": "1.0.0",
+          "source": "hackerrank.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "slug": "multithreading",
+      "title": "Multithreading",
+      "description": "Build concurrent programs using threads, executors, synchronization, locks, atomic variables, and the java.util.concurrent package.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "oracle-concurrency-tutorial",
+          "title": "Concurrency",
+          "url": "https://docs.oracle.com/javase/tutorial/essential/concurrency/index.html",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-jcstress-samples",
+          "title": "OpenJDK Concurrency Samples",
+          "url": "https://github.com/openjdk/jcstress",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "notes": "Focus on thread safety patterns before exploring advanced executor frameworks."
+    },
+    {
+      "order": 7,
+      "slug": "jvm",
+      "title": "JVM",
+      "description": "Understand JVM architecture, class loading, memory areas, garbage collection, JIT compilation, and JVM tuning fundamentals for production systems.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "oracle-jvm-spec",
+          "title": "Java Virtual Machine Specification",
+          "url": "https://docs.oracle.com/javase/specs/jvms/se21/html/index.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "oracle-gc-tuning",
+          "title": "Garbage Collection Tuning Guide",
+          "url": "https://docs.oracle.com/en/java/javase/21/gctuning/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "Oracle Docs",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "oracle.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "openjdk-jmc",
+          "title": "Java Mission Control (OpenJDK)",
+          "url": "https://github.com/openjdk/jmc",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "github.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
+      ]
+    }
+  ]
+}

@@ -27,14 +27,18 @@ public class LearnCatalogManageController {
     @GetMapping("/status")
     @Operation(summary = "Get catalog import status", description = "Admin only.")
     public ResponseEntity<Map<String, Object>> status() {
-        CatalogImportStatusResponse importStatus = catalogService.getCatalogStatus();
+        CatalogImportStatusResponse technologyImport = catalogService.getCatalogStatus();
+        CatalogImportStatusResponse roadmapImport = catalogService.getRoadmapImportStatus();
         return ResponseEntity.ok(Map.of(
-                "catalogVersion", importStatus.catalogVersion() == null ? "" : importStatus.catalogVersion(),
-                "importedAt", importStatus.importedAt() == null ? "" : importStatus.importedAt(),
-                "packageType", importStatus.packageType(),
-                "recordsUpserted", importStatus.recordsUpserted(),
-                "status", importStatus.status(),
-                "technologyCount", catalogService.countCatalogTechnologies()
+                "catalogVersion", technologyImport.catalogVersion() == null ? "" : technologyImport.catalogVersion(),
+                "importedAt", technologyImport.importedAt() == null ? "" : technologyImport.importedAt(),
+                "packageType", technologyImport.packageType(),
+                "recordsUpserted", technologyImport.recordsUpserted(),
+                "status", technologyImport.status(),
+                "technologyCount", catalogService.countCatalogTechnologies(),
+                "roadmapImportStatus", roadmapImport.status(),
+                "roadmapRecordsUpserted", roadmapImport.recordsUpserted(),
+                "roadmapCount", catalogService.countCatalogRoadmaps()
         ));
     }
 }

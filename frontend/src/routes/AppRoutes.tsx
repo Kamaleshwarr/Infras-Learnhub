@@ -9,6 +9,7 @@ import { NotFoundPage } from '../pages/errors/NotFoundPage'
 import { LearnManagePage } from '../pages/learn/LearnManagePage'
 import { LearnHomePage } from '../pages/learn/LearnHomePage'
 import { TechnologyDetailPage } from '../pages/learn/TechnologyDetailPage'
+import { RoadmapPage } from '../pages/learn/RoadmapPage'
 import { TechnologyListPage } from '../pages/learn/TechnologyListPage'
 import { LearnLayout } from '../layout/LearnLayout'
 import { InitiativeDetailPage } from '../pages/initiatives/InitiativeDetailPage'
@@ -45,6 +46,7 @@ export function AppRoutes() {
               <Route element={<LearnHomePage />} path="learn" />
               <Route element={<TechnologyListPage />} path="learn/technologies" />
               <Route element={<TechnologyDetailPage />} path="learn/technologies/:technologyId" />
+              <Route element={<RoadmapPage />} path="learn/technologies/:technologyId/roadmap" />
               <Route element={<RoleRoute roles={['ADMIN']} />}>
                 <Route element={<LearnManagePage />} path="learn/manage" />
                 <Route element={<TechnologyListPage adminMode />} path="learn/manage/technologies" />

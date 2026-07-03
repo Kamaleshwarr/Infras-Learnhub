@@ -1,0 +1,286 @@
+{
+  "technologySlug": "aws",
+  "version": "1.0.0",
+  "source": "platform-team",
+  "sourceUrl": "https://roadmap.sh/aws",
+  "updatedAt": "2026-07-03T00:00:00Z",
+  "description": "A structured path from AWS cloud fundamentals through compute, storage, networking, security, and well-architected design for cloud engineers.",
+  "stages": [
+    {
+      "order": 1,
+      "slug": "cloud-fundamentals",
+      "title": "Cloud Fundamentals",
+      "description": "Understand cloud computing concepts, the AWS global infrastructure, core service categories, and the AWS Management Console.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "aws-roadmap",
+          "title": "AWS Developer Roadmap",
+          "url": "https://roadmap.sh/aws",
+          "type": "ARTICLE",
+          "provider": "roadmap.sh",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "roadmap.sh",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-cloud-practitioner-essentials",
+          "title": "AWS Cloud Practitioner Essentials",
+          "url": "https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials",
+          "type": "OPEN_EDUCATIONAL_RESOURCE",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-getting-started",
+          "title": "Getting Started with AWS",
+          "url": "https://aws.amazon.com/getting-started/",
+          "type": "OFFICIAL_TUTORIAL",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "aws-getting-started-hands-on",
+          "title": "AWS Getting Started Hands-On Tutorials",
+          "url": "https://aws.amazon.com/getting-started/hands-on/",
+          "type": "PRACTICE_LAB",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "slug": "compute",
+      "title": "Compute",
+      "description": "Deploy and manage workloads with Amazon EC2, AWS Lambda, auto scaling, and choosing the right compute model for your application.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "aws-ec2-user-guide",
+          "title": "Amazon EC2 User Guide",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-lambda-developer-guide",
+          "title": "AWS Lambda Developer Guide",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-aws-samples",
+          "title": "AWS Samples on GitHub",
+          "url": "https://github.com/aws-samples",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "slug": "storage",
+      "title": "Storage",
+      "description": "Store and retrieve data with Amazon S3, understand storage classes, bucket policies, versioning, and lifecycle management.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "aws-s3-user-guide",
+          "title": "Amazon S3 User Guide",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-storage-fundamentals",
+          "title": "AWS Storage Services Overview",
+          "url": "https://aws.amazon.com/products/storage/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "aws-s3-hands-on-backup",
+          "title": "Hands-On — Backup Files to Amazon S3",
+          "url": "https://aws.amazon.com/getting-started/hands-on/backup-to-s3-cli/",
+          "type": "PRACTICE_LAB",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "slug": "networking",
+      "title": "Networking",
+      "description": "Design VPCs with subnets, route tables, internet gateways, security groups, and network ACLs for isolated cloud environments.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "aws-vpc-user-guide",
+          "title": "Amazon VPC User Guide",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-networking-fundamentals",
+          "title": "AWS Networking Fundamentals",
+          "url": "https://aws.amazon.com/products/networking/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-aws-vpc-samples",
+          "title": "AWS VPC Workshop Samples",
+          "url": "https://github.com/aws-samples/aws-vpc-networking-workshop",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "slug": "iam-and-security",
+      "title": "IAM and Security",
+      "description": "Manage access with IAM users, roles, policies, least-privilege principles, MFA, and AWS security best practices.",
+      "estimatedEffort": "1 week",
+      "learningResources": [
+        {
+          "slug": "aws-iam-user-guide",
+          "title": "IAM User Guide",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-security-best-practices",
+          "title": "AWS Security Best Practices",
+          "url": "https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "aws-iam-policy-generator",
+          "title": "AWS IAM Policy Generator Samples",
+          "url": "https://github.com/aws-samples/aws-iam-policy-generator",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T07:40:00Z"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "slug": "well-architected",
+      "title": "Well-Architected Design",
+      "description": "Apply the AWS Well-Architected Framework pillars for operational excellence, reliability, performance, cost optimization, and sustainability.",
+      "estimatedEffort": "1-2 weeks",
+      "learningResources": [
+        {
+          "slug": "aws-well-architected-framework",
+          "title": "AWS Well-Architected Framework",
+          "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        },
+        {
+          "slug": "aws-architecture-center",
+          "title": "AWS Architecture Center",
+          "url": "https://aws.amazon.com/architecture/",
+          "type": "OFFICIAL_DOCUMENTATION",
+          "provider": "AWS Skill Builder",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "practiceResources": [
+        {
+          "slug": "github-aws-well-architected-labs",
+          "title": "Well-Architected Labs",
+          "url": "https://github.com/awslabs/aws-well-architected-labs",
+          "type": "GITHUB",
+          "provider": "GitHub",
+          "freePaid": "FREE",
+          "version": "1.0.0",
+          "source": "aws.amazon.com",
+          "updatedAt": "2026-07-03T00:00:00Z"
+        }
+      ],
+      "notes": "Review the Well-Architected Tool against a sample workload to reinforce design trade-offs."
+    }
+  ]
+}

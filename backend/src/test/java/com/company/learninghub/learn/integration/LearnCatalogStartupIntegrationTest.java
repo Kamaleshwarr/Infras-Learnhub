@@ -2,6 +2,7 @@ package com.company.learninghub.learn.integration;
 
 import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.learn.dto.TechnologyResponse;
+import com.company.learninghub.learn.repository.LearnRoadmapRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.learn.service.LearnTechnologyService;
 import org.junit.jupiter.api.Test;
@@ -47,9 +48,13 @@ class LearnCatalogStartupIntegrationTest {
     @Autowired
     private LearnTechnologyRepository technologyRepository;
 
+    @Autowired
+    private LearnRoadmapRepository roadmapRepository;
+
     @Test
     void applicationStartsWithCatalogImportEnabled() {
         assertThat(technologyRepository.count()).isGreaterThan(0);
+        assertThat(roadmapRepository.count()).isEqualTo(5);
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.company.learninghub.learn.domain.LearnTechnology;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,4 +24,8 @@ public interface LearnTechnologyRepository extends JpaRepository<LearnTechnology
     List<LearnTechnology> findBySlugIn(Collection<String> slugs);
 
     List<LearnTechnology> findByCatalogPresentTrue();
+
+    @EntityGraph(attributePaths = "projectLinks")
+    @Query("SELECT t FROM LearnTechnology t WHERE t.catalogPresent = true")
+    List<LearnTechnology> findCatalogPresentWithProjectLinks();
 }

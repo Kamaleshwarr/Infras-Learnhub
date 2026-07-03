@@ -8,6 +8,7 @@ import com.company.learninghub.learn.domain.TechnologyCategory;
 import com.company.learninghub.learn.domain.TechnologyDifficulty;
 import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.learn.repository.LearnCatalogImportRepository;
+import com.company.learninghub.learn.repository.LearnRoadmapRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
@@ -41,6 +42,9 @@ class CatalogImportServiceTest {
     private LearnTechnologyRepository technologyRepository;
 
     @Mock
+    private LearnRoadmapRepository roadmapRepository;
+
+    @Mock
     private LearnCatalogImportRepository catalogImportRepository;
 
     @Mock
@@ -58,6 +62,7 @@ class CatalogImportServiceTest {
                 properties,
                 schemaValidator,
                 technologyRepository,
+                roadmapRepository,
                 catalogImportRepository,
                 userRepository,
                 new ObjectMapper().findAndRegisterModules()
@@ -74,8 +79,13 @@ class CatalogImportServiceTest {
     @Test
     void importCatalogSkipsWhenVersionAlreadyImported() {
         when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
-                "1.0.0",
+                "1.1.1",
                 "technologies",
+                CatalogImportStatus.SUCCESS
+        )).thenReturn(true);
+        when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
+                "1.1.1",
+                "roadmaps",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(true);
 
@@ -89,11 +99,16 @@ class CatalogImportServiceTest {
     void importCatalogPreservesOrganizationOverridesOnReimport() {
         stubImportOwner();
         when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
-                "1.0.0",
+                "1.1.1",
                 "technologies",
                 CatalogImportStatus.SUCCESS
         )).thenReturn(false);
-        when(technologyRepository.findByCatalogPresentTrue()).thenReturn(List.of());
+        when(catalogImportRepository.existsByCatalogVersionAndPackageTypeAndStatus(
+                "1.1.1",
+                "roadmaps",
+                CatalogImportStatus.SUCCESS
+        )).thenReturn(true);
+        when(technologyRepository.findCatalogPresentWithProjectLinks()).thenReturn(List.of());
 
         LearnTechnology existing = new LearnTechnology(
                 "spring-boot",
