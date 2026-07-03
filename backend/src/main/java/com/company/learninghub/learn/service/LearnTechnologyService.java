@@ -15,13 +15,13 @@ import com.company.learninghub.learn.dto.TechnologyResponse;
 import com.company.learninghub.learn.mapper.LearnTechnologyMapper;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
+import com.company.learninghub.learn.search.TechnologySearchMatching;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.user.domain.RoleName;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -199,7 +198,6 @@ public class LearnTechnologyService {
         String normalizedSearch = normalizeSearch(search);
         Specification<LearnTechnology> specification = Specification
                 .where(hasStatus(status))
-                .and(matchesSearch(normalizedSearch))
                 .and(hasCategory(category))
                 .and(hasDifficulty(difficulty));
 
@@ -207,8 +205,30 @@ public class LearnTechnologyService {
             specification = specification.and(hasCatalogPresent(true));
         }
 
-        return technologyRepository.findAll(specification, pageable)
-                .map(technology -> technologyMapper.toResponse(technology, List.of()));
+        if (!StringUtils.hasText(normalizedSearch)) {
+            return technologyRepository.findAll(specification, pageable)
+                    .map(technology -> technologyMapper.toResponse(technology, List.of()));
+        }
+
+        List<LearnTechnology> ranked = technologyRepository.findAll(specification)
+                .stream()
+                .filter(technology -> TechnologySearchMatching.matches(technology, normalizedSearch))
+                .sorted(TechnologySearchMatching.relevanceComparator(normalizedSearch))
+                .toList();
+
+        int start = Math.toIntExact(pageable.getOffset());
+        int end = Math.min(start + pageable.getPageSize(), ranked.size());
+        List<LearnTechnology> pageContent = start >= ranked.size()
+                ? List.of()
+                : ranked.subList(start, end);
+
+        return new PageImpl<>(
+                pageContent.stream()
+                        .map(technology -> technologyMapper.toResponse(technology, List.of()))
+                        .toList(),
+                pageable,
+                ranked.size()
+        );
     }
 
     private List<RelatedProjectSummary> loadRelatedProjects(UUID technologyId) {
@@ -285,67 +305,6 @@ public class LearnTechnologyService {
         return (root, query, criteriaBuilder) -> difficulty == null
                 ? criteriaBuilder.conjunction()
                 : criteriaBuilder.equal(root.get("difficulty"), difficulty);
-    }
-
-    private Specification<LearnTechnology> matchesSearch(String search) {
-        return (root, query, criteriaBuilder) -> {
-            if (!StringUtils.hasText(search)) {
-                return criteriaBuilder.conjunction();
-            }
-            String term = search.toLowerCase(Locale.ROOT);
-            return criteriaBuilder.or(
-                    textFieldContainsWholeTerm(criteriaBuilder, root.get("name"), term),
-                    textFieldContainsWholeTerm(criteriaBuilder, root.get("shortName"), term),
-                    textFieldContainsWholeTerm(criteriaBuilder, root.get("description"), term),
-                    slugFieldContainsTerm(criteriaBuilder, root.get("slug"), term),
-                    tagsContainExactTerm(criteriaBuilder, root.get("tags"), term)
-            );
-        };
-    }
-
-    private Predicate textFieldContainsWholeTerm(
-            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
-            Expression<String> field,
-            String term
-    ) {
-        Expression<String> lowered = criteriaBuilder.lower(field);
-        return criteriaBuilder.or(
-                criteriaBuilder.equal(lowered, term),
-                criteriaBuilder.like(lowered, term + " %"),
-                criteriaBuilder.like(lowered, "% " + term + " %"),
-                criteriaBuilder.like(lowered, "% " + term),
-                criteriaBuilder.like(lowered, term + ",%"),
-                criteriaBuilder.like(lowered, "% " + term + ",%"),
-                criteriaBuilder.like(lowered, "%(" + term + ")%"),
-                criteriaBuilder.like(lowered, "%(" + term + " %")
-        );
-    }
-
-    private Predicate slugFieldContainsTerm(
-            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
-            Expression<String> slugField,
-            String term
-    ) {
-        return criteriaBuilder.or(
-                criteriaBuilder.equal(slugField, term),
-                criteriaBuilder.like(slugField, term + "-%"),
-                criteriaBuilder.like(slugField, "%-" + term),
-                criteriaBuilder.like(slugField, "%-" + term + "-%")
-        );
-    }
-
-    private Predicate tagsContainExactTerm(
-            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
-            Expression<?> tagsField,
-            String term
-    ) {
-        String sanitizedTerm = term.replace("\"", "");
-        Expression<String> tagsText = criteriaBuilder.function(
-                "text",
-                String.class,
-                tagsField
-        );
-        return criteriaBuilder.like(criteriaBuilder.lower(tagsText), "%\"" + sanitizedTerm + "\"%");
     }
 
     private Pageable normalizePageable(Pageable pageable) {

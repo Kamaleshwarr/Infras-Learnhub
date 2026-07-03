@@ -210,6 +210,46 @@ class LearnTechnologyServiceTest {
                 .isEqualTo("catalogFeatured");
     }
 
+    @Test
+    void listAdminTechnologiesRanksSearchResultsByRelevance() {
+        LearnTechnology java = technology("java", TechnologyStatus.PUBLISHED);
+        LearnTechnology springBoot = technology("spring-boot", TechnologyStatus.PUBLISHED);
+        LearnTechnology nodeJs = technology("nodejs", TechnologyStatus.PUBLISHED);
+        ReflectionTestUtils.setField(java, "name", "Java");
+        ReflectionTestUtils.setField(java, "shortName", "Java");
+        ReflectionTestUtils.setField(springBoot, "name", "Spring Boot");
+        ReflectionTestUtils.setField(springBoot, "shortName", "Spring Boot");
+        ReflectionTestUtils.setField(
+                springBoot,
+                "description",
+                "Production-ready Java applications with convention-over-configuration and a rich ecosystem."
+        );
+        ReflectionTestUtils.setField(springBoot, "tags", List.of("java"));
+        ReflectionTestUtils.setField(nodeJs, "name", "Node.js");
+        ReflectionTestUtils.setField(nodeJs, "shortName", "Node.js");
+        ReflectionTestUtils.setField(
+                nodeJs,
+                "description",
+                "JavaScript runtime for building scalable network applications and APIs."
+        );
+
+        when(technologyRepository.findAll(any(Specification.class)))
+                .thenReturn(List.of(springBoot, nodeJs, java));
+
+        var page = technologyService.listAdminTechnologies(
+                null,
+                "java",
+                null,
+                null,
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(page.getContent()).hasSize(2);
+        assertThat(page.getContent().get(0).slug()).isEqualTo("java");
+        assertThat(page.getContent().get(1).slug()).isEqualTo("spring-boot");
+        assertThat(page.getContent()).noneMatch(technology -> "nodejs".equals(technology.slug()));
+    }
+
     private User user(String employeeId, String email, RoleName roleName) {
         User user = new User(employeeId, email, "Test User", "$2a$12$hash");
         ReflectionTestUtils.setField(user, "id", UUID.randomUUID());

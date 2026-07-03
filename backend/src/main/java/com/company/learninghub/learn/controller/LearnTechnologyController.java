@@ -41,8 +41,8 @@ public class LearnTechnologyController {
             summary = "List published technologies",
             description = """
                     Returns paginated published technologies for authenticated users.
-                    Supports whole-term search across name, short name, slug, tags, and description,
-                    plus category and difficulty filters.
+                    Supports whole-term, case-insensitive search across name, short name, slug,
+                    tags, and description with relevance ranking, plus category and difficulty filters.
                     """
     )
     public ResponseEntity<PageResponse<TechnologyResponse>> list(
