@@ -210,6 +210,19 @@ public class LearnTechnologyService {
                     .map(technology -> technologyMapper.toResponse(technology, List.of()));
         }
 
+        /*
+         * Search ranking is performed in memory intentionally.
+         *
+         * The platform catalog is expected to remain approximately 100–500 technologies.
+         * For that size, loading filtered candidates and applying deterministic relevance
+         * scoring in Java keeps the implementation simple, testable, and free of external
+         * search infrastructure.
+         *
+         * If the catalog grows significantly (for example, beyond 1,000 technologies),
+         * redesign search ranking in SQL (ORDER BY CASE / tsvector) or adopt a dedicated
+         * search solution. Do not extend this in-memory path without measuring latency
+         * and memory use under realistic catalog sizes.
+         */
         List<LearnTechnology> ranked = technologyRepository.findAll(specification)
                 .stream()
                 .filter(technology -> TechnologySearchMatching.matches(technology, normalizedSearch))

@@ -10,15 +10,10 @@ import java.util.Locale;
 
 /**
  * Deterministic catalog search matching and relevance scoring for technology discovery.
+ *
+ * @see TechnologySearchRelevance for ranked match tiers
  */
 public final class TechnologySearchMatching {
-
-    public static final int SCORE_EXACT_NAME = 1_000;
-    public static final int SCORE_NAME_STARTS_WITH = 800;
-    public static final int SCORE_SHORT_NAME = 600;
-    public static final int SCORE_SLUG = 400;
-    public static final int SCORE_TAG = 200;
-    public static final int SCORE_DESCRIPTION = 100;
 
     private TechnologySearchMatching() {
     }
@@ -76,42 +71,42 @@ public final class TechnologySearchMatching {
         int score = 0;
 
         if (lowerName.equals(normalizedQuery)) {
-            score = Math.max(score, SCORE_EXACT_NAME);
+            score = Math.max(score, TechnologySearchRelevance.EXACT_NAME_MATCH.score());
         }
         if (phraseStartsWith(lowerName, normalizedQuery)) {
-            score = Math.max(score, SCORE_NAME_STARTS_WITH);
+            score = Math.max(score, TechnologySearchRelevance.NAME_STARTS_WITH.score());
         }
         if (phraseMatchesAsWords(lowerName, normalizedQuery)) {
-            score = Math.max(score, SCORE_EXACT_NAME);
+            score = Math.max(score, TechnologySearchRelevance.EXACT_NAME_MATCH.score());
         }
         if (phraseMatchesAsWords(lowerShortName, normalizedQuery)) {
-            score = Math.max(score, SCORE_SHORT_NAME);
+            score = Math.max(score, TechnologySearchRelevance.SHORT_NAME_MATCH.score());
         }
         if (phraseMatchesAsWords(slugAsPhrase, normalizedQuery)) {
-            score = Math.max(score, SCORE_SLUG);
+            score = Math.max(score, TechnologySearchRelevance.SLUG_MATCH.score());
         }
 
         for (String token : tokens) {
             if (wordEquals(lowerName, token)) {
-                score = Math.max(score, SCORE_EXACT_NAME);
+                score = Math.max(score, TechnologySearchRelevance.EXACT_NAME_MATCH.score());
             }
             if (nameStartsWithWord(lowerName, token)) {
-                score = Math.max(score, SCORE_NAME_STARTS_WITH);
+                score = Math.max(score, TechnologySearchRelevance.NAME_STARTS_WITH.score());
             }
             if (containsWord(lowerName, token)) {
-                score = Math.max(score, SCORE_NAME_STARTS_WITH);
+                score = Math.max(score, TechnologySearchRelevance.NAME_STARTS_WITH.score());
             }
             if (wordEquals(lowerShortName, token) || containsWord(lowerShortName, token)) {
-                score = Math.max(score, SCORE_SHORT_NAME);
+                score = Math.max(score, TechnologySearchRelevance.SHORT_NAME_MATCH.score());
             }
             if (containsWord(slugAsPhrase, token) || slugSegmentEquals(lowerSlug, token)) {
-                score = Math.max(score, SCORE_SLUG);
+                score = Math.max(score, TechnologySearchRelevance.SLUG_MATCH.score());
             }
             if (tagsContainExactTerm(tags, token)) {
-                score = Math.max(score, SCORE_TAG);
+                score = Math.max(score, TechnologySearchRelevance.TAG_MATCH.score());
             }
             if (containsWord(lowerDescription, token)) {
-                score = Math.max(score, SCORE_DESCRIPTION);
+                score = Math.max(score, TechnologySearchRelevance.DESCRIPTION_MATCH.score());
             }
         }
 
