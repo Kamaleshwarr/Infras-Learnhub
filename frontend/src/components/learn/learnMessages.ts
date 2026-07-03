@@ -7,6 +7,7 @@ export const LEARN_MESSAGES = {
   homeSearchPlaceholder: 'Search technologies...',
   homeFeaturedTitle: 'Featured technologies',
   homeBrowseAll: 'Browse all technologies',
+  homeViewDetails: 'View Details',
   homeEmptyFeatured: 'No featured technologies are published yet.',
   technologiesTitle: 'Technologies',
   technologiesDescription: 'Browse and search the technology catalog.',

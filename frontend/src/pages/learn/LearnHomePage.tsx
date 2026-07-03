@@ -5,8 +5,8 @@ import {
   Box,
   Button,
   Card,
-  CardActionArea,
   CardContent,
+  Grid,
   InputAdornment,
   Stack,
   TextField,
@@ -15,7 +15,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
 import { PageHeader } from '../../components/common/PageHeader'
-import { TechnologyCategoryChip, TechnologyDifficultyChip } from '../../components/learn/TechnologyMetaChips'
+import { FeaturedTechnologyCard } from '../../components/learn/FeaturedTechnologyCard'
 import { LEARN_MESSAGES } from '../../components/learn/learnMessages'
 import { LearnPageIntro } from '../../layout/LearnLayout'
 import type { Technology } from '../../types/learn'
@@ -66,8 +66,8 @@ export function LearnHomePage() {
       <PageHeader description={LEARN_MESSAGES.moduleDescription} title={LEARN_MESSAGES.moduleTitle} />
       <LearnPageIntro />
 
-      <Card sx={{ mb: 4 }} variant="outlined">
-        <CardContent>
+      <Card sx={{ mb: 3 }} variant="outlined">
+        <CardContent sx={{ py: 2.5 }}>
           <Stack spacing={2}>
             <Typography variant="h5">{LEARN_MESSAGES.homeHeroTitle}</Typography>
             <Typography color="text.secondary">{LEARN_MESSAGES.homeHeroDescription}</Typography>
@@ -88,42 +88,31 @@ export function LearnHomePage() {
                 value={search}
               />
             </Box>
-            <Button component={RouterLink} to="/learn/technologies" variant="outlined">
+            <Button component={RouterLink} sx={{ alignSelf: 'flex-start' }} to="/learn/technologies" variant="outlined">
               {LEARN_MESSAGES.homeBrowseAll}
             </Button>
           </Stack>
         </CardContent>
       </Card>
 
-      <Stack spacing={2}>
-        <Typography variant="h6">{LEARN_MESSAGES.homeFeaturedTitle}</Typography>
-        {error ? <Alert severity="error">{error}</Alert> : null}
+      <Box component="section">
+        <Typography component="h2" sx={{ fontWeight: 600, mb: 2 }} variant="h6">
+          {LEARN_MESSAGES.homeFeaturedTitle}
+        </Typography>
+
+        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
         {!loading && !error && featuredToShow.length === 0 ? (
           <Alert severity="info">{LEARN_MESSAGES.homeEmptyFeatured}</Alert>
         ) : null}
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ flexWrap: 'wrap' }}>
+
+        <Grid container spacing={2.5}>
           {featuredToShow.map((technology) => (
-            <Box key={technology.id} sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 16px)', md: '1 1 calc(33.333% - 16px)' } }}>
-              <Card variant="outlined">
-                <CardActionArea component={RouterLink} to={`/learn/technologies/${technology.id}`}>
-                  <CardContent>
-                    <Stack spacing={1}>
-                      <Typography variant="h6">{technology.name}</Typography>
-                      <Typography color="text.secondary" variant="body2">
-                        {technology.shortName}
-                      </Typography>
-                      <Stack direction="row" spacing={1}>
-                        <TechnologyCategoryChip category={technology.category} />
-                        <TechnologyDifficultyChip difficulty={technology.difficulty} />
-                      </Stack>
-                    </Stack>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Box>
+            <Grid key={technology.id} size={{ xs: 12, sm: 6, md: 4 }}>
+              <FeaturedTechnologyCard technology={technology} />
+            </Grid>
           ))}
-        </Stack>
-      </Stack>
+        </Grid>
+      </Box>
     </>
   )
 }
