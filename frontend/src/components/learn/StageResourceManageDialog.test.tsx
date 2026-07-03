@@ -49,7 +49,7 @@ describe('StageResourceManageDialog', () => {
     vi.clearAllMocks()
   })
 
-  it('loads and displays catalog and effective resources', async () => {
+  it('loads and displays resource with status and action icons', async () => {
     vi.mocked(learnApi.getStageResources).mockResolvedValue(adminView)
 
     render(
@@ -64,9 +64,10 @@ describe('StageResourceManageDialog', () => {
     )
 
     expect(await screen.findByRole('button', { name: 'Replace URL' })).toBeInTheDocument()
-    expect(screen.getAllByText('Oracle Java Tutorial')).toHaveLength(2)
-    expect(screen.getByText('Catalog default')).toBeInTheDocument()
+    expect(screen.getAllByText('Oracle Java Tutorial')).toHaveLength(1)
+    expect(screen.getByText('Catalog Default')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Disable' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Restore default' })).not.toBeInTheDocument()
   })
 
   it('creates a URL override from the replace form', async () => {
@@ -135,6 +136,58 @@ describe('StageResourceManageDialog', () => {
       }),
     )
     expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('shows employee URL when it differs from catalog URL', async () => {
+    vi.mocked(learnApi.getStageResources).mockResolvedValue({
+      ...adminView,
+      resources: [
+        {
+          ...adminView.resources[0],
+          effective: {
+            ...adminView.resources[0].effective!,
+            url: 'https://internal.example.com/java',
+          },
+          override: {
+            id: 'override-1',
+            technologySlug: 'java',
+            stageSlug: 'introduction',
+            resourceSlug: 'oracle-docs',
+            catalogResourceSlug: 'oracle-docs',
+            resourceKind: 'LEARNING',
+            disabled: false,
+            overrideUrl: 'https://internal.example.com/java',
+            preferred: false,
+            enabled: true,
+            reason: null,
+            title: null,
+            resourceType: null,
+            provider: null,
+            freePaid: null,
+            resourceOrder: 0,
+            organizationResource: false,
+            status: 'URL_OVERRIDE',
+          },
+          overrideStatus: 'URL_OVERRIDE',
+        },
+      ],
+    })
+
+    render(
+      <StageResourceManageDialog
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        open
+        stageSlug="introduction"
+        stageTitle="Introduction"
+        technologyId="11111111-1111-1111-1111-111111111111"
+      />,
+    )
+
+    expect(await screen.findByText('Employee URL')).toBeInTheDocument()
+    expect(screen.getByText('https://internal.example.com/java')).toBeInTheDocument()
+    expect(screen.getByText('URL Override')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Restore default' })).toBeInTheDocument()
   })
 
   it('restores catalog default', async () => {
