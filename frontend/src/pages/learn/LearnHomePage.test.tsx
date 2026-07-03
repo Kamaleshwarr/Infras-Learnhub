@@ -7,6 +7,7 @@ import type { Technology } from '../../types/learn'
 vi.mock('../../api/learnApi', () => ({
   learnApi: {
     listTechnologies: vi.fn(),
+    getJourney: vi.fn(),
   },
 }))
 
@@ -47,6 +48,12 @@ describe('LearnHomePage featured section', () => {
       last: true,
       sort: [{ property: 'name', direction: 'ASC' }],
     })
+    vi.mocked(learnApi.getJourney).mockResolvedValue({
+      continueLearning: null,
+      active: [],
+      completed: [],
+      left: [],
+    })
 
     renderHome()
 
@@ -75,9 +82,48 @@ describe('LearnHomePage featured section', () => {
       last: true,
       sort: [{ property: 'name', direction: 'ASC' }],
     })
+    vi.mocked(learnApi.getJourney).mockResolvedValue({
+      continueLearning: null,
+      active: [],
+      completed: [],
+      left: [],
+    })
 
     renderHome()
 
     expect(await screen.findByText('No featured technologies are published yet.')).toBeInTheDocument()
+  })
+
+  it('renders continue learning when an active journey exists', async () => {
+    vi.mocked(learnApi.listTechnologies).mockResolvedValue({
+      content: [featuredTechnology],
+      page: 0,
+      size: 12,
+      totalElements: 1,
+      totalPages: 1,
+      first: true,
+      last: true,
+      sort: [{ property: 'name', direction: 'ASC' }],
+    })
+    vi.mocked(learnApi.getJourney).mockResolvedValue({
+      continueLearning: {
+        enrollmentId: '44444444-4444-4444-4444-444444444444',
+        technologyId: featuredTechnology.id,
+        technologySlug: featuredTechnology.slug,
+        technologyName: featuredTechnology.name,
+        currentStageId: '22222222-2222-2222-2222-222222222222',
+        currentStageOrder: 1,
+        currentStageTitle: 'Getting Started',
+        progressPercent: 10,
+      },
+      active: [],
+      completed: [],
+      left: [],
+    })
+
+    renderHome()
+
+    expect(await screen.findByRole('heading', { name: 'Continue Learning' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Continue' })).toBeInTheDocument()
   })
 })

@@ -15,7 +15,7 @@ Last updated: 2026-07-02 (v0.8.0 — product design in review)
 | v0.6.2 | Certificate Preview, Download & Pending Reviews Drilldown | Shipped (PR #32) |
 | **v0.7.0** | **Initiatives Experience (List, Detail, Submit Integration)** | **Validated — ready for merge (PR #36)** |
 | **v0.7.1** | **Initiative Management (Create, Edit, Lifecycle, Delete)** | **Validated — ready for merge (PR #43)** |
-| **v0.8.0** | **Learn — Learning Guidance Platform** | **In progress — F17 shipped** |
+| **v0.8.0** | **Learn — Learning Guidance Platform** | **In progress — F18 shipped** |
 
 Release notes: `docs/releases/release-v0.7.1.md`  
 v0.8.0 product design: `docs/v0.8.0/`  
@@ -42,7 +42,7 @@ Workstream summary: `docs/releases/notification-infrastructure-final-summary.md`
 | F16 | Technology Discovery & Search (+ Projects cross-nav) | **Shipped** |
 | **F16-R** | Catalog Foundation Refactor | **Shipped** |
 | F17 | Roadmap Viewer & Catalog Roadmaps | **Shipped** |
-| F18 | Progress & Learning Journey | **Ready to begin** |
+| F18 | Progress & Learning Journey | **Shipped** |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |
 | F21 | Optional Initiative Association | Not started |

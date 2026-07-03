@@ -7,6 +7,7 @@ import type {
   TechnologyListParams,
 } from '../types/learn'
 import type { Roadmap } from '../types/roadmap'
+import type { Enrollment, Journey, TechnologyProgress } from '../types/progress'
 
 export const learnApi = {
   listTechnologies: async (params?: TechnologyListParams) => {
@@ -64,5 +65,30 @@ export const learnApi = {
       `/learn/manage/technologies/${technologyId}/project-links/${projectId}`,
     )
     return response.data
+  },
+  enrollInTechnology: async (technologyId: string) => {
+    const response = await httpClient.post<Enrollment>('/learn/enrollments', { technologyId })
+    return response.data
+  },
+  getJourney: async () => {
+    const response = await httpClient.get<Journey>('/learn/journey')
+    return response.data
+  },
+  getTechnologyProgress: async (technologyId: string) => {
+    const response = await httpClient.get<TechnologyProgress>(`/learn/progress/technologies/${technologyId}`)
+    return response.data
+  },
+  getActiveEnrollment: async (technologyId: string) => {
+    const response = await httpClient.get<Enrollment>(`/learn/enrollments/technologies/${technologyId}`)
+    return response.data
+  },
+  completeStage: async (enrollmentId: string, stageId: string) => {
+    const response = await httpClient.post<Enrollment>(`/learn/enrollments/${enrollmentId}/complete-stage`, {
+      stageId,
+    })
+    return response.data
+  },
+  leaveEnrollment: async (enrollmentId: string) => {
+    await httpClient.delete(`/learn/enrollments/${enrollmentId}`)
   },
 }

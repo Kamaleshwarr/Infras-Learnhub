@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import axios from 'axios'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { TechnologyDetailPage } from './TechnologyDetailPage'
@@ -8,6 +9,7 @@ import type { Technology } from '../../types/learn'
 vi.mock('../../api/learnApi', () => ({
   learnApi: {
     getTechnology: vi.fn(),
+    getActiveEnrollment: vi.fn(),
   },
 }))
 
@@ -80,6 +82,15 @@ function renderDetail(path = `/learn/technologies/${technology.id}`) {
 describe('TechnologyDetailPage roadmap navigation', () => {
   it('links to the roadmap page for the current technology', async () => {
     vi.mocked(learnApi.getTechnology).mockResolvedValue(technology)
+    vi.mocked(learnApi.getActiveEnrollment).mockRejectedValue(
+      new axios.AxiosError('Not found', 'ERR_BAD_REQUEST', undefined, undefined, {
+        status: 404,
+        statusText: 'Not Found',
+        headers: {},
+        config: { headers: new axios.AxiosHeaders() },
+        data: { message: 'Not found' },
+      }),
+    )
 
     renderDetail()
 

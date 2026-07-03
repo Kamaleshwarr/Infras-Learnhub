@@ -1,13 +1,15 @@
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined'
+import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined'
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import {
+  alpha,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
   Link,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
   Typography,
 } from '@mui/material'
@@ -22,54 +24,85 @@ function formatResourceType(type: string) {
     .join(' ')
 }
 
-function ResourceList({ resources, title }: { resources: RoadmapResource[]; title: string }) {
+function ResourceGroup({ resources, title }: { resources: RoadmapResource[]; title: string }) {
   if (resources.length === 0) {
     return null
   }
 
   return (
-    <Stack spacing={1}>
-      <Typography variant="subtitle2">{title}</Typography>
-      <List dense disablePadding>
-        {resources.map((resource) => (
-          <ListItem disableGutters key={resource.slug} sx={{ alignItems: 'flex-start', py: 0.75 }}>
-            <ListItemText
-              primary={
-                <Link href={resource.url} rel="noopener noreferrer" target="_blank">
-                  {resource.title}
-                  <OpenInNewOutlinedIcon fontSize="inherit" sx={{ ml: 0.5, verticalAlign: 'text-bottom' }} />
-                </Link>
-              }
-              secondary={
-                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
-                  <Typography color="text.secondary" component="span" variant="caption">
-                    {resource.provider}
-                  </Typography>
-                  <Typography color="text.secondary" component="span" variant="caption">
-                    {formatResourceType(resource.type)}
-                  </Typography>
-                  {resource.freePaid ? (
-                    <Chip label={resource.freePaid} size="small" variant="outlined" />
-                  ) : null}
-                </Stack>
-              }
-            />
-          </ListItem>
-        ))}
-      </List>
-      <Typography color="text.secondary" variant="caption">
-        {LEARN_MESSAGES.roadmapExternalLink}
+    <Box
+      sx={{
+        bgcolor: (theme) => alpha(theme.palette.grey[500], 0.05),
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 1.5,
+        p: { xs: 1.25, sm: 1.5 },
+      }}
+    >
+      <Typography sx={{ fontWeight: 600, mb: 1 }} variant="subtitle2">
+        {title}
       </Typography>
-    </Stack>
+      <Stack spacing={0.75}>
+        {resources.map((resource) => (
+          <Box
+            key={resource.slug}
+            sx={{
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 1,
+              px: { xs: 1.25, sm: 1.5 },
+              py: 1,
+            }}
+          >
+            <Link
+              href={resource.url}
+              rel="noopener noreferrer"
+              sx={{ alignItems: 'center', display: 'inline-flex', fontWeight: 600, gap: 0.5 }}
+              target="_blank"
+              underline="hover"
+              variant="body2"
+            >
+              {resource.title}
+              <OpenInNewOutlinedIcon fontSize="inherit" />
+            </Link>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}
+            >
+              <Typography color="text.secondary" variant="caption">
+                {resource.provider}
+              </Typography>
+              <Typography color="text.secondary" variant="caption">
+                ·
+              </Typography>
+              <Typography color="text.secondary" variant="caption">
+                {formatResourceType(resource.type)}
+              </Typography>
+              {resource.freePaid ? (
+                <Chip label={resource.freePaid} size="small" sx={{ height: 18 }} variant="outlined" />
+              ) : null}
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
+    </Box>
   )
 }
 
 interface RoadmapStageCardProps {
   stageNumber: number
   totalStages: number
-  isRecommended: boolean
   isNext: boolean
+  isCompleted?: boolean
+  isCurrent?: boolean
+  isUpcoming?: boolean
+  canComplete?: boolean
+  completing?: boolean
+  onCompleteStage?: () => void
   stage: {
+    id: string
     order: number
     slug: string
     title: string
@@ -84,36 +117,114 @@ interface RoadmapStageCardProps {
 export function RoadmapStageCard({
   stageNumber,
   totalStages,
-  isRecommended,
   isNext,
+  isCompleted = false,
+  isCurrent = false,
+  isUpcoming = false,
+  canComplete = false,
+  completing = false,
+  onCompleteStage,
   stage,
 }: RoadmapStageCardProps) {
   return (
-    <Card id={`stage-${stage.slug}`} variant="outlined">
-      <CardContent>
-        <Stack spacing={2}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-            <Chip color="primary" label={`Stage ${stageNumber} of ${totalStages}`} size="small" />
-            {isRecommended ? <Chip color="success" label={LEARN_MESSAGES.roadmapCurrentStage} size="small" /> : null}
-            {isNext ? <Chip color="info" label={LEARN_MESSAGES.roadmapNextStage} size="small" variant="outlined" /> : null}
-            <Box sx={{ flexGrow: 1 }} />
-            <Typography color="text.secondary" variant="body2">
+    <Card
+      id={`stage-${stage.slug}`}
+      sx={(theme) => ({
+        bgcolor: isCurrent
+          ? alpha(theme.palette.primary.main, 0.05)
+          : isCompleted
+            ? alpha(theme.palette.success.main, 0.025)
+            : 'background.paper',
+        borderColor: isCurrent ? 'primary.main' : isCompleted ? 'success.light' : 'divider',
+        borderLeft: isCompleted ? `4px solid ${theme.palette.success.main}` : undefined,
+        borderWidth: isCurrent ? 2 : 1,
+        boxShadow: isCurrent ? theme.shadows[3] : 0,
+        mb: 1.5,
+        opacity: isUpcoming && !isCurrent ? 0.92 : 1,
+        transition: theme.transitions.create(['box-shadow', 'border-color', 'opacity']),
+      })}
+      variant="outlined"
+    >
+      <CardContent sx={{ '&:last-child': { pb: 1.75 }, p: { xs: 1.75, sm: 2 } }}>
+        <Stack spacing={1.75}>
+          <Stack direction={{ sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'flex-start' }, justifyContent: 'space-between' }}>
+            <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                {isCompleted ? (
+                  <CheckCircleOutlinedIcon aria-hidden color="success" fontSize="small" />
+                ) : isCurrent ? (
+                  <PlayCircleOutlinedIcon aria-hidden color="primary" fontSize="small" />
+                ) : (
+                  <RadioButtonUncheckedIcon aria-hidden color="disabled" fontSize="small" />
+                )}
+                <Typography color="text.secondary" variant="caption">
+                  Stage {stageNumber} of {totalStages}
+                </Typography>
+                {isCompleted ? (
+                  <Chip
+                    color="success"
+                    label={LEARN_MESSAGES.progressStageCompleted}
+                    size="small"
+                    sx={{ height: 20 }}
+                    variant="outlined"
+                  />
+                ) : null}
+                {isCurrent ? (
+                  <Chip color="primary" label={LEARN_MESSAGES.roadmapCurrentStage} size="small" sx={{ height: 20 }} />
+                ) : null}
+                {!isCompleted && isNext ? (
+                  <Chip
+                    color="info"
+                    label={LEARN_MESSAGES.roadmapNextStage}
+                    size="small"
+                    sx={{ height: 20 }}
+                    variant="outlined"
+                  />
+                ) : null}
+              </Stack>
+
+              <Typography
+                component="h3"
+                sx={{
+                  color: isCompleted ? 'text.secondary' : 'text.primary',
+                  fontWeight: isCurrent ? 700 : 600,
+                  lineHeight: 1.3,
+                }}
+                variant="subtitle1"
+              >
+                {stage.title}
+              </Typography>
+            </Stack>
+
+            <Typography color="text.secondary" sx={{ flexShrink: 0, fontWeight: 500 }} variant="caption">
               {stage.estimatedEffort}
             </Typography>
           </Stack>
 
-          <Stack spacing={1}>
-            <Typography variant="h6">{stage.title}</Typography>
-            <Typography>{stage.description}</Typography>
-            {stage.notes ? (
-              <Typography color="text.secondary" variant="body2">
-                {stage.notes}
-              </Typography>
-            ) : null}
+          <Typography
+            color={isCompleted ? 'text.secondary' : 'text.primary'}
+            sx={{ lineHeight: 1.55 }}
+            variant="body2"
+          >
+            {stage.description}
+          </Typography>
+
+          {stage.notes ? (
+            <Typography color="text.secondary" variant="caption">
+              {stage.notes}
+            </Typography>
+          ) : null}
+
+          <Stack spacing={1.25}>
+            <ResourceGroup resources={stage.learningResources} title={LEARN_MESSAGES.roadmapLearningResources} />
+            <ResourceGroup resources={stage.practiceResources} title={LEARN_MESSAGES.roadmapPracticeResources} />
           </Stack>
 
-          <ResourceList resources={stage.learningResources} title={LEARN_MESSAGES.roadmapLearningResources} />
-          <ResourceList resources={stage.practiceResources} title={LEARN_MESSAGES.roadmapPracticeResources} />
+          {canComplete && onCompleteStage ? (
+            <Button disabled={completing} onClick={onCompleteStage} variant="contained">
+              {LEARN_MESSAGES.progressCompleteStage}
+            </Button>
+          ) : null}
         </Stack>
       </CardContent>
     </Card>

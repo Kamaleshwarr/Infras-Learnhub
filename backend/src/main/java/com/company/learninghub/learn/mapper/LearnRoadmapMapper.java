@@ -76,6 +76,7 @@ public class LearnRoadmapMapper {
                 .toList();
 
         return new RoadmapStageResponse(
+                stage.getId().toString(),
                 stage.getStageOrder(),
                 stage.getSlug(),
                 stage.getTitle(),

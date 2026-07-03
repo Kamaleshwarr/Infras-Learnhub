@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
 import { Alert, Box, Button, Card, CardContent, Link, Stack, Typography } from '@mui/material'
-import { Link as RouterLink, useParams } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
 import { useAuth } from '../../auth/useAuth'
 import { PageHeader } from '../../components/common/PageHeader'
@@ -16,16 +16,20 @@ import {
 } from '../../components/learn/LearnManagementSnackbar'
 import { LEARN_MESSAGES } from '../../components/learn/learnMessages'
 import type { Technology, TechnologyLifecycleAction } from '../../types/learn'
-import { isNotFoundError, resolveApiError } from '../../utils/apiErrors'
+import type { Enrollment } from '../../types/progress'
+import { isConflictError, isNotFoundError, resolveApiError } from '../../utils/apiErrors'
 
 export function TechnologyDetailPage() {
   const { technologyId } = useParams()
+  const navigate = useNavigate()
   const { isAdmin } = useAuth()
   const [technology, setTechnology] = useState<Technology | null>(null)
+  const [enrollment, setEnrollment] = useState<Enrollment | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [curationOpen, setCurationOpen] = useState(false)
+  const [startingLearning, setStartingLearning] = useState(false)
   const [notification, setNotification] = useState<LearnManagementNotification | null>(null)
 
   useEffect(() => {
@@ -46,6 +50,20 @@ export function TechnologyDetailPage() {
         const response = await learnApi.getTechnology(technologyId!)
         if (mounted) {
           setTechnology(response)
+        }
+
+        try {
+          const enrollmentResponse = await learnApi.getActiveEnrollment(technologyId!)
+          if (mounted) {
+            setEnrollment(enrollmentResponse)
+          }
+        } catch (enrollmentError) {
+          if (mounted && !isNotFoundError(enrollmentError)) {
+            throw enrollmentError
+          }
+          if (mounted) {
+            setEnrollment(null)
+          }
         }
       } catch (loadError) {
         if (mounted) {
@@ -75,6 +93,13 @@ export function TechnologyDetailPage() {
       return
     }
     void learnApi.getTechnology(technologyId).then(setTechnology).catch(() => undefined)
+    void learnApi.getActiveEnrollment(technologyId)
+      .then(setEnrollment)
+      .catch((enrollmentError) => {
+        if (isNotFoundError(enrollmentError)) {
+          setEnrollment(null)
+        }
+      })
   }
 
   function handleLifecycleSuccess(action: TechnologyLifecycleAction) {
@@ -85,8 +110,40 @@ export function TechnologyDetailPage() {
           ? LEARN_MESSAGES.hideSuccess
           : LEARN_MESSAGES.archiveSuccess
     setNotification({ message, severity: 'success' })
-    reloadTechnology()
+    if (!technologyId) {
+      return
+    }
+    void learnApi.getTechnology(technologyId).then(setTechnology).catch(() => undefined)
   }
+
+  async function handleStartLearning() {
+    if (!technologyId) {
+      return
+    }
+
+    setStartingLearning(true)
+    try {
+      const createdEnrollment = await learnApi.enrollInTechnology(technologyId)
+      setEnrollment(createdEnrollment)
+      setNotification({ message: LEARN_MESSAGES.progressEnrollSuccess, severity: 'success' })
+      navigate(`/learn/technologies/${technologyId}/roadmap`)
+    } catch (startError) {
+      if (isConflictError(startError)) {
+        navigate(`/learn/technologies/${technologyId}/roadmap`)
+        return
+      }
+      setNotification({
+        message: resolveApiError(startError, LEARN_MESSAGES.progressEnrollError),
+        severity: 'error',
+      })
+    } finally {
+      setStartingLearning(false)
+    }
+  }
+
+  const hasActiveEnrollment =
+    enrollment != null && (enrollment.status === 'IN_PROGRESS' || enrollment.status === 'NOT_STARTED')
+  const isRoadmapComplete = enrollment?.status === 'COMPLETED'
 
   if (loading) {
     return <Alert severity="info">Loading technology...</Alert>
@@ -153,13 +210,38 @@ export function TechnologyDetailPage() {
               <Typography color="text.secondary" variant="body2">
                 {LEARN_MESSAGES.whatNext}
               </Typography>
-              <Button
-                component={RouterLink}
-                to={`/learn/technologies/${technology.id}/roadmap`}
-                variant="contained"
-              >
-                {LEARN_MESSAGES.viewRoadmap}
-              </Button>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                {!hasActiveEnrollment && !isRoadmapComplete ? (
+                  <Button disabled={startingLearning} onClick={() => void handleStartLearning()} variant="contained">
+                    {LEARN_MESSAGES.progressStartLearning}
+                  </Button>
+                ) : null}
+                {hasActiveEnrollment ? (
+                  <Button
+                    component={RouterLink}
+                    to={`/learn/technologies/${technology.id}/roadmap`}
+                    variant="contained"
+                  >
+                    {LEARN_MESSAGES.progressContinueLearning}
+                  </Button>
+                ) : null}
+                {isRoadmapComplete ? (
+                  <Button
+                    component={RouterLink}
+                    to={`/learn/technologies/${technology.id}/roadmap`}
+                    variant="contained"
+                  >
+                    {LEARN_MESSAGES.progressRoadmapComplete}
+                  </Button>
+                ) : null}
+                <Button
+                  component={RouterLink}
+                  to={`/learn/technologies/${technology.id}/roadmap`}
+                  variant={hasActiveEnrollment || isRoadmapComplete ? 'outlined' : 'text'}
+                >
+                  {LEARN_MESSAGES.viewRoadmap}
+                </Button>
+              </Stack>
               <Typography color="text.secondary" variant="caption">
                 {LEARN_MESSAGES.viewRoadmapHelper}
               </Typography>

@@ -52,7 +52,7 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 ## Current Release
 
 **v0.7.1** — Initiative Management (**Complete** — F11–F15 implemented; manual QA passed)  
-**v0.8.0** — Learn module (**F16-R shipped**; **F17 Roadmap Viewer shipped**; **F18 blocked**)  
+**v0.8.0** — Learn module (**F16-R shipped**; **F17 Roadmap Viewer shipped**; **F18 Learning Journey shipped**)  
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*  
 **Validated (pending merge):** v0.7.0 Initiatives Experience (PR #36); v0.7.1 Initiative Management (PR #43)  
 **Shipped baseline:** v0.6.2 — Certificate Preview, Download & Pending Reviews Drilldown (PR #32)
@@ -183,13 +183,20 @@ Roadmap: `docs/project-roadmap.md`
 
 See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implementation-plan-v2.md`, `docs/v0.8.0/10-catalog-specification.md`
 
-**F16-R shipped. F17 may begin after F16-R merge.**
+**F16-R shipped. F17 shipped. F18 shipped. F19 may begin after F18 merge.**
+
+### v0.8.0 F18 — Learning Journey & Progress (shipped)
+
+- Employee-owned enrollments and sequential stage completion
+- `V15__learn_progress.sql` — enrollments + stage progress tables referencing catalog stages
+- Continue Learning on Learn home; roadmap progress bar and stage states
+- Progress APIs scoped to authenticated employee (BR-PR10: no admin edit)
 
 ## Completed Backend Modules
 
 - Authentication
 - Learning Initiatives
-- **Learn — Technologies (F16 + F16-R catalog foundation)**
+- **Learn — Technologies, roadmaps, and employee progress (F16–F18)**
 - Certificate Submissions
 - Leaderboards
 - Study Materials Repository
@@ -212,7 +219,7 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 9. Certificate Review enhancements — Admin preview/download, Pending Reviews dashboard drilldown (v0.6.2)
 10. Initiatives Experience UI — List, detail, submit integration (v0.7.0 — PR #36 pending merge)
 11. Initiative Management UI — Create (F12), Edit (F13), Lifecycle (F14), Delete (F15) (v0.7.1 — complete, PR #43 pending merge)
-12. Learn UI — Technology discovery, search, detail, admin management (v0.8.0 F16)
+12. Learn UI — Technology discovery, roadmaps, and learning progress (v0.8.0 F16–F18)
 
 ## Completed Features
 

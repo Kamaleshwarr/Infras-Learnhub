@@ -18,6 +18,12 @@ vi.mock('../api/learnApi', () => ({
       totalElements: 0,
       totalPages: 0,
     }),
+    getJourney: vi.fn().mockResolvedValue({
+      continueLearning: null,
+      active: [],
+      completed: [],
+      left: [],
+    }),
     listManageTechnologies: vi.fn().mockResolvedValue({
       content: [],
       first: true,
@@ -29,6 +35,16 @@ vi.mock('../api/learnApi', () => ({
       totalPages: 0,
     }),
     getTechnology: vi.fn(),
+    getTechnologyProgress: vi.fn(async () => {
+      const { default: axios } = await import('axios')
+      throw new axios.AxiosError('Not found', 'ERR_BAD_REQUEST', undefined, undefined, {
+        status: 404,
+        statusText: 'Not Found',
+        headers: {},
+        config: { headers: new axios.AxiosHeaders() },
+        data: { message: 'Not found' },
+      })
+    }),
     getRoadmapByTechnologyId: vi.fn().mockResolvedValue({
       technologyId: '11111111-1111-1111-1111-111111111111',
       technologySlug: 'java',
@@ -41,6 +57,7 @@ vi.mock('../api/learnApi', () => ({
       nextStageOrder: 1,
       stages: [
         {
+          id: '22222222-2222-2222-2222-222222222222',
           order: 1,
           slug: 'introduction',
           title: 'Introduction',
@@ -140,6 +157,6 @@ describe('AppRoutes certificate workflow preparation', () => {
   it('renders roadmap route for employees', async () => {
     renderRoute('/learn/technologies/11111111-1111-1111-1111-111111111111/roadmap', employeeUser)
 
-    expect(await screen.findByRole('heading', { name: /Java — Learning Roadmap/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Java Learning Roadmap/i })).toBeInTheDocument()
   })
 })
