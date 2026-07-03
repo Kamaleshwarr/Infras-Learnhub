@@ -1,101 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import MapOutlinedIcon from '@mui/icons-material/MapOutlined'
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  LinearProgress,
-  Link,
-  Snackbar,
-  Stack,
-  Step,
-  StepConnector,
-  stepConnectorClasses,
-  StepLabel,
-  Stepper,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material'
-import type { StepIconProps } from '@mui/material/StepIcon'
-import { styled } from '@mui/material/styles'
-import { Link as RouterLink, useParams } from 'react-router-dom'
+import { Alert, Box, Snackbar, Stack, useMediaQuery, useTheme } from '@mui/material'
+import { useParams } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
-import { PageHeader } from '../../components/common/PageHeader'
+import { RoadmapHero } from '../../components/learn/RoadmapHero'
+import { RoadmapJourneyTimeline } from '../../components/learn/RoadmapJourneyTimeline'
 import { RoadmapStageCard } from '../../components/learn/RoadmapStageCard'
 import { LEARN_MESSAGES } from '../../components/learn/learnMessages'
 import type { TechnologyProgress } from '../../types/progress'
 import type { Roadmap } from '../../types/roadmap'
 import { isConflictError, isNotFoundError, resolveApiError } from '../../utils/apiErrors'
-
-function RoadmapStat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <Box
-      sx={{
-        bgcolor: 'background.default',
-        border: 1,
-        borderColor: 'divider',
-        borderRadius: 1.5,
-        minWidth: 0,
-        p: 1.5,
-      }}
-    >
-      <Typography color="text.secondary" sx={{ display: 'block', mb: 0.25 }} variant="caption">
-        {label}
-      </Typography>
-      <Typography sx={{ fontWeight: 600, lineHeight: 1.3, wordBreak: 'break-word' }} variant="body2">
-        {value}
-      </Typography>
-    </Box>
-  )
-}
-
-const TimelineConnector = styled(StepConnector)(({ theme }) => ({
-  [`&.${stepConnectorClasses.active}`]: {
-    [`& .${stepConnectorClasses.line}`]: {
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  [`&.${stepConnectorClasses.completed}`]: {
-    [`& .${stepConnectorClasses.line}`]: {
-      borderColor: theme.palette.success.main,
-    },
-  },
-  [`& .${stepConnectorClasses.line}`]: {
-    borderColor: theme.palette.divider,
-    borderTopWidth: 3,
-    borderRadius: 1,
-  },
-}))
-
-function TimelineStepIcon({ active, completed }: StepIconProps) {
-  if (completed) {
-    return <CheckCircleIcon color="success" fontSize="small" />
-  }
-  if (active) {
-    return (
-      <Box
-        sx={{
-          alignItems: 'center',
-          bgcolor: 'primary.main',
-          borderRadius: '50%',
-          color: 'primary.contrastText',
-          display: 'flex',
-          height: 24,
-          justifyContent: 'center',
-          width: 24,
-        }}
-      >
-        <Box sx={{ bgcolor: 'primary.contrastText', borderRadius: '50%', height: 8, width: 8 }} />
-      </Box>
-    )
-  }
-  return <RadioButtonUncheckedIcon color="disabled" fontSize="small" />
-}
 
 export function RoadmapPage() {
   const { technologyId } = useParams()
@@ -159,13 +72,6 @@ export function RoadmapPage() {
     return index >= 0 ? index : 0
   }, [progress?.currentStageOrder, roadmap])
 
-  const remainingStages = useMemo(() => {
-    if (!roadmap || !progress) {
-      return roadmap?.stageCount ?? 0
-    }
-    return Math.max(roadmap.stageCount - progress.completedStageCount, 0)
-  }, [progress, roadmap])
-
   async function handleStartLearning() {
     if (!technologyId) {
       return
@@ -205,21 +111,20 @@ export function RoadmapPage() {
     }
   }
 
+  function handleContinueLearning() {
+    const currentStage = roadmap?.stages[activeStep]
+    if (!currentStage) {
+      return
+    }
+    document.getElementById(`stage-${currentStage.slug}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   if (loading) {
     return <Alert severity="info">Loading roadmap...</Alert>
   }
 
   if (notFound) {
-    return (
-      <Alert severity="warning">
-        {LEARN_MESSAGES.roadmapNotFound}
-        <Box sx={{ mt: 2 }}>
-          <Button component={RouterLink} to={`/learn/technologies/${technologyId}`} variant="outlined">
-            {LEARN_MESSAGES.roadmapBackToTechnology}
-          </Button>
-        </Box>
-      </Alert>
-    )
+    return <Alert severity="warning">{LEARN_MESSAGES.roadmapNotFound}</Alert>
   }
 
   if (error || !roadmap) {
@@ -227,220 +132,36 @@ export function RoadmapPage() {
   }
 
   if (roadmap.stages.length === 0) {
-    return (
-      <Alert severity="info">
-        {LEARN_MESSAGES.roadmapEmptyStages}
-        <Box sx={{ mt: 2 }}>
-          <Button component={RouterLink} to={`/learn/technologies/${technologyId}`} variant="outlined">
-            {LEARN_MESSAGES.roadmapBackToTechnology}
-          </Button>
-        </Box>
-      </Alert>
-    )
+    return <Alert severity="info">{LEARN_MESSAGES.roadmapEmptyStages}</Alert>
   }
 
-  const currentStage = roadmap.stages[activeStep]
   const isRoadmapComplete = progress?.status === 'COMPLETED'
   const hasEnrollment = progress != null
 
   return (
     <>
-      <PageHeader description={LEARN_MESSAGES.roadmapDescription} title={`${roadmap.technologyName} — ${LEARN_MESSAGES.roadmapTitle}`} />
+      <Stack spacing={2}>
+        <RoadmapHero
+          enrolling={enrolling}
+          isRoadmapComplete={isRoadmapComplete}
+          onContinueLearning={handleContinueLearning}
+          onStartLearning={() => void handleStartLearning()}
+          progress={progress}
+          roadmap={roadmap}
+          technologyId={technologyId!}
+        />
 
-      <Button
-        component={RouterLink}
-        size="small"
-        sx={{ alignSelf: 'flex-start', mb: 2, ml: -0.5, px: 1 }}
-        to={`/learn/technologies/${technologyId}`}
-        variant="text"
-      >
-        {LEARN_MESSAGES.roadmapBackToTechnology}
-      </Button>
-
-      <Stack spacing={3}>
-        {!hasEnrollment ? (
-          <Alert
-            action={
-              <Button color="inherit" disabled={enrolling} onClick={() => void handleStartLearning()} size="small">
-                {LEARN_MESSAGES.progressStartLearning}
-              </Button>
-            }
-            severity="info"
-          >
-            {LEARN_MESSAGES.viewRoadmapHelper}
-          </Alert>
+        {hasEnrollment && progress ? (
+          <RoadmapJourneyTimeline
+            activeStep={activeStep}
+            isMobile={isMobile}
+            isRoadmapComplete={isRoadmapComplete}
+            progress={progress}
+            stages={roadmap.stages}
+          />
         ) : null}
 
-        <Card variant="outlined">
-          <CardContent sx={{ '&:last-child': { pb: { xs: 2, sm: 2.5 } }, p: { xs: 2, sm: 2.5 } }}>
-            <Stack spacing={2.5}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <MapOutlinedIcon color="primary" fontSize="small" />
-                <Typography component="h2" sx={{ fontWeight: 700 }} variant="subtitle1">
-                  {LEARN_MESSAGES.roadmapSummaryTitle}
-                </Typography>
-              </Stack>
-
-              {roadmap.description ? (
-                <Typography
-                  color="text.secondary"
-                  sx={{
-                    WebkitBoxOrient: 'vertical',
-                    WebkitLineClamp: 2,
-                    display: '-webkit-box',
-                    lineHeight: 1.5,
-                    overflow: 'hidden',
-                  }}
-                  variant="body2"
-                >
-                  {roadmap.description}
-                </Typography>
-              ) : null}
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gap: 1.5,
-                  gridTemplateColumns: {
-                    xs: 'repeat(2, minmax(0, 1fr))',
-                    md: hasEnrollment ? 'repeat(4, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
-                  },
-                }}
-              >
-                <RoadmapStat label={LEARN_MESSAGES.roadmapStageCount} value={roadmap.stageCount} />
-                <RoadmapStat label={LEARN_MESSAGES.roadmapEstimatedTotal} value={roadmap.estimatedTotalEffort} />
-                {hasEnrollment ? (
-                  <RoadmapStat
-                    label={LEARN_MESSAGES.progressRemainingEffort}
-                    value={progress.estimatedRemainingEffort ?? `${remainingStages} stages`}
-                  />
-                ) : null}
-                <RoadmapStat label={LEARN_MESSAGES.roadmapVersion} value={roadmap.version} />
-              </Box>
-
-              {hasEnrollment ? (
-                <Box
-                  sx={{
-                    bgcolor: 'background.default',
-                    border: 1,
-                    borderColor: 'divider',
-                    borderRadius: 2,
-                    p: { xs: 2, sm: 2.5 },
-                  }}
-                >
-                  <Stack
-                    direction={{ sm: 'row' }}
-                    spacing={1}
-                    sx={{ alignItems: { sm: 'baseline' }, justifyContent: 'space-between', mb: 1.5 }}
-                  >
-                    <Typography sx={{ fontWeight: 700 }} variant="subtitle1">
-                      {LEARN_MESSAGES.progressBarLabel}
-                    </Typography>
-                    <Typography color="primary.main" sx={{ fontWeight: 700 }} variant="h5">
-                      {progress.progressPercent}%
-                    </Typography>
-                  </Stack>
-                  <LinearProgress
-                    aria-label={LEARN_MESSAGES.progressBarLabel}
-                    sx={{
-                      '& .MuiLinearProgress-bar': {
-                        borderRadius: 5,
-                      },
-                      bgcolor: 'action.hover',
-                      borderRadius: 5,
-                      height: 10,
-                    }}
-                    value={progress.progressPercent}
-                    variant="determinate"
-                  />
-                  <Typography color="text.secondary" sx={{ display: 'block', mt: 1 }} variant="body2">
-                    {progress.completedStageCount} of {roadmap.stageCount} stages completed
-                  </Typography>
-                </Box>
-              ) : null}
-
-              {isRoadmapComplete ? (
-                <Alert severity="success" sx={{ py: 0.5 }}>
-                  {LEARN_MESSAGES.progressEnrollmentComplete}
-                </Alert>
-              ) : null}
-
-              {hasEnrollment ? (
-                <Box>
-                  <Typography component="h3" sx={{ fontWeight: 700, mb: 0.5 }} variant="subtitle1">
-                    {LEARN_MESSAGES.roadmapContinueLearning}
-                  </Typography>
-                  <Typography color="text.secondary" sx={{ mb: 2 }} variant="body2">
-                    {LEARN_MESSAGES.roadmapWhatNext}
-                  </Typography>
-
-                  <Stepper
-                    activeStep={activeStep}
-                    alternativeLabel={!isMobile}
-                    connector={<TimelineConnector />}
-                    nonLinear
-                    orientation={isMobile ? 'vertical' : 'horizontal'}
-                    sx={{ mb: 2 }}
-                  >
-                    {roadmap.stages.map((stage, index) => {
-                      const completed = progress.completedStageOrders.includes(stage.order)
-                      const isCurrentStep = index === activeStep && !isRoadmapComplete
-                      return (
-                        <Step completed={completed} key={stage.slug}>
-                          <StepLabel
-                            onClick={() => {
-                              document.getElementById(`stage-${stage.slug}`)?.scrollIntoView({ behavior: 'smooth' })
-                            }}
-                            slots={{ stepIcon: TimelineStepIcon }}
-                            sx={{
-                              '& .MuiStepLabel-label': {
-                                color: completed ? 'success.main' : isCurrentStep ? 'primary.main' : 'text.secondary',
-                                cursor: 'pointer',
-                                fontWeight: isCurrentStep ? 700 : completed ? 600 : 400,
-                                mt: isMobile ? 0 : 1,
-                              },
-                            }}
-                          >
-                            {stage.title}
-                          </StepLabel>
-                        </Step>
-                      )
-                    })}
-                  </Stepper>
-
-                  <Stack spacing={0.5}>
-                    {!isRoadmapComplete && currentStage ? (
-                      <Typography variant="body2">
-                        {`${LEARN_MESSAGES.roadmapCurrentStage}: ${currentStage.title}`}
-                      </Typography>
-                    ) : null}
-                    {progress.nextStageTitle && !isRoadmapComplete ? (
-                      <Typography color="text.secondary" variant="body2">
-                        {`${LEARN_MESSAGES.progressNextRecommendedStage}: ${progress.nextStageTitle}`}
-                      </Typography>
-                    ) : null}
-                  </Stack>
-                </Box>
-              ) : (
-                <Typography color="text.secondary" variant="body2">
-                  {LEARN_MESSAGES.roadmapWhatIsThis}
-                </Typography>
-              )}
-
-              {roadmap.sourceUrl ? (
-                <Link href={roadmap.sourceUrl} rel="noopener noreferrer" target="_blank" variant="body2">
-                  {roadmap.sourceUrl}
-                </Link>
-              ) : null}
-            </Stack>
-          </CardContent>
-        </Card>
-
-        <Stack spacing={2.5}>
-          <Typography component="h2" sx={{ fontWeight: 700 }} variant="h6">
-            Learning timeline
-          </Typography>
-
+        <Box component="section">
           {roadmap.stages.map((stage, index) => {
             const isCompleted = progress?.completedStageIds.includes(stage.id) ?? false
             const isCurrent = progress?.currentStageId === stage.id
@@ -463,7 +184,7 @@ export function RoadmapPage() {
               />
             )
           })}
-        </Stack>
+        </Box>
       </Stack>
 
       <Snackbar
