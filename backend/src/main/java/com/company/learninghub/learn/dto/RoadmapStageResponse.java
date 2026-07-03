@@ -3,6 +3,7 @@ package com.company.learninghub.learn.dto;
 import java.util.List;
 
 public record RoadmapStageResponse(
+        String id,
         int order,
         String slug,
         String title,

@@ -1,6 +1,8 @@
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined'
 import {
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -67,9 +69,15 @@ function ResourceList({ resources, title }: { resources: RoadmapResource[]; titl
 interface RoadmapStageCardProps {
   stageNumber: number
   totalStages: number
-  isRecommended: boolean
   isNext: boolean
+  isCompleted?: boolean
+  isCurrent?: boolean
+  isUpcoming?: boolean
+  canComplete?: boolean
+  completing?: boolean
+  onCompleteStage?: () => void
   stage: {
+    id: string
     order: number
     slug: string
     title: string
@@ -84,18 +92,41 @@ interface RoadmapStageCardProps {
 export function RoadmapStageCard({
   stageNumber,
   totalStages,
-  isRecommended,
   isNext,
+  isCompleted = false,
+  isCurrent = false,
+  isUpcoming = false,
+  canComplete = false,
+  completing = false,
+  onCompleteStage,
   stage,
 }: RoadmapStageCardProps) {
   return (
-    <Card id={`stage-${stage.slug}`} variant="outlined">
+    <Card
+      id={`stage-${stage.slug}`}
+      sx={{
+        borderColor: isCurrent ? 'primary.main' : isCompleted ? 'success.light' : 'divider',
+        borderWidth: isCurrent ? 2 : 1,
+        opacity: isUpcoming && !isCurrent ? 0.92 : 1,
+      }}
+      variant="outlined"
+    >
       <CardContent>
         <Stack spacing={2}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
             <Chip color="primary" label={`Stage ${stageNumber} of ${totalStages}`} size="small" />
-            {isRecommended ? <Chip color="success" label={LEARN_MESSAGES.roadmapCurrentStage} size="small" /> : null}
-            {isNext ? <Chip color="info" label={LEARN_MESSAGES.roadmapNextStage} size="small" variant="outlined" /> : null}
+            {isCompleted ? (
+              <Chip
+                color="success"
+                icon={<CheckCircleOutlinedIcon />}
+                label={LEARN_MESSAGES.progressStageCompleted}
+                size="small"
+              />
+            ) : null}
+            {isCurrent ? <Chip color="success" label={LEARN_MESSAGES.roadmapCurrentStage} size="small" /> : null}
+            {!isCompleted && isNext ? (
+              <Chip color="info" label={LEARN_MESSAGES.roadmapNextStage} size="small" variant="outlined" />
+            ) : null}
             <Box sx={{ flexGrow: 1 }} />
             <Typography color="text.secondary" variant="body2">
               {stage.estimatedEffort}
@@ -103,8 +134,10 @@ export function RoadmapStageCard({
           </Stack>
 
           <Stack spacing={1}>
-            <Typography variant="h6">{stage.title}</Typography>
-            <Typography>{stage.description}</Typography>
+            <Typography sx={{ fontWeight: isCurrent ? 700 : 600 }} variant="h6">
+              {stage.title}
+            </Typography>
+            <Typography color={isCompleted ? 'text.secondary' : 'text.primary'}>{stage.description}</Typography>
             {stage.notes ? (
               <Typography color="text.secondary" variant="body2">
                 {stage.notes}
@@ -114,6 +147,12 @@ export function RoadmapStageCard({
 
           <ResourceList resources={stage.learningResources} title={LEARN_MESSAGES.roadmapLearningResources} />
           <ResourceList resources={stage.practiceResources} title={LEARN_MESSAGES.roadmapPracticeResources} />
+
+          {canComplete && onCompleteStage ? (
+            <Button disabled={completing} onClick={onCompleteStage} variant="contained">
+              {LEARN_MESSAGES.progressCompleteStage}
+            </Button>
+          ) : null}
         </Stack>
       </CardContent>
     </Card>

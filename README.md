@@ -107,7 +107,7 @@ secret in shared or production environments.
 
 High-level snapshot. Detailed release notes, validation history, and backlog live under `docs/`.
 
-**Shipped:** v0.6.2 · **Validated (pending merge):** v0.7.0 Initiatives Experience — PR #36 · **v0.7.1 Initiative Management** — **Complete** (F11–F15; manual QA passed)
+**Shipped:** v0.6.2 · **v0.8.0 Learn (F16–F18):** catalog technologies, roadmaps, employee learning progress
 
 ### Shipped platform modules (backend)
 

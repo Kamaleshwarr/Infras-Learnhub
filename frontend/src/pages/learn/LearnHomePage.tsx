@@ -15,15 +15,18 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
 import { PageHeader } from '../../components/common/PageHeader'
+import { ContinueLearningCard } from '../../components/learn/ContinueLearningCard'
 import { FeaturedTechnologyCard } from '../../components/learn/FeaturedTechnologyCard'
 import { LEARN_MESSAGES } from '../../components/learn/learnMessages'
 import { LearnPageIntro } from '../../layout/LearnLayout'
 import type { Technology } from '../../types/learn'
+import type { ContinueLearning } from '../../types/progress'
 
 export function LearnHomePage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [featured, setFeatured] = useState<Technology[]>([])
+  const [continueLearning, setContinueLearning] = useState<ContinueLearning | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,11 +34,16 @@ export function LearnHomePage() {
     setLoading(true)
     setError(null)
     try {
-      const response = await learnApi.listTechnologies({ size: 12, sort: 'name,asc' })
-      setFeatured(response.content.filter((technology) => technology.featured))
+      const [technologiesResponse, journeyResponse] = await Promise.all([
+        learnApi.listTechnologies({ size: 12, sort: 'name,asc' }),
+        learnApi.getJourney(),
+      ])
+      setFeatured(technologiesResponse.content.filter((technology) => technology.featured))
+      setContinueLearning(journeyResponse.continueLearning ?? null)
     } catch {
       setError(LEARN_MESSAGES.listLoadError)
       setFeatured([])
+      setContinueLearning(null)
     } finally {
       setLoading(false)
     }
@@ -65,6 +73,8 @@ export function LearnHomePage() {
     <>
       <PageHeader description={LEARN_MESSAGES.moduleDescription} title={LEARN_MESSAGES.moduleTitle} />
       <LearnPageIntro />
+
+      {continueLearning ? <ContinueLearningCard continueLearning={continueLearning} /> : null}
 
       <Card sx={{ mb: 3 }} variant="outlined">
         <CardContent sx={{ py: 2.5 }}>

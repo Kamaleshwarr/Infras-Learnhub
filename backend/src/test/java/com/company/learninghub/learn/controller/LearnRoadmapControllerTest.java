@@ -74,6 +74,7 @@ class LearnRoadmapControllerTest {
                 1,
                 1,
                 List.of(new RoadmapStageResponse(
+                        UUID.randomUUID().toString(),
                         1,
                         "introduction",
                         "Introduction",
