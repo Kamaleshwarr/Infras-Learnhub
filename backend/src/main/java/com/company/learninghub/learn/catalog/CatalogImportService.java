@@ -84,6 +84,7 @@ public class CatalogImportService implements ApplicationRunner {
     }
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         if (!properties.isEnabled()) {
             LOGGER.info("Catalog import is disabled");
