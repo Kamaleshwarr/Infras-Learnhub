@@ -31,19 +31,22 @@ public class LearnRoadmapService {
     private final LearnRoadmapStageRepository stageRepository;
     private final LearnRoadmapStageResourceRepository resourceRepository;
     private final LearnRoadmapMapper roadmapMapper;
+    private final LearnResourceOverrideService overrideService;
 
     public LearnRoadmapService(
             LearnTechnologyRepository technologyRepository,
             LearnRoadmapRepository roadmapRepository,
             LearnRoadmapStageRepository stageRepository,
             LearnRoadmapStageResourceRepository resourceRepository,
-            LearnRoadmapMapper roadmapMapper
+            LearnRoadmapMapper roadmapMapper,
+            LearnResourceOverrideService overrideService
     ) {
         this.technologyRepository = technologyRepository;
         this.roadmapRepository = roadmapRepository;
         this.stageRepository = stageRepository;
         this.resourceRepository = resourceRepository;
         this.roadmapMapper = roadmapMapper;
+        this.overrideService = overrideService;
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +85,13 @@ public class LearnRoadmapService {
                 : resourceRepository.findByStageIdIn(stageIds).stream()
                         .collect(Collectors.groupingBy(resource -> resource.getStage().getId()));
 
-        return roadmapMapper.toResponse(technology, roadmap, stages, resourcesByStageId);
+        return roadmapMapper.toResponse(
+                technology,
+                roadmap,
+                stages,
+                resourcesByStageId,
+                overrideService.listEnabledOverrides(technology.getSlug())
+        );
     }
 
     private void assertTechnologyVisible(LearnTechnology technology, AuthenticatedUser authenticatedUser) {

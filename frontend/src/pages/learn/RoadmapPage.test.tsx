@@ -16,6 +16,14 @@ vi.mock('../../api/learnApi', () => ({
   },
 }))
 
+vi.mock('../../auth/useAuth', () => ({
+  useAuth: () => ({
+    isAdmin: false,
+    hasRole: () => false,
+    currentRole: 'EMPLOYEE',
+  }),
+}))
+
 import { learnApi } from '../../api/learnApi'
 
 const technologyId = '11111111-1111-1111-1111-111111111111'

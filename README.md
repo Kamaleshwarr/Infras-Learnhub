@@ -2,7 +2,7 @@
 
 Enterprise internal learning platform for engineering teams. The application combines **learning initiatives and certification workflows** with a **Learn module** that guides employees through a curated technology catalog, structured roadmaps, and personal learning progress.
 
-**Current release focus:** v0.8.0 **Learn module v1** (F16–F18 complete)  
+**Current release focus:** v0.8.0 **Learn module v1** (F16–F18 complete; Learn v1.1 resource overrides)  
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
 
 ---
@@ -34,7 +34,7 @@ Employees browse technologies, follow catalog roadmaps, track stage completion, 
 └────────────────────────────┬────────────────────────────────────┘
                              │ JDBC
 ┌────────────────────────────▼────────────────────────────────────┐
-│                    PostgreSQL 16 (Flyway V1–V15)                   │
+│                    PostgreSQL 16 (Flyway V1–V16)                   │
 │  Catalog tables (read-only content) + progress overlay (F18)       │
 └─────────────────────────────────────────────────────────────────┘
 
@@ -55,7 +55,7 @@ Detailed architecture: [`.cursor/architecture.md`](.cursor/architecture.md) · L
 | Spring Boot | 3.x |
 | Spring Security | JWT bearer authentication |
 | Spring Data JPA | PostgreSQL |
-| Flyway | Schema migrations V1–V15 |
+| Flyway | Schema migrations V1–V16 |
 | Maven | Build and test |
 | OpenAPI / Swagger | API docs at `/swagger-ui.html` |
 | Testcontainers | Integration tests |
@@ -273,8 +273,9 @@ Contributor guide: [`docs/contributing.md`](docs/contributing.md)
 | **F16-R** | Catalog foundation — manifest import, admin curation, org overrides |
 | **F17** | Roadmap viewer — catalog roadmaps, stages, external resources |
 | **F18** | Learning journey — enroll, sequential stage completion, Continue Learning |
+| **Learn v1.1** | Resource override management — org URL overrides, disable/restore, org-only resources |
 
-Routes: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, `/learn/technologies/:id/roadmap`, `/learn/manage` (admin).
+Routes: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, `/learn/technologies/:id/roadmap`, `/learn/manage` (admin). Admins manage per-stage resource overrides from the roadmap page.
 
 ### Platform modules (shipped)
 

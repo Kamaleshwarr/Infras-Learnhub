@@ -95,12 +95,14 @@ interface RoadmapStageCardProps {
   stageNumber: number
   totalStages: number
   isNext: boolean
+  isAdmin?: boolean
   isCompleted?: boolean
   isCurrent?: boolean
   isUpcoming?: boolean
   canComplete?: boolean
   completing?: boolean
   onCompleteStage?: () => void
+  onManageResources?: () => void
   stage: {
     id: string
     order: number
@@ -118,12 +120,14 @@ export function RoadmapStageCard({
   stageNumber,
   totalStages,
   isNext,
+  isAdmin = false,
   isCompleted = false,
   isCurrent = false,
   isUpcoming = false,
   canComplete = false,
   completing = false,
   onCompleteStage,
+  onManageResources,
   stage,
 }: RoadmapStageCardProps) {
   return (
@@ -223,6 +227,12 @@ export function RoadmapStageCard({
           {canComplete && onCompleteStage ? (
             <Button disabled={completing} onClick={onCompleteStage} variant="contained">
               {LEARN_MESSAGES.progressCompleteStage}
+            </Button>
+          ) : null}
+
+          {isAdmin && onManageResources ? (
+            <Button onClick={onManageResources} size="small" variant="outlined">
+              {LEARN_MESSAGES.roadmapManageResources}
             </Button>
           ) : null}
         </Stack>

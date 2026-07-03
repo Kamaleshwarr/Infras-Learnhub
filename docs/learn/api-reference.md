@@ -58,6 +58,8 @@ curl -s "http://localhost:8080/api/v1/learn/technologies?search=java&size=5" \
 
 **Response:** `RoadmapResponse` with ordered `stages[]`, each with `learningResources[]` and `practiceResources[]`.
 
+**Effective resources:** Employee responses merge catalog resources with organization overrides server-side. Disabled catalog resources are omitted; URL overrides and organization-only resources appear transparently. Employees cannot distinguish catalog vs override.
+
 ---
 
 ### `GET /learn/technologies/id/{technologyId}/roadmap`
@@ -245,6 +247,72 @@ curl -s "http://localhost:8080/api/v1/learn/technologies/id/${TECH_ID}/roadmap" 
 
 ---
 
+## Admin APIs — Resource overrides (Learn v1.1)
+
+**Base:** `/learn/manage/technologies/{technologyId}/roadmap`  
+**Permissions:** `ADMIN` only
+
+Organizations may override catalog learning resources without editing catalog tables. Overrides are optional; deleting an override restores the catalog default.
+
+### `GET /learn/manage/technologies/{technologyId}/roadmap/stages/{stageSlug}/resources`
+
+**Purpose:** Admin view of catalog resource, effective resource, and override status for a stage.
+
+**Response:** `StageResourceAdminResponse` with `resources[]` (`ManagedResourceResponse`)
+
+---
+
+### `POST /learn/manage/technologies/{technologyId}/roadmap/resources/overrides`
+
+**Purpose:** Create override — replace URL, disable catalog resource, or add organization-only resource.
+
+**Request:**
+
+```json
+{
+  "stageSlug": "introduction",
+  "catalogResourceSlug": "oracle-docs",
+  "resourceSlug": "oracle-docs",
+  "resourceKind": "LEARNING",
+  "overrideUrl": "https://internal.example.com/java",
+  "preferred": false,
+  "enabled": true,
+  "reason": "Internal docs preferred"
+}
+```
+
+For organization-only resources, omit `catalogResourceSlug` and provide `title`, `resourceType`, and HTTPS `overrideUrl`.
+
+**Response:** `201` `ResourceOverrideResponse`
+
+**Errors:** `409` if override already exists for the resource slug.
+
+---
+
+### `PUT /learn/manage/technologies/{technologyId}/roadmap/resources/overrides/{overrideId}`
+
+**Purpose:** Update override (URL, disabled, preferred, enabled, reason). Organization resources may update title/type/provider.
+
+**Response:** `ResourceOverrideResponse`
+
+---
+
+### `DELETE /learn/manage/technologies/{technologyId}/roadmap/resources/overrides/{overrideId}`
+
+**Purpose:** Delete override (restores catalog default for catalog resources).
+
+**Response:** `204 No Content`
+
+---
+
+### `POST /learn/manage/technologies/{technologyId}/roadmap/stages/{stageSlug}/resources/{resourceSlug}/restore`
+
+**Purpose:** Restore catalog default by resource slug (deletes matching override).
+
+**Response:** `204 No Content`
+
+---
+
 ## Admin APIs — Catalog
 
 ### `GET /learn/manage/catalog/status`
@@ -278,6 +346,8 @@ curl -s "http://localhost:8080/api/v1/learn/technologies/id/${TECH_ID}/roadmap" 
 | `TechnologyResponse` | `id`, `slug`, `name`, `category`, `difficulty`, `status`, `featured`, `tags`, `relatedProjects`, `catalogVersion` |
 | `RoadmapResponse` | `technologyName`, `version`, `stageCount`, `stages[]` |
 | `RoadmapStageResponse` | `id`, `order`, `title`, `estimatedEffort`, `learningResources`, `practiceResources` |
+| `ManagedResourceResponse` | `catalog`, `effective`, `override`, `overrideStatus` |
+| `ResourceOverrideResponse` | `id`, `resourceSlug`, `overrideUrl`, `disabled`, `preferred`, `status` |
 | `EnrollmentResponse` | `id`, `status`, `progressPercent`, `currentStageTitle`, `nextStageTitle` |
 | `TechnologyProgressResponse` | Enrollment fields + `completedStageIds`, `completedStageCount`, `estimatedRemainingEffort` |
 | `JourneyResponse` | `continueLearning`, `active`, `completed`, `left` |
@@ -295,6 +365,7 @@ Full DTO definitions: `backend/src/main/java/com/company/learninghub/learn/dto/`
 | Employee progress ownership | All progress APIs use `@AuthenticationPrincipal` |
 | No admin progress editing | No admin write endpoints for enrollments (BR-PR10) |
 | Roadmap read-only | No PUT/POST on roadmap content; catalog import only |
+| Resource overrides | Org table only; catalog tables immutable; HTTPS URLs; one override per resource slug |
 | Employee technology visibility | Unpublished/hidden → `404` (not `403`) |
 
 ---
@@ -313,3 +384,8 @@ All Learn HTTP calls: `frontend/src/api/learnApi.ts`
 | `getJourney` | `GET /learn/journey` |
 | `getTechnologyProgress` | `GET /learn/progress/technologies/{id}` |
 | `getActiveEnrollment` | `GET /learn/enrollments/technologies/{id}` |
+| `getStageResources` | `GET /learn/manage/technologies/{id}/roadmap/stages/{slug}/resources` |
+| `createResourceOverride` | `POST /learn/manage/technologies/{id}/roadmap/resources/overrides` |
+| `updateResourceOverride` | `PUT /learn/manage/technologies/{id}/roadmap/resources/overrides/{overrideId}` |
+| `deleteResourceOverride` | `DELETE /learn/manage/technologies/{id}/roadmap/resources/overrides/{overrideId}` |
+| `restoreResourceDefault` | `POST /learn/manage/technologies/{id}/roadmap/stages/{slug}/resources/{resourceSlug}/restore` |

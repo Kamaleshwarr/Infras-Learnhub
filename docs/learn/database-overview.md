@@ -1,6 +1,6 @@
 # Learn Module — Database Overview
 
-**Flyway versions:** V12–V15  
+**Flyway versions:** V12–V16  
 **Database:** PostgreSQL 16
 
 This document describes every Learn-related table, its purpose, and how tables relate. Progress data overlays catalog data — roadmap content is never duplicated in progress tables.
@@ -269,6 +269,7 @@ erDiagram
 | `learn_technologies` | `learn_roadmaps` | 1:0..1 | Via `technology_slug` |
 | `learn_roadmaps` | `learn_roadmap_stages` | 1:N | Ordered stages |
 | `learn_roadmap_stages` | `learn_roadmap_stage_resources` | 1:N | Learning + practice |
+| `learn_technologies` | `learn_stage_resource_overrides` | 1:N | Via `technology_slug` (org overrides) |
 | `users` | `learn_learning_enrollments` | 1:N | Employee journeys |
 | `learn_technologies` | `learn_learning_enrollments` | 1:N | Via slug |
 | `learn_learning_enrollments` | `learn_stage_progress` | 1:N | Completed stages |
@@ -283,7 +284,8 @@ erDiagram
 2. **Catalog immutability at runtime** — Roadmap content changes only via catalog reimport.
 3. **Slug as stable key** — Enrollments reference `technology_slug`; technology UUIDs are for API convenience.
 4. **Soft catalog removal** — `catalog_present = false` hides records without deleting progress history.
-5. **BR-PR10** — No admin API to edit employee progress.
+5. **Resource overrides** — Organization overrides live in `learn_stage_resource_overrides`; catalog resources are never updated in place.
+6. **BR-PR10** — No admin API to edit employee progress.
 
 ---
 
@@ -295,3 +297,40 @@ erDiagram
 | `V13__learn_catalog_foundation.sql` | Catalog columns, imports table, status migration |
 | `V14__learn_roadmap_catalog.sql` | Roadmap, stages, resources |
 | `V15__learn_progress.sql` | Enrollments, stage progress |
+| `V16__learn_resource_overrides.sql` | Organization resource overrides |
+
+---
+
+### `learn_stage_resource_overrides`
+
+**Purpose:** Organization-owned overrides for catalog stage resources. Catalog tables remain immutable.
+
+**Migration:** V16
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID PK | |
+| `technology_slug` | VARCHAR(100) | Stable technology reference |
+| `stage_slug` | VARCHAR(100) | Stage within roadmap |
+| `resource_slug` | VARCHAR(100) | Unique override identifier per stage |
+| `catalog_resource_slug` | VARCHAR(100) NULL | Catalog resource slug when overriding; NULL for org-only resources |
+| `resource_kind` | VARCHAR(20) | LEARNING or PRACTICE |
+| `disabled` | BOOLEAN | Hide catalog resource from employees |
+| `override_url` | VARCHAR(2048) | Replacement HTTPS URL |
+| `preferred` | BOOLEAN | Sort preferred resources first |
+| `enabled` | BOOLEAN | Active override flag |
+| `reason` | TEXT | Admin reason/notes |
+| `title` | VARCHAR(200) | Required for org-only resources |
+| `resource_type` | VARCHAR(50) | For org-only resources |
+| `provider` | VARCHAR(100) | Optional provider |
+| `free_paid` | VARCHAR(20) | FREE, PAID, FREEMIUM |
+| `resource_order` | INTEGER | Display order hint |
+| `created_at`, `updated_at` | TIMESTAMPTZ | Audit |
+
+**Unique:** `(technology_slug, stage_slug, resource_slug)`
+
+**Design rules:**
+- One override per resource slug per stage
+- Deleting an override restores catalog default
+- Override URLs must be HTTPS
+- Employees receive merged effective resources via API; override metadata is admin-only

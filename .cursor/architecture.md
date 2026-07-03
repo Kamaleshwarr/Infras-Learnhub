@@ -620,7 +620,7 @@ Required test types:
 
 ---
 
-## Learn Module Architecture (v0.8.0 — F16–F18)
+## Learn Module Architecture (v0.8.0 — F16–F18 + v1.1 overrides)
 
 > **Engineering Learning Hub owns guidance, not knowledge.**
 
@@ -633,7 +633,7 @@ Full documentation: `docs/learn/README.md`
 - **Source:** `backend/src/main/resources/catalog/technologies/wave-1.json` (30 technologies)
 - **Import:** `CatalogImportService` on startup — upsert by `slug`
 - **Storage:** `learn_technologies` with catalog metadata columns (V13)
-- **Admin model:** Curation only — publish, hide, archive, feature override, org notes, project links
+- **Admin model:** Curation only — publish, hide, archive, feature override, org notes, project links, **resource URL overrides**
 - **Employee view:** Published + `catalog_present` technologies with search and filters
 
 ### Roadmap Framework
@@ -641,8 +641,16 @@ Full documentation: `docs/learn/README.md`
 - **Source:** `backend/src/main/resources/catalog/roadmaps/*.json` (5 seed roadmaps)
 - **Storage:** `learn_roadmaps` → `learn_roadmap_stages` → `learn_roadmap_stage_resources`
 - **Read-only at runtime** — no admin API to edit roadmap content
-- **Service:** `LearnRoadmapService` loads ordered stages with learning/practice resources
+- **Service:** `LearnRoadmapService` loads ordered stages with learning/practice resources merged with org overrides via `ResourceOverrideResolver`
 - **Relationship:** One roadmap per technology via `technology_slug` FK
+
+### Resource Overrides (Learn v1.1)
+
+- **Table:** `learn_stage_resource_overrides` (V16) — references catalog resources by stable slug
+- **Catalog immutability:** Catalog tables are never updated; overrides are optional org-owned rows
+- **Resolver:** `ResourceOverrideResolver` merges catalog + overrides into effective employee-facing resources
+- **Admin APIs:** `LearnResourceOverrideManageController` — replace URL, disable, restore, add org-only resource, mark preferred
+- **Employee transparency:** Roadmap responses expose effective URLs only; override metadata is admin-only
 
 ### Progress Tracking
 

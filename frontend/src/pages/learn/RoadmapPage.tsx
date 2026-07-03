@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert, Box, Snackbar, Stack, useMediaQuery, useTheme } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { learnApi } from '../../api/learnApi'
+import { useAuth } from '../../auth/useAuth'
 import { RoadmapHero } from '../../components/learn/RoadmapHero'
 import { RoadmapJourneyTimeline } from '../../components/learn/RoadmapJourneyTimeline'
 import { RoadmapStageCard } from '../../components/learn/RoadmapStageCard'
+import { StageResourceManageDialog } from '../../components/learn/StageResourceManageDialog'
 import { LEARN_MESSAGES } from '../../components/learn/learnMessages'
 import type { TechnologyProgress } from '../../types/progress'
 import type { Roadmap } from '../../types/roadmap'
@@ -12,6 +14,7 @@ import { isConflictError, isNotFoundError, resolveApiError } from '../../utils/a
 
 export function RoadmapPage() {
   const { technologyId } = useParams()
+  const { isAdmin } = useAuth()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
@@ -22,6 +25,7 @@ export function RoadmapPage() {
   const [completingStageId, setCompletingStageId] = useState<string | null>(null)
   const [enrolling, setEnrolling] = useState(false)
   const [notification, setNotification] = useState<string | null>(null)
+  const [manageStage, setManageStage] = useState<{ slug: string; title: string } | null>(null)
 
   const loadRoadmap = useCallback(async () => {
     if (!technologyId) {
@@ -172,12 +176,18 @@ export function RoadmapPage() {
               <RoadmapStageCard
                 canComplete={canComplete}
                 completing={completingStageId === stage.id}
+                isAdmin={isAdmin}
                 isCompleted={isCompleted}
                 isCurrent={isCurrent}
                 isNext={stage.order === progress?.nextStageOrder}
                 isUpcoming={isUpcoming}
                 key={stage.slug}
                 onCompleteStage={() => void handleCompleteStage(stage.id)}
+                onManageResources={
+                  isAdmin
+                    ? () => setManageStage({ slug: stage.slug, title: stage.title })
+                    : undefined
+                }
                 stage={stage}
                 stageNumber={index + 1}
                 totalStages={roadmap.stageCount}
@@ -194,6 +204,20 @@ export function RoadmapPage() {
         onClose={() => setNotification(null)}
         open={Boolean(notification)}
       />
+
+      {isAdmin && technologyId && manageStage ? (
+        <StageResourceManageDialog
+          onClose={() => setManageStage(null)}
+          onSuccess={() => {
+            setNotification(LEARN_MESSAGES.roadmapOverrideSuccess)
+            void loadRoadmap()
+          }}
+          open
+          stageSlug={manageStage.slug}
+          stageTitle={manageStage.title}
+          technologyId={technologyId}
+        />
+      ) : null}
     </>
   )
 }

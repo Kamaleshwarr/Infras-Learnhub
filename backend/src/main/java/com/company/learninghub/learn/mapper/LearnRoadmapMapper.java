@@ -3,11 +3,13 @@ package com.company.learninghub.learn.mapper;
 import com.company.learninghub.learn.domain.LearnRoadmap;
 import com.company.learninghub.learn.domain.LearnRoadmapStage;
 import com.company.learninghub.learn.domain.LearnRoadmapStageResource;
+import com.company.learninghub.learn.domain.LearnStageResourceOverride;
 import com.company.learninghub.learn.domain.LearnTechnology;
 import com.company.learninghub.learn.domain.RoadmapResourceKind;
 import com.company.learninghub.learn.dto.RoadmapResourceResponse;
 import com.company.learninghub.learn.dto.RoadmapResponse;
 import com.company.learninghub.learn.dto.RoadmapStageResponse;
+import com.company.learninghub.learn.service.ResourceOverrideResolver;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -21,18 +23,28 @@ import java.util.stream.Collectors;
 @Component
 public class LearnRoadmapMapper {
 
+    private final ResourceOverrideResolver overrideResolver;
+
+    public LearnRoadmapMapper(ResourceOverrideResolver overrideResolver) {
+        this.overrideResolver = overrideResolver;
+    }
+
     public RoadmapResponse toResponse(
             LearnTechnology technology,
             LearnRoadmap roadmap,
             List<LearnRoadmapStage> stages,
-            Map<UUID, List<LearnRoadmapStageResource>> resourcesByStageId
+            Map<UUID, List<LearnRoadmapStageResource>> resourcesByStageId,
+            List<LearnStageResourceOverride> overrides
     ) {
         List<LearnRoadmapStage> orderedStages = stages.stream()
                 .sorted(Comparator.comparingInt(LearnRoadmapStage::getStageOrder))
                 .toList();
 
         List<RoadmapStageResponse> stageResponses = orderedStages.stream()
-                .map(stage -> toStageResponse(stage, resourcesByStageId.getOrDefault(stage.getId(), List.of())))
+                .map(stage -> toStageResponse(
+                        stage,
+                        resourcesByStageId.getOrDefault(stage.getId(), List.of()),
+                        overrides))
                 .toList();
 
         int recommendedStageOrder = orderedStages.isEmpty() ? 0 : orderedStages.getFirst().getStageOrder();
@@ -59,21 +71,21 @@ public class LearnRoadmapMapper {
 
     private RoadmapStageResponse toStageResponse(
             LearnRoadmapStage stage,
-            List<LearnRoadmapStageResource> resources
+            List<LearnRoadmapStageResource> resources,
+            List<LearnStageResourceOverride> overrides
     ) {
-        List<RoadmapResourceResponse> learning = resources.stream()
-                .filter(resource -> RoadmapResourceKind.LEARNING.equals(resource.getResourceKind()))
-                .sorted(Comparator.comparingInt(LearnRoadmapStageResource::getResourceOrder)
-                        .thenComparing(LearnRoadmapStageResource::getTitle))
-                .map(this::toResourceResponse)
-                .toList();
-
-        List<RoadmapResourceResponse> practice = resources.stream()
-                .filter(resource -> RoadmapResourceKind.PRACTICE.equals(resource.getResourceKind()))
-                .sorted(Comparator.comparingInt(LearnRoadmapStageResource::getResourceOrder)
-                        .thenComparing(LearnRoadmapStageResource::getTitle))
-                .map(this::toResourceResponse)
-                .toList();
+        List<RoadmapResourceResponse> learning = overrideResolver.resolveEffectiveResources(
+                stage.getSlug(),
+                resources,
+                overrides,
+                RoadmapResourceKind.LEARNING
+        );
+        List<RoadmapResourceResponse> practice = overrideResolver.resolveEffectiveResources(
+                stage.getSlug(),
+                resources,
+                overrides,
+                RoadmapResourceKind.PRACTICE
+        );
 
         return new RoadmapStageResponse(
                 stage.getId().toString(),
@@ -85,17 +97,6 @@ public class LearnRoadmapMapper {
                 stage.getNotes(),
                 learning,
                 practice
-        );
-    }
-
-    private RoadmapResourceResponse toResourceResponse(LearnRoadmapStageResource resource) {
-        return new RoadmapResourceResponse(
-                resource.getSlug(),
-                resource.getTitle(),
-                resource.getUrl(),
-                resource.getResourceType().name(),
-                resource.getProvider(),
-                resource.getFreePaid() == null ? null : resource.getFreePaid().name()
         );
     }
 

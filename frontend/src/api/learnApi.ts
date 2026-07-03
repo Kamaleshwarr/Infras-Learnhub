@@ -6,6 +6,12 @@ import type {
   TechnologyCurationRequest,
   TechnologyListParams,
 } from '../types/learn'
+import type {
+  CreateResourceOverrideRequest,
+  ResourceOverride,
+  StageResourceAdminView,
+  UpdateResourceOverrideRequest,
+} from '../types/resourceOverride'
 import type { Roadmap } from '../types/roadmap'
 import type { Enrollment, Journey, TechnologyProgress } from '../types/progress'
 
@@ -90,5 +96,37 @@ export const learnApi = {
   },
   leaveEnrollment: async (enrollmentId: string) => {
     await httpClient.delete(`/learn/enrollments/${enrollmentId}`)
+  },
+  getStageResources: async (technologyId: string, stageSlug: string) => {
+    const response = await httpClient.get<StageResourceAdminView>(
+      `/learn/manage/technologies/${technologyId}/roadmap/stages/${stageSlug}/resources`,
+    )
+    return response.data
+  },
+  createResourceOverride: async (technologyId: string, request: CreateResourceOverrideRequest) => {
+    const response = await httpClient.post<ResourceOverride>(
+      `/learn/manage/technologies/${technologyId}/roadmap/resources/overrides`,
+      request,
+    )
+    return response.data
+  },
+  updateResourceOverride: async (
+    technologyId: string,
+    overrideId: string,
+    request: UpdateResourceOverrideRequest,
+  ) => {
+    const response = await httpClient.put<ResourceOverride>(
+      `/learn/manage/technologies/${technologyId}/roadmap/resources/overrides/${overrideId}`,
+      request,
+    )
+    return response.data
+  },
+  deleteResourceOverride: async (technologyId: string, overrideId: string) => {
+    await httpClient.delete(`/learn/manage/technologies/${technologyId}/roadmap/resources/overrides/${overrideId}`)
+  },
+  restoreResourceDefault: async (technologyId: string, stageSlug: string, resourceSlug: string) => {
+    await httpClient.post(
+      `/learn/manage/technologies/${technologyId}/roadmap/stages/${stageSlug}/resources/${resourceSlug}/restore`,
+    )
   },
 }
