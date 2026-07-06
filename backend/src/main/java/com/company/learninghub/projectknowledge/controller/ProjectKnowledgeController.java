@@ -4,6 +4,7 @@ import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
+import com.company.learninghub.projectknowledge.domain.ProjectStatus;
 import com.company.learninghub.projectknowledge.dto.CreateProjectLinkRequest;
 import com.company.learninghub.projectknowledge.dto.CreateProjectRequest;
 import com.company.learninghub.projectknowledge.dto.ProjectFolderRequest;
@@ -63,7 +64,7 @@ public class ProjectKnowledgeController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a project. The creator becomes OWNER.")
+    @Operation(summary = "Create a project. Admin only. The creator becomes OWNER.")
     public ResponseEntity<ProjectResponse> createProject(
             @Valid @RequestBody CreateProjectRequest request,
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser
@@ -100,14 +101,16 @@ public class ProjectKnowledgeController {
     public ResponseEntity<PageResponse<ProjectResponse>> searchProjects(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) ProjectAccessType accessType,
+            @RequestParam(required = false) ProjectStatus status,
+            @RequestParam(defaultValue = "false") boolean assigned,
             @RequestParam(defaultValue = "false") boolean includeArchived,
-            @Parameter(description = "Supported sort fields: name, accessType, archived, createdAtUtc, updatedAtUtc.")
+            @Parameter(description = "Supported sort fields: name, accessType, status, archived, createdAtUtc, updatedAtUtc.")
             @ParameterObject
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
         return ResponseEntity.ok(PageResponse.from(
-                projectKnowledgeService.searchProjects(search, accessType, includeArchived, pageable, authenticatedUser)
+                projectKnowledgeService.searchProjects(search, accessType, status, assigned, includeArchived, pageable, authenticatedUser)
         ));
     }
 

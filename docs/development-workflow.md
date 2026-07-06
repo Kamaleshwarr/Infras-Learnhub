@@ -63,7 +63,7 @@ Successfully validated N migrations
 Current version of schema "public": N
 ```
 
-For Learn module, current version is **V15**.
+For the current schema, Flyway version is **V17** (`projects.status`).
 
 ### 5. Backend startup
 

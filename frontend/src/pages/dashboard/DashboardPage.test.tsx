@@ -33,6 +33,7 @@ const dashboardData: DashboardData = {
       archived: false,
       id: 'project-1',
       name: 'Payments Platform',
+      status: 'ACTIVE',
     },
   ],
   expiringInitiativesCount: 1,
@@ -86,6 +87,7 @@ const dashboardData: DashboardData = {
       archived: false,
       id: 'project-2',
       name: 'Observability',
+      status: 'ACTIVE',
     },
   ],
   recentStudyMaterials: [

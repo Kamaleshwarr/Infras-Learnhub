@@ -207,8 +207,9 @@ function materialItems(data: DashboardData | null): DashboardListItem[] {
 function projectItems(projects: DashboardData['assignedProjects'] = []): DashboardListItem[] {
   return projects.map((project) => ({
     id: project.id,
+    href: `/projects/${project.id}`,
     primary: project.name,
-    secondary: `${project.accessType}${project.archived ? ' · Archived' : ''}`,
+    secondary: `${project.status} · ${project.accessType}`,
   }))
 }
 

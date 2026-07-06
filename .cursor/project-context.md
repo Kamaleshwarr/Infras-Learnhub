@@ -57,7 +57,7 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 
 **Learn module v1.1 is the current development baseline.** F19 has NOT been started.
 
-**Project Module:** Architecture review complete (`docs/project/`). Implementation P1–P5 **not started**.
+**Project Module:** P1 — Project Foundation & Overview **complete** (`docs/project/`). P2–P5 **not started**.
 
 Documentation:
 - `README.md` — project entry point

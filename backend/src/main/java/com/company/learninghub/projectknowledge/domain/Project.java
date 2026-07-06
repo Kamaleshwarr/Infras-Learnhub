@@ -40,6 +40,10 @@ public class Project extends AuditableEntity {
     @Column(name = "archived", nullable = false)
     private boolean archived;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 30)
+    private ProjectStatus status = ProjectStatus.ACTIVE;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false, updatable = false)
     private User createdBy;
@@ -48,7 +52,7 @@ public class Project extends AuditableEntity {
     }
 
     public Project(String name, String description, ProjectAccessType accessType, User createdBy) {
-        updateDetails(name, description, accessType);
+        updateDetails(name, description, accessType, ProjectStatus.ACTIVE);
         this.createdBy = createdBy;
     }
 
@@ -72,18 +76,28 @@ public class Project extends AuditableEntity {
         return archived;
     }
 
+    public ProjectStatus getStatus() {
+        return status;
+    }
+
     public User getCreatedBy() {
         return createdBy;
     }
 
-    public void updateDetails(String name, String description, ProjectAccessType accessType) {
+    public void updateDetails(String name, String description, ProjectAccessType accessType, ProjectStatus status) {
         this.name = name;
         this.description = description;
         this.accessType = accessType;
+        applyStatus(status);
     }
 
     public void archive() {
-        this.archived = true;
+        applyStatus(ProjectStatus.ARCHIVED);
+    }
+
+    private void applyStatus(ProjectStatus nextStatus) {
+        this.status = nextStatus;
+        this.archived = ProjectStatus.ARCHIVED.equals(nextStatus);
     }
 
     public boolean isPublic() {

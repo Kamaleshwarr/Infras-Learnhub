@@ -2,7 +2,8 @@ package com.company.learninghub.projectknowledge.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
-import com.company.learninghub.learn.service.LearnTechnologyService;
+import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
+import com.company.learninghub.projectknowledge.domain.ProjectStatus;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
@@ -45,6 +46,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,13 +69,15 @@ class ProjectKnowledgeServiceTest {
     @Mock private ProjectKnowledgeAccessEventRepository accessEventRepository;
     @Mock private UserRepository userRepository;
     @Mock private ProjectKnowledgeStorageService storageService;
-    @Mock private LearnTechnologyService learnTechnologyService;
+    @Mock private LearnTechnologyProjectLinkRepository projectLinkRepository;
 
     private ProjectKnowledgeService service;
+    private User admin;
     private User owner;
     private User contributor;
     private User viewer;
     private User outsider;
+    private AuthenticatedUser adminPrincipal;
     private AuthenticatedUser ownerPrincipal;
     private AuthenticatedUser contributorPrincipal;
     private AuthenticatedUser viewerPrincipal;
@@ -94,12 +98,14 @@ class ProjectKnowledgeServiceTest {
                 storageService,
                 storageProperties,
                 new ProjectKnowledgeMapper(),
-                learnTechnologyService
+                projectLinkRepository
         );
+        admin = user("ADMIN001", "admin@example.com", RoleName.ADMIN);
         owner = user("OWNER001", "owner@example.com", RoleName.EMPLOYEE);
         contributor = user("CONTRIB001", "contributor@example.com", RoleName.EMPLOYEE);
         viewer = user("VIEWER001", "viewer@example.com", RoleName.EMPLOYEE);
         outsider = user("OUT001", "outsider@example.com", RoleName.EMPLOYEE);
+        adminPrincipal = AuthenticatedUser.from(admin);
         ownerPrincipal = AuthenticatedUser.from(owner);
         contributorPrincipal = AuthenticatedUser.from(contributor);
         viewerPrincipal = AuthenticatedUser.from(viewer);
@@ -108,26 +114,28 @@ class ProjectKnowledgeServiceTest {
     }
 
     @Test
-    void createProjectCreatesOwnerMembership() {
+    void adminCreateProjectCreatesOwnerMembership() {
         when(projectRepository.existsByNameIgnoreCase("Payments")).thenReturn(false);
-        when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+        when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
         when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> {
             Project saved = invocation.getArgument(0);
             ReflectionTestUtils.setField(saved, "id", UUID.randomUUID());
             return saved;
         });
         when(memberRepository.save(any(ProjectMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        stubEnrichmentForProject();
 
         ProjectResponse response = service.createProject(
                 new CreateProjectRequest(" Payments ", " Core payments ", ProjectAccessType.MEMBERS_ONLY),
-                ownerPrincipal
+                adminPrincipal
         );
 
         assertThat(response.name()).isEqualTo("Payments");
+        assertThat(response.status()).isEqualTo(ProjectStatus.ACTIVE);
         ArgumentCaptor<ProjectMember> memberCaptor = ArgumentCaptor.forClass(ProjectMember.class);
         verify(memberRepository).save(memberCaptor.capture());
         assertThat(memberCaptor.getValue().getProjectRole()).isEqualTo(ProjectRole.OWNER);
-        assertThat(memberCaptor.getValue().getUser()).isEqualTo(owner);
+        assertThat(memberCaptor.getValue().getUser()).isEqualTo(admin);
     }
 
     @Test
@@ -135,14 +143,16 @@ class ProjectKnowledgeServiceTest {
         Project privateProject = project("Private Payments", ProjectAccessType.MEMBERS_ONLY, owner);
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
         when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), owner.getId(), ProjectRole.OWNER)).thenReturn(true);
+        stubEnrichmentForProject();
 
         ProjectResponse response = service.updateProject(
                 project.getId(),
-                new UpdateProjectRequest("Payments Modernization", "Updated", ProjectAccessType.PUBLIC),
+                new UpdateProjectRequest("Payments Modernization", "Updated", ProjectAccessType.PUBLIC, ProjectStatus.ON_HOLD),
                 ownerPrincipal
         );
 
         assertThat(response.name()).isEqualTo("Payments Modernization");
+        assertThat(response.status()).isEqualTo(ProjectStatus.ON_HOLD);
 
         when(projectRepository.findById(privateProject.getId())).thenReturn(Optional.of(privateProject));
         assertThatThrownBy(() -> service.getProject(privateProject.getId(), AuthenticatedUser.from(outsider)))
@@ -267,25 +277,55 @@ class ProjectKnowledgeServiceTest {
     @Test
     void searchProjectsPassesAccessContextAndSortTranslation() {
         PageRequest pageable = PageRequest.of(1, 10, Sort.by(Sort.Order.desc("createdAtUtc")));
-        when(projectRepository.search(eq("pay"), eq(ProjectAccessType.PUBLIC), eq(false), eq(owner.getId()), eq(false), any(Pageable.class)))
-                .thenAnswer(invocation -> new PageImpl<>(List.of(project), invocation.getArgument(5), 1));
+        when(projectRepository.search(eq("%pay%"), eq(ProjectAccessType.PUBLIC), eq(null), eq(false), eq(false), eq(owner.getId()), eq(false), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(project), invocation.getArgument(7), 1));
+        stubEnrichmentForProject();
 
-        service.searchProjects(" pay ", ProjectAccessType.PUBLIC, false, pageable, ownerPrincipal);
+        service.searchProjects(" pay ", ProjectAccessType.PUBLIC, null, false, false, pageable, ownerPrincipal);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(projectRepository).search(eq("pay"), eq(ProjectAccessType.PUBLIC), eq(false), eq(owner.getId()), eq(false), pageableCaptor.capture());
+        verify(projectRepository).search(eq("%pay%"), eq(ProjectAccessType.PUBLIC), eq(null), eq(false), eq(false), eq(owner.getId()), eq(false), pageableCaptor.capture());
         assertThat(pageableCaptor.getValue().getSort().getOrderFor("createdAt")).isNotNull();
     }
 
     @Test
     void nonAdminSearchCannotIncludeArchivedProjects() {
         PageRequest pageable = PageRequest.of(0, 20);
-        when(projectRepository.search(eq(null), eq(null), eq(false), eq(owner.getId()), eq(false), any(Pageable.class)))
-                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(5), 0));
+        when(projectRepository.search(eq(null), eq(null), eq(null), eq(false), eq(false), eq(owner.getId()), eq(false), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(7), 0));
 
-        service.searchProjects(null, null, true, pageable, ownerPrincipal);
+        service.searchProjects(null, null, null, false, true, pageable, ownerPrincipal);
 
-        verify(projectRepository).search(eq(null), eq(null), eq(false), eq(owner.getId()), eq(false), any(Pageable.class));
+        verify(projectRepository).search(eq(null), eq(null), eq(null), eq(false), eq(false), eq(owner.getId()), eq(false), any(Pageable.class));
+    }
+
+    @Test
+    void assignedSearchRequestsMembershipOnlyProjects() {
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(projectRepository.search(eq(null), eq(null), eq(null), eq(true), eq(false), eq(owner.getId()), eq(false), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(7), 0));
+
+        service.searchProjects(null, null, null, true, false, pageable, ownerPrincipal);
+
+        verify(projectRepository).search(eq(null), eq(null), eq(null), eq(true), eq(false), eq(owner.getId()), eq(false), any(Pageable.class));
+    }
+
+    @Test
+    void archivedProjectIsHiddenFromEmployees() {
+        Project archivedProject = project("Archived", ProjectAccessType.PUBLIC, owner);
+        ReflectionTestUtils.setField(archivedProject, "status", ProjectStatus.ARCHIVED);
+        ReflectionTestUtils.setField(archivedProject, "archived", true);
+        when(projectRepository.findById(archivedProject.getId())).thenReturn(Optional.of(archivedProject));
+
+        assertThatThrownBy(() -> service.getProject(archivedProject.getId(), ownerPrincipal))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    private void stubEnrichmentForProject() {
+        when(memberRepository.findOwnersByProjectIds(any(), eq(ProjectRole.OWNER))).thenReturn(Collections.emptyList());
+        when(memberRepository.countByProjectId(any())).thenReturn(0L);
+        when(memberRepository.findByProjectIdInAndUserId(any(), any())).thenReturn(Collections.emptyList());
+        when(projectLinkRepository.findPublishedTechnologiesByProjectIds(any(), any())).thenReturn(Collections.emptyList());
     }
 
     @Test

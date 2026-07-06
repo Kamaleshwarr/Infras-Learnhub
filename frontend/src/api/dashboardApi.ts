@@ -42,7 +42,7 @@ export async function getAdminDashboardData(): Promise<DashboardData> {
   const [leaderboardResult, materialsResult, projectsResult] = await Promise.allSettled([
     leaderboardsApi.global({ size: 5, sort: 'rank,asc' }),
     studyMaterialsApi.search(undefined, { size: 5, sort: 'createdAtUtc,desc' }),
-    projectsApi.list(undefined, { size: 5, sort: 'updatedAtUtc,desc' }),
+    projectsApi.list({ size: 5, sort: 'updatedAtUtc,desc' }),
   ])
 
   const initiatives = initiativesResult.ok ? initiativesResult.value : null
@@ -74,7 +74,7 @@ export async function getEmployeeDashboardData(): Promise<DashboardData> {
       leaderboardsApi.global({ size: 5, sort: 'rank,asc' }),
       leaderboardsApi.me(),
       studyMaterialsApi.search(undefined, { size: 5, sort: 'createdAtUtc,desc' }),
-      projectsApi.list(undefined, { size: 5, sort: 'updatedAtUtc,desc' }),
+      projectsApi.list({ assigned: true, size: 5, sort: 'updatedAtUtc,desc' }),
     ])
 
   const initiatives = initiativesResult.ok ? initiativesResult.value : null

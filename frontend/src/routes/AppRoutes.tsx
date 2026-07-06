@@ -16,7 +16,7 @@ import { InitiativeDetailPage } from '../pages/initiatives/InitiativeDetailPage'
 import { InitiativeListPage } from '../pages/initiatives/InitiativeListPage'
 import { GlobalLeaderboardPage } from '../pages/leaderboards/GlobalLeaderboardPage'
 import { InitiativeLeaderboardPage } from '../pages/leaderboards/InitiativeLeaderboardPage'
-import { ProjectKnowledgePage } from '../pages/projects/ProjectKnowledgePage'
+import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
 import { ProjectsPage } from '../pages/projects/ProjectsPage'
 import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
 import { AdminReviewPage } from '../pages/submissions/AdminReviewPage'
@@ -66,7 +66,7 @@ export function AppRoutes() {
             <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives/:initiativeId" />
             <Route element={<StudyMaterialsPage />} path="study-materials" />
             <Route element={<ProjectsPage />} path="projects" />
-            <Route element={<ProjectKnowledgePage />} path="projects/:projectId" />
+            <Route element={<ProjectDetailPage />} path="projects/:projectId" />
           </Route>
         </Route>
       </Route>

@@ -63,7 +63,7 @@ export function TechnologyCurationPanel({ open, technology, onClose, onSuccess }
     async function loadProjects() {
       setLoadingProjects(true)
       try {
-        const response = await projectsApi.list(undefined, { page: 0, size: 100, sort: 'name,asc' })
+        const response = await projectsApi.list({ page: 0, size: 100, sort: 'name,asc' })
         if (mounted) {
           setProjects(response.content)
         }

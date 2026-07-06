@@ -17,6 +17,9 @@ import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkReposi
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.learn.search.TechnologySearchMatching;
 import com.company.learninghub.projectknowledge.domain.Project;
+import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
+import com.company.learninghub.projectknowledge.domain.ProjectStatus;
+import com.company.learninghub.projectknowledge.repository.ProjectMemberRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.user.domain.RoleName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,7 @@ public class LearnTechnologyService {
     private final LearnTechnologyRepository technologyRepository;
     private final LearnTechnologyProjectLinkRepository projectLinkRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectMemberRepository projectMemberRepository;
     private final LearnTechnologyMapper technologyMapper;
 
     @Autowired
@@ -52,11 +56,13 @@ public class LearnTechnologyService {
             LearnTechnologyRepository technologyRepository,
             LearnTechnologyProjectLinkRepository projectLinkRepository,
             ProjectRepository projectRepository,
+            ProjectMemberRepository projectMemberRepository,
             LearnTechnologyMapper technologyMapper
     ) {
         this.technologyRepository = technologyRepository;
         this.projectLinkRepository = projectLinkRepository;
         this.projectRepository = projectRepository;
+        this.projectMemberRepository = projectMemberRepository;
         this.technologyMapper = technologyMapper;
     }
 
@@ -138,7 +144,10 @@ public class LearnTechnologyService {
     public TechnologyResponse getById(UUID technologyId, AuthenticatedUser authenticatedUser) {
         LearnTechnology technology = findTechnologyOrThrow(technologyId);
         if (isAdmin(authenticatedUser) || technology.isVisibleToEmployees()) {
-            return technologyMapper.toResponse(technology, loadRelatedProjects(technologyId));
+            return technologyMapper.toResponse(
+                    technology,
+                    loadRelatedProjectsForPrincipal(technologyId, authenticatedUser)
+            );
         }
         throw new ResourceNotFoundException("Technology was not found");
     }
@@ -246,8 +255,31 @@ public class LearnTechnologyService {
 
     private List<RelatedProjectSummary> loadRelatedProjects(UUID technologyId) {
         return technologyMapper.toRelatedProjectSummaries(
-                projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technologyId)
+                projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, true)
         );
+    }
+
+    private List<RelatedProjectSummary> loadRelatedProjectsForPrincipal(UUID technologyId, AuthenticatedUser principal) {
+        boolean includeArchived = isAdmin(principal);
+        return projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, includeArchived)
+                .stream()
+                .filter(link -> isProjectLinkVisibleToPrincipal(link, principal))
+                .map(technologyMapper::toRelatedProjectSummary)
+                .toList();
+    }
+
+    private boolean isProjectLinkVisibleToPrincipal(LearnTechnologyProjectLink link, AuthenticatedUser principal) {
+        if (isAdmin(principal)) {
+            return true;
+        }
+        Project project = link.getProject();
+        if (project.isArchived() || ProjectStatus.ARCHIVED.equals(project.getStatus())) {
+            return false;
+        }
+        if (ProjectAccessType.PUBLIC.equals(project.getAccessType())) {
+            return true;
+        }
+        return projectMemberRepository.existsByProjectIdAndUserId(project.getId(), principal.getId());
     }
 
     private LearnTechnology findTechnologyOrThrow(UUID technologyId) {

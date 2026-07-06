@@ -15,6 +15,7 @@ import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkReposi
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
+import com.company.learninghub.projectknowledge.repository.ProjectMemberRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
@@ -56,6 +57,9 @@ class LearnTechnologyServiceTest {
     @Mock
     private ProjectRepository projectRepository;
 
+    @Mock
+    private ProjectMemberRepository projectMemberRepository;
+
     private LearnTechnologyService technologyService;
 
     private User adminUser;
@@ -68,6 +72,7 @@ class LearnTechnologyServiceTest {
                 technologyRepository,
                 projectLinkRepository,
                 projectRepository,
+                projectMemberRepository,
                 new LearnTechnologyMapper()
         );
         adminUser = user("ADMIN001", "admin@learninghub.local", RoleName.ADMIN);
@@ -80,7 +85,7 @@ class LearnTechnologyServiceTest {
         LearnTechnology technology = technology("spring-boot", TechnologyStatus.HIDDEN);
         UUID technologyId = technology.getId();
         when(technologyRepository.findById(technologyId)).thenReturn(Optional.of(technology));
-        when(projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technologyId)).thenReturn(List.of());
+        when(projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, true)).thenReturn(List.of());
 
         TechnologyResponse response = technologyService.updateCuration(
                 technologyId,
@@ -96,7 +101,7 @@ class LearnTechnologyServiceTest {
         LearnTechnology technology = technology("spring-boot", TechnologyStatus.HIDDEN);
         UUID technologyId = technology.getId();
         when(technologyRepository.findById(technologyId)).thenReturn(Optional.of(technology));
-        when(projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technologyId)).thenReturn(List.of());
+        when(projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, true)).thenReturn(List.of());
 
         TechnologyResponse response = technologyService.publish(technologyId);
 
@@ -108,7 +113,7 @@ class LearnTechnologyServiceTest {
         LearnTechnology technology = technology("spring-boot", TechnologyStatus.PUBLISHED);
         UUID technologyId = technology.getId();
         when(technologyRepository.findById(technologyId)).thenReturn(Optional.of(technology));
-        when(projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technologyId)).thenReturn(List.of());
+        when(projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, true)).thenReturn(List.of());
 
         TechnologyResponse response = technologyService.hide(technologyId);
 
@@ -120,7 +125,7 @@ class LearnTechnologyServiceTest {
         LearnTechnology technology = technology("spring-boot", TechnologyStatus.PUBLISHED);
         UUID technologyId = technology.getId();
         when(technologyRepository.findById(technologyId)).thenReturn(Optional.of(technology));
-        when(projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technologyId)).thenReturn(List.of());
+        when(projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, true)).thenReturn(List.of());
 
         TechnologyResponse response = technologyService.archive(technologyId);
 
@@ -140,7 +145,7 @@ class LearnTechnologyServiceTest {
     void employeeCanViewPublishedTechnology() {
         LearnTechnology technology = technology("spring-boot", TechnologyStatus.PUBLISHED);
         when(technologyRepository.findById(technology.getId())).thenReturn(Optional.of(technology));
-        when(projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technology.getId())).thenReturn(List.of());
+        when(projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technology.getId(), false)).thenReturn(List.of());
 
         TechnologyResponse response = technologyService.getById(technology.getId(), employeePrincipal);
 
@@ -175,7 +180,7 @@ class LearnTechnologyServiceTest {
         when(technologyRepository.findById(technologyId)).thenReturn(Optional.of(technology));
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(projectLinkRepository.existsByTechnologyIdAndProjectId(technologyId, projectId)).thenReturn(false);
-        when(projectLinkRepository.findByTechnologyIdOrderByProject_NameAsc(technologyId))
+        when(projectLinkRepository.findVisibleByTechnologyIdOrderByProjectName(technologyId, true))
                 .thenReturn(List.of(new LearnTechnologyProjectLink(technology, project)));
 
         TechnologyResponse response = technologyService.addProjectLink(technologyId, projectId);
