@@ -288,14 +288,15 @@ Routes: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, `/learn/tech
 
 ---
 
-## Upcoming roadmap (not started)
+## Upcoming roadmap
 
-| Phase | Deliverable |
-|-------|-------------|
-| F19 | Career Path Catalog |
-| F20 | Certification Catalog |
-| F21 | Optional Initiative Association |
-| F22 | Dashboard, Unified Search & Release |
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| **Project Module** | Engineering project portal (P1–P5) | Architecture review complete — see [`docs/project/`](docs/project/) |
+| F19 | Career Path Catalog | Not started |
+| F20 | Certification Catalog | Not started |
+| F21 | Optional Initiative Association | Not started |
+| F22 | Dashboard, Unified Search & Release | Not started |
 
 Authoritative roadmap: [`docs/project-roadmap.md`](docs/project-roadmap.md)
 
@@ -324,6 +325,7 @@ Authoritative roadmap: [`docs/project-roadmap.md`](docs/project-roadmap.md)
 | Contributor guide | [`docs/contributing.md`](docs/contributing.md) |
 | Testing guide | [`docs/testing-guide.md`](docs/testing-guide.md) |
 | Development workflow | [`docs/development-workflow.md`](docs/development-workflow.md) |
+| Project Module (planning) | [`docs/project/README.md`](docs/project/README.md) |
 | v0.8.0 product design | [`docs/v0.8.0/`](docs/v0.8.0/) |
 | Release reports | [`docs/releases/`](docs/releases/) |
 

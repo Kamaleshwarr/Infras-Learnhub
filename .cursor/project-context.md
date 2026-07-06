@@ -55,7 +55,9 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 **v0.7.1** — Initiative Management (Complete — F11–F15)  
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
 
-**Learn module v1 is the current development baseline.** F19 has NOT been started.
+**Learn module v1.1 is the current development baseline.** F19 has NOT been started.
+
+**Project Module:** Architecture review complete (`docs/project/`). Implementation P1–P5 **not started**.
 
 Documentation:
 - `README.md` — project entry point
@@ -300,7 +302,8 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 7. Employee self-service certificate download
 8. Dashboard drilldowns (initiatives, top learners)
 9. User Management UI backlog (UM-002–UM-006)
-10. Study materials and projects full UI surfaces
+10. **Project Module** — P1–P5 implementation (`docs/project/09-phased-implementation-plan.md`)
+11. Study materials full UI surfaces
 11. Global Search
 12. Email notifications (account lifecycle)
 13. AI Features
