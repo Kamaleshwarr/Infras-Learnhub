@@ -39,6 +39,19 @@ public class ProjectMember extends AuditableEntity {
     @Column(name = "project_role", nullable = false, length = 30)
     private ProjectRole projectRole;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "functional_role", nullable = false, length = 40)
+    private ProjectFunctionalRole functionalRole;
+
+    @Column(name = "responsibility")
+    private String responsibility;
+
+    @Column(name = "is_primary_contact", nullable = false)
+    private boolean primaryContact;
+
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder;
+
     protected ProjectMember() {
     }
 
@@ -46,6 +59,27 @@ public class ProjectMember extends AuditableEntity {
         this.project = project;
         this.user = user;
         this.projectRole = projectRole;
+        this.functionalRole = ProjectFunctionalRole.OTHER;
+        this.primaryContact = false;
+        this.displayOrder = 0;
+    }
+
+    public ProjectMember(
+            Project project,
+            User user,
+            ProjectRole projectRole,
+            ProjectFunctionalRole functionalRole,
+            String responsibility,
+            boolean primaryContact,
+            int displayOrder
+    ) {
+        this.project = project;
+        this.user = user;
+        this.projectRole = projectRole;
+        this.functionalRole = functionalRole;
+        this.responsibility = responsibility;
+        this.primaryContact = primaryContact;
+        this.displayOrder = displayOrder;
     }
 
     public UUID getId() {
@@ -66,6 +100,36 @@ public class ProjectMember extends AuditableEntity {
 
     public void updateRole(ProjectRole projectRole) {
         this.projectRole = projectRole;
+    }
+
+    public ProjectFunctionalRole getFunctionalRole() {
+        return functionalRole;
+    }
+
+    public String getResponsibility() {
+        return responsibility;
+    }
+
+    public boolean isPrimaryContact() {
+        return primaryContact;
+    }
+
+    public int getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void updateAssignment(
+            ProjectRole projectRole,
+            ProjectFunctionalRole functionalRole,
+            String responsibility,
+            boolean primaryContact,
+            int displayOrder
+    ) {
+        this.projectRole = projectRole;
+        this.functionalRole = functionalRole;
+        this.responsibility = responsibility;
+        this.primaryContact = primaryContact;
+        this.displayOrder = displayOrder;
     }
 
     @Override

@@ -43,6 +43,10 @@ describe('ProjectDetailPage', () => {
         id: 'member-1',
         projectId: 'project-1',
         projectRole: 'OWNER',
+        functionalRole: 'PRODUCT_OWNER',
+        responsibility: 'Roadmap',
+        primaryContact: true,
+        displayOrder: 0,
         createdAtUtc: '2026-07-01T00:00:00Z',
         updatedAtUtc: '2026-07-01T00:00:00Z',
         user: sampleProject.owner!,
@@ -64,7 +68,8 @@ describe('ProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: /Knowledge Base/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Environments/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Repositories/i })).toBeInTheDocument()
-    expect(screen.getAllByText(/coming in a future release/i).length).toBe(1)
+    expect(screen.getAllByRole('link', { name: /Team & Contacts/i }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /View Team & Contacts/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /edit project/i })).not.toBeInTheDocument()
   })
 })

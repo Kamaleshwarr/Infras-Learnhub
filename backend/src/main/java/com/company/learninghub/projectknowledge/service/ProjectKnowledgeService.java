@@ -12,6 +12,7 @@ import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeAccessEvent;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeFolder;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeItem;
+import com.company.learninghub.projectknowledge.domain.ProjectFunctionalRole;
 import com.company.learninghub.projectknowledge.domain.ProjectMember;
 import com.company.learninghub.projectknowledge.domain.ProjectRole;
 import com.company.learninghub.projectknowledge.domain.ProjectStatus;
@@ -79,6 +80,7 @@ public class ProjectKnowledgeService {
     private final StorageProperties storageProperties;
     private final ProjectKnowledgeMapper mapper;
     private final LearnTechnologyProjectLinkRepository projectLinkRepository;
+    private final ProjectTeamService teamService;
 
     public ProjectKnowledgeService(
             ProjectRepository projectRepository,
@@ -92,7 +94,8 @@ public class ProjectKnowledgeService {
             ProjectKnowledgeStorageService storageService,
             StorageProperties storageProperties,
             ProjectKnowledgeMapper mapper,
-            LearnTechnologyProjectLinkRepository projectLinkRepository
+            LearnTechnologyProjectLinkRepository projectLinkRepository,
+            ProjectTeamService teamService
     ) {
         this.projectRepository = projectRepository;
         this.memberRepository = memberRepository;
@@ -106,6 +109,7 @@ public class ProjectKnowledgeService {
         this.storageProperties = storageProperties;
         this.mapper = mapper;
         this.projectLinkRepository = projectLinkRepository;
+        this.teamService = teamService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -122,7 +126,15 @@ public class ProjectKnowledgeService {
                 request.accessType(),
                 user
         ));
-        memberRepository.save(new ProjectMember(project, user, ProjectRole.OWNER));
+        memberRepository.save(new ProjectMember(
+                project,
+                user,
+                ProjectRole.OWNER,
+                ProjectFunctionalRole.PRODUCT_OWNER,
+                null,
+                true,
+                0
+        ));
         return enrichProjectResponse(project, principal);
     }
 
@@ -185,33 +197,19 @@ public class ProjectKnowledgeService {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional
     public ProjectMemberResponse addOrUpdateMember(UUID projectId, ProjectMemberRequest request, AuthenticatedUser principal) {
-        Project project = findProject(projectId);
-        requireOwner(project, principal);
-        User user = findUser(request.userId());
-        ProjectMember member = memberRepository.findByProjectIdAndUserId(projectId, user.getId())
-                .orElseGet(() -> new ProjectMember(project, user, request.projectRole()));
-        member.updateRole(request.projectRole());
-        return mapper.toMemberResponse(memberRepository.save(member));
+        return teamService.addOrUpdateMember(projectId, request, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
     public List<ProjectMemberResponse> listMembers(UUID projectId, AuthenticatedUser principal) {
-        Project project = findProject(projectId);
-        requireReadAccess(project, principal);
-        return memberRepository.findByProjectId(projectId).stream()
-                .map(mapper::toMemberResponse)
-                .toList();
+        return teamService.listMembers(projectId, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional
     public void removeMember(UUID projectId, UUID userId, AuthenticatedUser principal) {
-        Project project = findProject(projectId);
-        requireOwner(project, principal);
-        ProjectMember member = memberRepository.findByProjectIdAndUserId(projectId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project member was not found"));
-        memberRepository.delete(member);
+        teamService.removeMember(projectId, userId, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -700,9 +698,15 @@ public class ProjectKnowledgeService {
             repositoryCountsByProjectId.put(projectId, (int) linkedRepositoryRepository.countByProjectIdAndActiveTrue(projectId));
         }
 
+        Map<UUID, Integer> primaryContactCountsByProjectId = new HashMap<>();
+        for (UUID projectId : projectIds) {
+            primaryContactCountsByProjectId.put(projectId, teamService.countPrimaryContacts(projectId));
+        }
+
         return new EnrichmentContext(
                 ownersByProjectId,
                 memberCountsByProjectId,
+                primaryContactCountsByProjectId,
                 environmentCountsByProjectId,
                 repositoryCountsByProjectId,
                 rolesByProjectId,
@@ -716,6 +720,7 @@ public class ProjectKnowledgeService {
                 project,
                 context.ownersByProjectId().get(projectId),
                 context.memberCountsByProjectId().getOrDefault(projectId, 0),
+                context.primaryContactCountsByProjectId().getOrDefault(projectId, 0),
                 context.environmentCountsByProjectId().getOrDefault(projectId, 0),
                 context.repositoryCountsByProjectId().getOrDefault(projectId, 0),
                 context.rolesByProjectId().get(projectId),
@@ -730,6 +735,7 @@ public class ProjectKnowledgeService {
     private record EnrichmentContext(
             Map<UUID, com.company.learninghub.projectknowledge.dto.ProjectUserResponse> ownersByProjectId,
             Map<UUID, Integer> memberCountsByProjectId,
+            Map<UUID, Integer> primaryContactCountsByProjectId,
             Map<UUID, Integer> environmentCountsByProjectId,
             Map<UUID, Integer> repositoryCountsByProjectId,
             Map<UUID, ProjectRole> rolesByProjectId,

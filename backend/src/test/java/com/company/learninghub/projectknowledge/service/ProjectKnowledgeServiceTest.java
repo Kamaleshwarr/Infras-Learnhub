@@ -10,6 +10,7 @@ import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeAccessEvent;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeFolder;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeItem;
+import com.company.learninghub.projectknowledge.domain.ProjectFunctionalRole;
 import com.company.learninghub.projectknowledge.domain.ProjectMember;
 import com.company.learninghub.projectknowledge.domain.ProjectRole;
 import com.company.learninghub.projectknowledge.dto.CreateProjectLinkRequest;
@@ -78,6 +79,7 @@ class ProjectKnowledgeServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private ProjectKnowledgeStorageService storageService;
     @Mock private LearnTechnologyProjectLinkRepository projectLinkRepository;
+    @Mock private ProjectTeamService teamService;
 
     private ProjectKnowledgeService service;
     private User admin;
@@ -108,7 +110,8 @@ class ProjectKnowledgeServiceTest {
                 storageService,
                 storageProperties,
                 new ProjectKnowledgeMapper(),
-                projectLinkRepository
+                projectLinkRepository,
+                teamService
         );
         admin = user("ADMIN001", "admin@example.com", RoleName.ADMIN);
         owner = user("OWNER001", "owner@example.com", RoleName.EMPLOYEE);
@@ -148,6 +151,8 @@ class ProjectKnowledgeServiceTest {
         ArgumentCaptor<ProjectMember> memberCaptor = ArgumentCaptor.forClass(ProjectMember.class);
         verify(memberRepository).save(memberCaptor.capture());
         assertThat(memberCaptor.getValue().getProjectRole()).isEqualTo(ProjectRole.OWNER);
+        assertThat(memberCaptor.getValue().getFunctionalRole()).isEqualTo(ProjectFunctionalRole.PRODUCT_OWNER);
+        assertThat(memberCaptor.getValue().isPrimaryContact()).isTrue();
         assertThat(memberCaptor.getValue().getUser()).isEqualTo(admin);
     }
 
@@ -175,24 +180,47 @@ class ProjectKnowledgeServiceTest {
 
     @Test
     void ownerManagesMembersButViewerCannot() {
-        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), owner.getId(), ProjectRole.OWNER)).thenReturn(true);
-        when(userRepository.findById(contributor.getId())).thenReturn(Optional.of(contributor));
-        when(memberRepository.findByProjectIdAndUserId(project.getId(), contributor.getId())).thenReturn(Optional.empty());
-        when(memberRepository.save(any(ProjectMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ProjectMemberRequest contributorRequest = new ProjectMemberRequest(
+                contributor.getId(),
+                ProjectRole.CONTRIBUTOR,
+                ProjectFunctionalRole.DEVELOPER,
+                null,
+                false,
+                0
+        );
+        ProjectMemberRequest outsiderRequest = new ProjectMemberRequest(
+                outsider.getId(),
+                ProjectRole.VIEWER,
+                ProjectFunctionalRole.OTHER,
+                null,
+                false,
+                0
+        );
+        when(teamService.addOrUpdateMember(project.getId(), contributorRequest, ownerPrincipal))
+                .thenReturn(new com.company.learninghub.projectknowledge.dto.ProjectMemberResponse(
+                        UUID.randomUUID(),
+                        project.getId(),
+                        new com.company.learninghub.projectknowledge.dto.ProjectUserResponse(
+                                contributor.getId(),
+                                contributor.getEmployeeId(),
+                                contributor.getFullName(),
+                                contributor.getEmail()
+                        ),
+                        ProjectRole.CONTRIBUTOR,
+                        ProjectFunctionalRole.DEVELOPER,
+                        null,
+                        false,
+                        0,
+                        null,
+                        null
+                ));
+        when(teamService.addOrUpdateMember(project.getId(), outsiderRequest, viewerPrincipal))
+                .thenThrow(new IllegalArgumentException("Project OWNER role is required"));
 
-        assertThat(service.addOrUpdateMember(
-                project.getId(),
-                new ProjectMemberRequest(contributor.getId(), ProjectRole.CONTRIBUTOR),
-                ownerPrincipal
-        ).projectRole()).isEqualTo(ProjectRole.CONTRIBUTOR);
+        assertThat(service.addOrUpdateMember(project.getId(), contributorRequest, ownerPrincipal).projectRole())
+                .isEqualTo(ProjectRole.CONTRIBUTOR);
 
-        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        assertThatThrownBy(() -> service.addOrUpdateMember(
-                project.getId(),
-                new ProjectMemberRequest(outsider.getId(), ProjectRole.VIEWER),
-                viewerPrincipal
-        ))
+        assertThatThrownBy(() -> service.addOrUpdateMember(project.getId(), outsiderRequest, viewerPrincipal))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Project OWNER role is required");
     }
@@ -542,6 +570,7 @@ class ProjectKnowledgeServiceTest {
         when(memberRepository.countByProjectId(any())).thenReturn(0L);
         when(memberRepository.findByProjectIdInAndUserId(any(), any())).thenReturn(Collections.emptyList());
         when(projectLinkRepository.findPublishedTechnologiesByProjectIds(any(), any())).thenReturn(Collections.emptyList());
+        lenient().when(teamService.countPrimaryContacts(any())).thenReturn(0);
     }
 
     @Test

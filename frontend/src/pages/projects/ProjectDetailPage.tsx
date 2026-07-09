@@ -24,13 +24,14 @@ import {
   type LearnManagementNotification,
 } from '../../components/learn/LearnManagementSnackbar'
 import { EditProjectDialog } from '../../components/projects/EditProjectDialog'
-import { ManageProjectMembersDialog } from '../../components/projects/ManageProjectMembersDialog'
 import { ProjectAccessChip } from '../../components/projects/ProjectAccessChip'
 import { ProjectAreasPanel } from '../../components/projects/ProjectAreasPanel'
 import { PROJECT_MESSAGES } from '../../components/projects/projectMessages'
 import { ProjectStatusChip } from '../../components/projects/ProjectStatusChip'
 import type { ProjectDetail, ProjectMember } from '../../types/projects'
 import { PROJECT_ROLE_LABELS } from '../../types/projects'
+import { PROJECT_FUNCTIONAL_ROLE_LABELS } from '../../types/projectTeam'
+import { TEAM_MESSAGES } from '../../components/project-team/teamMessages'
 import { isNotFoundError, resolveApiError } from '../../utils/apiErrors'
 
 function formatDate(value?: string) {
@@ -49,11 +50,8 @@ export function ProjectDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [membersOpen, setMembersOpen] = useState(false)
   const [notification, setNotification] = useState<LearnManagementNotification | null>(null)
 
-  const canManage =
-    isAdmin || project?.currentMemberRole === 'OWNER' || project?.currentMemberRole === 'CONTRIBUTOR'
   const canEditMetadata = isAdmin || project?.currentMemberRole === 'OWNER'
 
   const loadProject = useCallback(async () => {
@@ -136,18 +134,11 @@ export function ProjectDetailPage() {
                     </Typography>
                   ) : null}
                 </Stack>
-                {canEditMetadata || canManage ? (
+                {canEditMetadata ? (
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                    {canEditMetadata ? (
-                      <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
-                        {PROJECT_MESSAGES.editProject}
-                      </Button>
-                    ) : null}
-                    {canManage ? (
-                      <Button onClick={() => setMembersOpen(true)} startIcon={<GroupsOutlinedIcon />} variant="outlined">
-                        {PROJECT_MESSAGES.manageMembers}
-                      </Button>
-                    ) : null}
+                    <Button onClick={() => setEditOpen(true)} startIcon={<EditOutlinedIcon />} variant="outlined">
+                      {PROJECT_MESSAGES.editProject}
+                    </Button>
                   </Stack>
                 ) : null}
               </Stack>
@@ -189,6 +180,8 @@ export function ProjectDetailPage() {
             <RelatedTechnologiesCard technologies={project.relatedTechnologies ?? []} />
             <ProjectAreasPanel
               environmentCount={project.environmentCount}
+              memberCount={project.memberCount ?? members.length}
+              primaryContactCount={project.primaryContactCount ?? members.filter((member) => member.primaryContact).length}
               projectId={project.id}
               repositoryCount={project.repositoryCount}
             />
@@ -205,17 +198,43 @@ export function ProjectDetailPage() {
                   {members.length === 0 ? (
                     <Alert severity="info">{PROJECT_MESSAGES.teamSummaryEmpty}</Alert>
                   ) : (
-                    <Stack divider={<Divider flexItem />} spacing={1}>
-                      {members.slice(0, 8).map((member) => (
-                        <Stack key={member.id} spacing={0.25}>
-                          <Typography variant="body2">{member.user.fullName}</Typography>
-                          <Typography color="text.secondary" variant="caption">
-                            {PROJECT_ROLE_LABELS[member.projectRole]} · {member.user.email}
-                          </Typography>
-                        </Stack>
-                      ))}
+                    <Stack spacing={1}>
+                      <Typography color="text.secondary" variant="body2">
+                        {members.length} team member{members.length === 1 ? '' : 's'}
+                        {(project.primaryContactCount ?? members.filter((member) => member.primaryContact).length) > 0
+                          ? ` · ${project.primaryContactCount ?? members.filter((member) => member.primaryContact).length} primary contact${
+                              (project.primaryContactCount ?? members.filter((member) => member.primaryContact).length) === 1 ? '' : 's'
+                            }`
+                          : ''}
+                      </Typography>
+                      <Stack divider={<Divider flexItem />} spacing={1}>
+                        {members
+                          .filter((member) => member.primaryContact)
+                          .slice(0, 3)
+                          .concat(
+                            members.filter((member) => !member.primaryContact).slice(0, Math.max(0, 3 - members.filter((member) => member.primaryContact).length)),
+                          )
+                          .slice(0, 3)
+                          .map((member) => (
+                            <Stack key={member.id} spacing={0.25}>
+                              <Typography variant="body2">{member.user.fullName}</Typography>
+                              <Typography color="text.secondary" variant="caption">
+                                {PROJECT_FUNCTIONAL_ROLE_LABELS[member.functionalRole]} · {PROJECT_ROLE_LABELS[member.projectRole]}
+                              </Typography>
+                            </Stack>
+                          ))}
+                      </Stack>
                     </Stack>
                   )}
+                  <Button
+                    component={RouterLink}
+                    endIcon={<GroupsOutlinedIcon />}
+                    sx={{ alignSelf: 'flex-start' }}
+                    to={`/projects/${project.id}/team`}
+                    variant="text"
+                  >
+                    {TEAM_MESSAGES.viewTeamContacts}
+                  </Button>
                 </Stack>
               </CardContent>
             </Card>
@@ -243,15 +262,6 @@ export function ProjectDetailPage() {
         }}
         open={editOpen}
         project={project}
-      />
-      <ManageProjectMembersDialog
-        onClose={() => setMembersOpen(false)}
-        onSuccess={() => {
-          setNotification({ message: PROJECT_MESSAGES.memberUpdateSuccess, severity: 'success' })
-          void loadProject()
-        }}
-        open={membersOpen}
-        projectId={project.id}
       />
       <LearnManagementSnackbar notification={notification} onClose={() => setNotification(null)} />
     </>
