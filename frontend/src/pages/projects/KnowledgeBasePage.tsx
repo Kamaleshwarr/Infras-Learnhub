@@ -24,6 +24,7 @@ import {
   type LearnManagementNotification,
 } from '../../components/learn/LearnManagementSnackbar'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { flexGridItemSx } from '../../components/common/cardLayoutStyles'
 import { KnowledgeBreadcrumbs } from '../../components/project-knowledge/KnowledgeBreadcrumbs'
 import { KnowledgeFolderCard } from '../../components/project-knowledge/KnowledgeFolderCard'
 import { KnowledgeFolderDialog } from '../../components/project-knowledge/KnowledgeFolderDialog'
@@ -403,7 +404,7 @@ export function KnowledgeBasePage() {
           <Typography variant="h6">{folderId ? KNOWLEDGE_MESSAGES.subfoldersTitle : KNOWLEDGE_MESSAGES.foldersTitle}</Typography>
           <Grid container spacing={2}>
             {folders.map((folder) => (
-              <Grid key={folder.id} size={{ xs: 12, sm: 6, lg: 4 }} sx={{ display: 'flex' }}>
+              <Grid key={folder.id} size={{ xs: 12, sm: 6, lg: 4 }} sx={flexGridItemSx}>
                 <KnowledgeFolderCard
                   folder={folder}
                   href={`/projects/${projectId}/knowledge/folders/${folder.id}`}
@@ -423,7 +424,7 @@ export function KnowledgeBasePage() {
         ) : (
           <Grid container spacing={2}>
             {items.map((item) => (
-              <Grid key={item.id} size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
+              <Grid key={item.id} size={{ xs: 12, md: 6 }} sx={flexGridItemSx}>
                 <KnowledgeResourceCard
                   canManage={canManage}
                   item={item}

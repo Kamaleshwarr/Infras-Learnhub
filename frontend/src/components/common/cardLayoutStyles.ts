@@ -3,6 +3,14 @@ export const flexCardSx = {
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
+  width: '100%',
+  minWidth: 0,
+} as const
+
+/** Apply to MUI Grid items that wrap flex cards for equal-height rows. */
+export const flexGridItemSx = {
+  display: 'flex',
+  minWidth: 0,
 } as const
 
 export const flexCardContentSx = {

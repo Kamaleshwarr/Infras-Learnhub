@@ -79,6 +79,12 @@ describe('RepositoryCard', () => {
     ).toBeInTheDocument()
   })
 
+  it('fills the width of its parent container', () => {
+    const { container } = renderCard()
+    const card = container.querySelector('.MuiCard-root')
+    expect(card).toHaveStyle({ width: '100%' })
+  })
+
   it('shows management actions only when permitted', () => {
     const { rerender } = renderCard({}, { canManage: true, canDelete: false })
     expect(screen.getByRole('button', { name: /Edit/i })).toBeInTheDocument()
