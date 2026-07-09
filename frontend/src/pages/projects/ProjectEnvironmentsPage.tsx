@@ -356,7 +356,7 @@ export function ProjectEnvironmentsPage() {
                           key={reference.id}
                           spacing={1}
                           sx={{
-                            alignItems: { sm: 'center' },
+                            alignItems: { xs: 'stretch', sm: 'flex-start' },
                             border: 1,
                             borderColor: 'divider',
                             borderRadius: 1,
@@ -365,20 +365,38 @@ export function ProjectEnvironmentsPage() {
                         >
                           <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                              <Typography variant="subtitle2">{reference.name}</Typography>
+                              <Typography sx={{ wordBreak: 'break-word' }} variant="subtitle2">
+                                {reference.name}
+                              </Typography>
                               <Chip
                                 label={ENVIRONMENT_REFERENCE_TYPE_LABELS[reference.referenceType]}
                                 size="small"
                                 variant="outlined"
                               />
                             </Stack>
-                            {reference.description ? (
-                              <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
-                                {reference.description}
+                            {reference.description?.trim() ? (
+                              <Typography
+                                color="text.secondary"
+                                sx={{
+                                  display: '-webkit-box',
+                                  mt: 0.5,
+                                  overflow: 'hidden',
+                                  overflowWrap: 'anywhere',
+                                  WebkitBoxOrient: 'vertical',
+                                  WebkitLineClamp: 2,
+                                  wordBreak: 'break-word',
+                                }}
+                                variant="body2"
+                              >
+                                {reference.description.trim()}
                               </Typography>
                             ) : null}
                           </Box>
-                          <Stack direction="row" spacing={0.5}>
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            sx={{ alignSelf: { sm: 'center' }, flexShrink: 0, flexWrap: 'wrap' }}
+                          >
                             <Button
                               endIcon={<LaunchIcon />}
                               href={reference.url}

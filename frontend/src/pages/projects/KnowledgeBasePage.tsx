@@ -403,7 +403,7 @@ export function KnowledgeBasePage() {
           <Typography variant="h6">{folderId ? KNOWLEDGE_MESSAGES.subfoldersTitle : KNOWLEDGE_MESSAGES.foldersTitle}</Typography>
           <Grid container spacing={2}>
             {folders.map((folder) => (
-              <Grid key={folder.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+              <Grid key={folder.id} size={{ xs: 12, sm: 6, lg: 4 }} sx={{ display: 'flex' }}>
                 <KnowledgeFolderCard
                   folder={folder}
                   href={`/projects/${projectId}/knowledge/folders/${folder.id}`}
@@ -423,7 +423,7 @@ export function KnowledgeBasePage() {
         ) : (
           <Grid container spacing={2}>
             {items.map((item) => (
-              <Grid key={item.id} size={{ xs: 12, md: 6 }}>
+              <Grid key={item.id} size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
                 <KnowledgeResourceCard
                   canManage={canManage}
                   item={item}

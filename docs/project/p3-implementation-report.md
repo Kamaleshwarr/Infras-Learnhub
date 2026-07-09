@@ -372,7 +372,24 @@ Structured `repository_type`, `provider`, `reference_type`, and project scoping 
 
 - **Branch:** `cursor/project-module-p3-environments-repositories-63ba`
 - **Base:** `main`
-- **PR:** Draft PR targeting `main`
+- **PR:** Draft PR #57 targeting `main`
+
+---
+
+## Post-QA UI Alignment (manual QA polish)
+
+**Issue:** Repository and Knowledge Base cards in the same grid row had misaligned action rows when optional fields (description, default branch, hostname) were missing.
+
+**Fix (UI-only):**
+- Shared `cardLayoutStyles.ts` — flex-column card layout with `mt: 'auto'` action pinning and 2-line description clamp
+- Extracted `RepositoryCard` with bottom-aligned actions
+- Updated `KnowledgeResourceCard` and `KnowledgeFolderCard` for equal-height grid rows
+- Minor environment reference row alignment (description clamp, action `flexShrink: 0`)
+- Grid items use `display: 'flex'` for stretch
+
+**Screenshots:** `docs/screenshots/p3-qa-card-alignment/`
+
+**Tests added:** `RepositoryCard.test.tsx`, `KnowledgeResourceCard.test.tsx`, `KnowledgeFolderCard.test.tsx`
 
 ---
 

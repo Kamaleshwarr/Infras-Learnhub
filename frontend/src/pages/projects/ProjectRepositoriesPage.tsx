@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import LaunchIcon from '@mui/icons-material/Launch'
+import { RepositoryCard } from '../../components/project-operational/RepositoryCard'
 import SearchIcon from '@mui/icons-material/Search'
 import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
-  Chip,
   CircularProgress,
   Grid,
   InputAdornment,
@@ -236,65 +231,18 @@ export function ProjectRepositoriesPage() {
       ) : (
         <Grid container spacing={2}>
           {filteredRepositories.map((repository) => (
-            <Grid key={repository.id} size={{ xs: 12, md: 6, lg: 4 }}>
-              <Card sx={{ height: '100%' }} variant="outlined">
-                <CardContent>
-                  <Stack spacing={1.5}>
-                    <Typography variant="h6">{repository.name}</Typography>
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                      <Chip label={REPOSITORY_TYPE_LABELS[repository.repositoryType]} size="small" />
-                      <Chip label={REPOSITORY_PROVIDER_LABELS[repository.provider]} size="small" variant="outlined" />
-                    </Stack>
-                    {repository.defaultBranch ? (
-                      <Typography color="text.secondary" variant="body2">
-                        Default branch: {repository.defaultBranch}
-                      </Typography>
-                    ) : null}
-                    {repository.description ? (
-                      <Typography color="text.secondary" variant="body2">
-                        {repository.description}
-                      </Typography>
-                    ) : null}
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                      <Button
-                        endIcon={<LaunchIcon />}
-                        href={repository.repositoryUrl}
-                        rel="noopener noreferrer"
-                        size="small"
-                        target="_blank"
-                        variant="outlined"
-                      >
-                        {OPERATIONAL_MESSAGES.openRepository}
-                      </Button>
-                      {canManage ? (
-                        <Button
-                          onClick={() => {
-                            setDialogMode('edit')
-                            setEditingRepository(repository)
-                            setDialogOpen(true)
-                          }}
-                          size="small"
-                          startIcon={<EditOutlinedIcon />}
-                          variant="text"
-                        >
-                          Edit
-                        </Button>
-                      ) : null}
-                      {canDelete ? (
-                        <Button
-                          color="error"
-                          onClick={() => setDeleteTarget(repository)}
-                          size="small"
-                          startIcon={<DeleteOutlinedIcon />}
-                          variant="text"
-                        >
-                          Delete
-                        </Button>
-                      ) : null}
-                    </Stack>
-                  </Stack>
-                </CardContent>
-              </Card>
+            <Grid key={repository.id} size={{ xs: 12, md: 6, lg: 4 }} sx={{ display: 'flex' }}>
+              <RepositoryCard
+                canDelete={canDelete}
+                canManage={canManage}
+                onDelete={setDeleteTarget}
+                onEdit={(target) => {
+                  setDialogMode('edit')
+                  setEditingRepository(target)
+                  setDialogOpen(true)
+                }}
+                repository={repository}
+              />
             </Grid>
           ))}
         </Grid>
