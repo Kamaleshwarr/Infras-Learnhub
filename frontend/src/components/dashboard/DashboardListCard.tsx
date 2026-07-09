@@ -5,12 +5,14 @@ import {
   Divider,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   Skeleton,
   Stack,
   Typography,
 } from '@mui/material'
 import type { ReactNode } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
 import { TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
 
@@ -18,6 +20,7 @@ export interface DashboardListItem {
   id: string
   primary: ReactNode
   secondary?: ReactNode
+  href?: string
 }
 
 interface DashboardListCardProps {
@@ -57,20 +60,37 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
             <List disablePadding>
               {items.map((item, index) => (
                 <div key={item.id}>
-                  <ListItem disableGutters sx={{ minWidth: 0 }}>
-                    <ListItemText
-                      primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
-                      secondary={
-                        item.secondary
-                          ? renderDashboardListText(item.secondary, TEXT_DISPLAY_LIMITS.listSecondary)
-                          : undefined
-                      }
-                      slotProps={{
-                        primary: { sx: { minWidth: 0 } },
-                        secondary: { sx: { minWidth: 0 } },
-                      }}
-                    />
-                  </ListItem>
+                  {item.href ? (
+                    <ListItemButton component={RouterLink} disableGutters sx={{ minWidth: 0 }} to={item.href}>
+                      <ListItemText
+                        primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
+                        secondary={
+                          item.secondary
+                            ? renderDashboardListText(item.secondary, TEXT_DISPLAY_LIMITS.listSecondary)
+                            : undefined
+                        }
+                        slotProps={{
+                          primary: { sx: { minWidth: 0 } },
+                          secondary: { sx: { minWidth: 0 } },
+                        }}
+                      />
+                    </ListItemButton>
+                  ) : (
+                    <ListItem disableGutters sx={{ minWidth: 0 }}>
+                      <ListItemText
+                        primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
+                        secondary={
+                          item.secondary
+                            ? renderDashboardListText(item.secondary, TEXT_DISPLAY_LIMITS.listSecondary)
+                            : undefined
+                        }
+                        slotProps={{
+                          primary: { sx: { minWidth: 0 } },
+                          secondary: { sx: { minWidth: 0 } },
+                        }}
+                      />
+                    </ListItem>
+                  )}
                   {index < items.length - 1 ? <Divider component="li" /> : null}
                 </div>
               ))}

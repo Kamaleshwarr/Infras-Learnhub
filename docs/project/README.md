@@ -1,8 +1,8 @@
 # Project Module — Architecture & Planning
 
-**Status:** Architecture review complete — **no implementation started**  
+**Status:** P1 complete — Project Foundation & Overview Portal shipped  
 **Last updated:** 2026-07-06  
-**Baseline:** Learn module v1.1 complete (v0.8.0)
+**Baseline:** Learn module v1.1 complete (v0.8.0); Project P1 complete
 
 The Project Module will become the **internal project knowledge and navigation hub** for engineering teams. The platform owns **organization and navigation**; external systems continue to own source content.
 
@@ -34,14 +34,14 @@ The Project Module will become the **internal project knowledge and navigation h
 | Area | Today | Target |
 |------|-------|--------|
 | Backend | Full **Project Knowledge Repository** API (V6) | Extend with overview metadata, environments, repositories, credential refs, search |
-| Frontend | Placeholder pages only | Full project portal UX |
-| Database | 5 project tables + Learn junction | Add typed tables; extend `projects`; optional review metadata |
+| Frontend | **P1:** Projects list + overview portal | P2+ folder/env/repo UX |
+| Database | 5 project tables + Learn junction + `projects.status` (V17) | Add typed tables; optional review metadata |
 | Learn integration | Admin-managed tech ↔ project links | Reuse junction; enrich both directions |
 | Initiatives | No relationship | Document future M:N association only |
 | File upload | Supported (local storage) | MVP: links only; retain file infra for later |
 
 **Recommended architecture:** **Hybrid (Option C)** — first-class entities for Environments, Repositories, and Credential References; generic `ProjectResource` items for navigational links and documents.
 
-**Next step:** Product owner approval of open decisions in [10-risks-and-open-decisions.md](./10-risks-and-open-decisions.md), then **P1 — Project Foundation & Overview**.
+**Next step:** **P2 — Knowledge Base & Folders** (not started). See [p1-implementation-report.md](./p1-implementation-report.md).
 
 All implementation phases must pass the mandatory [11-step development workflow](../development-workflow.md).

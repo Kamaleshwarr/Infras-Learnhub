@@ -292,7 +292,7 @@ Routes: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, `/learn/tech
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| **Project Module** | Engineering project portal (P1–P5) | Architecture review complete — see [`docs/project/`](docs/project/) |
+| **Project Module** | Engineering project portal (P1–P5) | **P1 complete** — see [`docs/project/`](docs/project/) |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |
 | F21 | Optional Initiative Association | Not started |

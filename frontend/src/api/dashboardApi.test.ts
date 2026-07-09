@@ -56,6 +56,7 @@ const studyMaterial = {
 const project = {
   accessType: 'PUBLIC' as const,
   archived: false,
+  status: 'ACTIVE' as const,
   id: 'project-1',
   name: 'Observability',
 }

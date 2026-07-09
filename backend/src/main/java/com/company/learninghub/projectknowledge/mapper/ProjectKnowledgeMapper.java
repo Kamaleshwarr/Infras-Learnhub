@@ -2,9 +2,10 @@ package com.company.learninghub.projectknowledge.mapper;
 
 import com.company.learninghub.learn.dto.RelatedTechnologySummary;
 import com.company.learninghub.projectknowledge.domain.Project;
+import com.company.learninghub.projectknowledge.domain.ProjectMember;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeFolder;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeItem;
-import com.company.learninghub.projectknowledge.domain.ProjectMember;
+import com.company.learninghub.projectknowledge.domain.ProjectRole;
 import com.company.learninghub.projectknowledge.dto.ProjectFolderResponse;
 import com.company.learninghub.projectknowledge.dto.ProjectKnowledgeItemResponse;
 import com.company.learninghub.projectknowledge.dto.ProjectMemberResponse;
@@ -19,17 +20,27 @@ import java.util.List;
 public class ProjectKnowledgeMapper {
 
     public ProjectResponse toProjectResponse(Project project) {
-        return toProjectResponse(project, List.of());
+        return toProjectResponse(project, null, null, null, List.of());
     }
 
-    public ProjectResponse toProjectResponse(Project project, List<RelatedTechnologySummary> relatedTechnologies) {
+    public ProjectResponse toProjectResponse(
+            Project project,
+            ProjectUserResponse owner,
+            Integer memberCount,
+            ProjectRole currentMemberRole,
+            List<RelatedTechnologySummary> relatedTechnologies
+    ) {
         return new ProjectResponse(
                 project.getId(),
                 project.getName(),
                 project.getDescription(),
                 project.getAccessType(),
+                project.getStatus(),
                 project.isArchived(),
                 toUserResponse(project.getCreatedBy()),
+                owner,
+                memberCount,
+                currentMemberRole,
                 relatedTechnologies,
                 project.getCreatedAt(),
                 project.getUpdatedAt()
@@ -81,7 +92,7 @@ public class ProjectKnowledgeMapper {
         );
     }
 
-    private ProjectUserResponse toUserResponse(User user) {
+    public ProjectUserResponse toUserResponse(User user) {
         return new ProjectUserResponse(
                 user.getId(),
                 user.getEmployeeId(),
@@ -90,4 +101,3 @@ public class ProjectKnowledgeMapper {
         );
     }
 }
-

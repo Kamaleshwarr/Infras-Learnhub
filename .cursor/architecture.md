@@ -517,6 +517,9 @@ Certificate workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`,
 - Mixed APIs use service-level role/project membership checks.
 - Employees can access only their own certificate submissions.
 - Members-only projects require project membership unless system admin.
+- **Project creation is ADMIN-only** (P1). Content management remains OWNER/CONTRIBUTOR per project membership.
+- **Project discovery:** PUBLIC projects visible to employees; MEMBERS_ONLY only to members/admins; archived projects hidden from normal employee discovery unless admin includes archived.
+- **Dashboard "My Projects"** uses `assigned=true` (membership-based), not all visible public projects.
 
 ## API Design Standards
 
@@ -584,6 +587,8 @@ V12__learn_technologies.sql
 V13__learn_catalog_foundation.sql
 V14__learn_roadmap_catalog.sql
 V15__learn_progress.sql
+V16__learn_resource_overrides.sql
+V17__project_status.sql
 ```
 
 - Add migrations only for schema changes.

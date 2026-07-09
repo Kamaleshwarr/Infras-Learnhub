@@ -2,7 +2,9 @@ package com.company.learninghub.projectknowledge.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
-import com.company.learninghub.learn.service.LearnTechnologyService;
+import com.company.learninghub.learn.dto.RelatedTechnologySummary;
+import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
+import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
@@ -11,6 +13,7 @@ import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeFolder;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeItem;
 import com.company.learninghub.projectknowledge.domain.ProjectMember;
 import com.company.learninghub.projectknowledge.domain.ProjectRole;
+import com.company.learninghub.projectknowledge.domain.ProjectStatus;
 import com.company.learninghub.projectknowledge.dto.CreateProjectLinkRequest;
 import com.company.learninghub.projectknowledge.dto.CreateProjectRequest;
 import com.company.learninghub.projectknowledge.dto.ProjectFolderRequest;
@@ -45,10 +48,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectKnowledgeService {
@@ -62,7 +69,7 @@ public class ProjectKnowledgeService {
     private final ProjectKnowledgeStorageService storageService;
     private final StorageProperties storageProperties;
     private final ProjectKnowledgeMapper mapper;
-    private final LearnTechnologyService learnTechnologyService;
+    private final LearnTechnologyProjectLinkRepository projectLinkRepository;
 
     public ProjectKnowledgeService(
             ProjectRepository projectRepository,
@@ -74,7 +81,7 @@ public class ProjectKnowledgeService {
             ProjectKnowledgeStorageService storageService,
             StorageProperties storageProperties,
             ProjectKnowledgeMapper mapper,
-            LearnTechnologyService learnTechnologyService
+            LearnTechnologyProjectLinkRepository projectLinkRepository
     ) {
         this.projectRepository = projectRepository;
         this.memberRepository = memberRepository;
@@ -85,10 +92,10 @@ public class ProjectKnowledgeService {
         this.storageService = storageService;
         this.storageProperties = storageProperties;
         this.mapper = mapper;
-        this.learnTechnologyService = learnTechnologyService;
+        this.projectLinkRepository = projectLinkRepository;
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest request, AuthenticatedUser principal) {
         String name = normalizeRequired(request.name(), "Project name is required");
@@ -103,7 +110,7 @@ public class ProjectKnowledgeService {
                 user
         ));
         memberRepository.save(new ProjectMember(project, user, ProjectRole.OWNER));
-        return mapper.toProjectResponse(project);
+        return enrichProjectResponse(project, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -114,9 +121,10 @@ public class ProjectKnowledgeService {
         project.updateDetails(
                 normalizeRequired(request.name(), "Project name is required"),
                 normalizeOptional(request.description()),
-                request.accessType()
+                request.accessType(),
+                request.status()
         );
-        return mapper.toProjectResponse(project);
+        return enrichProjectResponse(project, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -125,22 +133,32 @@ public class ProjectKnowledgeService {
         Project project = findProject(projectId);
         requireOwner(project, principal);
         project.archive();
-        return mapper.toProjectResponse(project);
+        return enrichProjectResponse(project, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
-    public Page<ProjectResponse> searchProjects(String search, ProjectAccessType accessType, boolean includeArchived, Pageable pageable, AuthenticatedUser principal) {
+    public Page<ProjectResponse> searchProjects(
+            String search,
+            ProjectAccessType accessType,
+            ProjectStatus status,
+            boolean assignedOnly,
+            boolean includeArchived,
+            Pageable pageable,
+            AuthenticatedUser principal
+    ) {
         boolean admin = isAdmin(principal);
-        return projectRepository.search(
-                        normalizeSearch(search),
-                        accessType,
-                        admin && includeArchived,
-                        principal.getId(),
-                        admin,
-                        normalizeProjectPageable(pageable)
-                )
-                .map(mapper::toProjectResponse);
+        Page<Project> page = projectRepository.search(
+                toSearchPattern(normalizeSearch(search)),
+                accessType,
+                status,
+                assignedOnly,
+                admin && includeArchived,
+                principal.getId(),
+                admin,
+                normalizeProjectPageable(pageable)
+        );
+        return enrichProjectResponses(page, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -148,10 +166,7 @@ public class ProjectKnowledgeService {
     public ProjectResponse getProject(UUID projectId, AuthenticatedUser principal) {
         Project project = findProject(projectId);
         requireReadAccess(project, principal);
-        return mapper.toProjectResponse(
-                project,
-                learnTechnologyService.listPublishedTechnologiesForProject(projectId)
-        );
+        return enrichProjectResponse(project, principal);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -369,7 +384,7 @@ public class ProjectKnowledgeService {
     }
 
     private void requireReadAccess(Project project, AuthenticatedUser principal) {
-        if (project.isArchived() && !isAdmin(principal)) {
+        if (isArchivedForDiscovery(project) && !isAdmin(principal)) {
             throw new ResourceNotFoundException("Project was not found");
         }
         if (isAdmin(principal) || project.isPublic() || memberRepository.existsByProjectIdAndUserId(project.getId(), principal.getId())) {
@@ -479,6 +494,13 @@ public class ProjectKnowledgeService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 
+    private String toSearchPattern(String search) {
+        if (search == null) {
+            return null;
+        }
+        return "%" + search.toLowerCase(java.util.Locale.ROOT) + "%";
+    }
+
     private String normalizeUrl(String value) {
         String url = normalizeRequired(value, "External URL is required");
         if (!(url.startsWith("http://") || url.startsWith("https://"))) {
@@ -488,7 +510,7 @@ public class ProjectKnowledgeService {
     }
 
     private Pageable normalizeProjectPageable(Pageable pageable) {
-        return normalizePageable(pageable, Set.of("id", "name", "accessType", "archived", "createdAt", "updatedAt", "createdAtUtc", "updatedAtUtc"));
+        return normalizePageable(pageable, Set.of("id", "name", "accessType", "status", "archived", "createdAt", "updatedAt", "createdAtUtc", "updatedAtUtc"));
     }
 
     private Pageable normalizeFolderPageable(Pageable pageable) {
@@ -520,6 +542,75 @@ public class ProjectKnowledgeService {
         };
         Sort.Order translated = new Sort.Order(order.getDirection(), property, order.getNullHandling());
         return order.isIgnoreCase() ? translated.ignoreCase() : translated;
+    }
+
+    private Page<ProjectResponse> enrichProjectResponses(Page<Project> page, AuthenticatedUser principal) {
+        if (page.isEmpty()) {
+            return page.map(mapper::toProjectResponse);
+        }
+        List<UUID> projectIds = page.getContent().stream().map(Project::getId).toList();
+        EnrichmentContext context = loadEnrichmentContext(projectIds, principal.getId());
+        return page.map(project -> toEnrichedResponse(project, context));
+    }
+
+    private ProjectResponse enrichProjectResponse(Project project, AuthenticatedUser principal) {
+        EnrichmentContext context = loadEnrichmentContext(List.of(project.getId()), principal.getId());
+        return toEnrichedResponse(project, context);
+    }
+
+    private EnrichmentContext loadEnrichmentContext(List<UUID> projectIds, UUID userId) {
+        Map<UUID, com.company.learninghub.projectknowledge.dto.ProjectUserResponse> ownersByProjectId =
+                memberRepository.findOwnersByProjectIds(projectIds, ProjectRole.OWNER).stream()
+                        .collect(Collectors.toMap(
+                                member -> member.getProject().getId(),
+                                member -> mapper.toUserResponse(member.getUser()),
+                                (first, second) -> first
+                        ));
+
+        Map<UUID, Integer> memberCountsByProjectId = new HashMap<>();
+        for (UUID projectId : projectIds) {
+            memberCountsByProjectId.put(projectId, (int) memberRepository.countByProjectId(projectId));
+        }
+
+        Map<UUID, ProjectRole> rolesByProjectId = memberRepository.findByProjectIdInAndUserId(projectIds, userId).stream()
+                .collect(Collectors.toMap(member -> member.getProject().getId(), ProjectMember::getProjectRole));
+
+        Map<UUID, List<RelatedTechnologySummary>> technologiesByProjectId = new HashMap<>();
+        projectLinkRepository.findPublishedTechnologiesByProjectIds(projectIds, TechnologyStatus.PUBLISHED).forEach(link -> {
+            UUID projectId = link.getProject().getId();
+            technologiesByProjectId
+                    .computeIfAbsent(projectId, ignored -> new ArrayList<>())
+                    .add(new RelatedTechnologySummary(
+                            link.getTechnology().getId(),
+                            link.getTechnology().getName(),
+                            link.getTechnology().getShortName()
+                    ));
+        });
+
+        return new EnrichmentContext(ownersByProjectId, memberCountsByProjectId, rolesByProjectId, technologiesByProjectId);
+    }
+
+    private ProjectResponse toEnrichedResponse(Project project, EnrichmentContext context) {
+        UUID projectId = project.getId();
+        return mapper.toProjectResponse(
+                project,
+                context.ownersByProjectId().get(projectId),
+                context.memberCountsByProjectId().getOrDefault(projectId, 0),
+                context.rolesByProjectId().get(projectId),
+                context.technologiesByProjectId().getOrDefault(projectId, List.of())
+        );
+    }
+
+    private boolean isArchivedForDiscovery(Project project) {
+        return project.isArchived() || ProjectStatus.ARCHIVED.equals(project.getStatus());
+    }
+
+    private record EnrichmentContext(
+            Map<UUID, com.company.learninghub.projectknowledge.dto.ProjectUserResponse> ownersByProjectId,
+            Map<UUID, Integer> memberCountsByProjectId,
+            Map<UUID, ProjectRole> rolesByProjectId,
+            Map<UUID, List<RelatedTechnologySummary>> technologiesByProjectId
+    ) {
     }
 }
 

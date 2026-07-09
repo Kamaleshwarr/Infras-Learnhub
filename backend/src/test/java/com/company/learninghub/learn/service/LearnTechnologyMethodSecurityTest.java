@@ -5,6 +5,7 @@ import com.company.learninghub.learn.dto.TechnologyCurationRequest;
 import com.company.learninghub.learn.mapper.LearnTechnologyMapper;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.learn.repository.LearnTechnologyRepository;
+import com.company.learninghub.projectknowledge.repository.ProjectMemberRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,12 +70,14 @@ class LearnTechnologyMethodSecurityTest {
                 LearnTechnologyRepository technologyRepository,
                 LearnTechnologyProjectLinkRepository projectLinkRepository,
                 ProjectRepository projectRepository,
+                ProjectMemberRepository projectMemberRepository,
                 LearnTechnologyMapper mapper
         ) {
             return new LearnTechnologyService(
                     technologyRepository,
                     projectLinkRepository,
                     projectRepository,
+                    projectMemberRepository,
                     mapper
             );
         }
@@ -89,6 +92,7 @@ class LearnTechnologyMethodSecurityTest {
 
         @Bean LearnTechnologyProjectLinkRepository learnTechnologyProjectLinkRepository() { return mock(LearnTechnologyProjectLinkRepository.class); }
         @Bean ProjectRepository projectRepository() { return mock(ProjectRepository.class); }
+        @Bean ProjectMemberRepository projectMemberRepository() { return mock(ProjectMemberRepository.class); }
         @Bean LearnTechnologyMapper learnTechnologyMapper() { return new LearnTechnologyMapper(); }
     }
 }
