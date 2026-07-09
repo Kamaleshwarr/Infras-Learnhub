@@ -6,6 +6,7 @@ import com.company.learninghub.learn.dto.RelatedTechnologySummary;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
+import com.company.learninghub.projectknowledge.domain.KnowledgeSourceType;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeAccessEvent;
@@ -207,10 +208,11 @@ public class ProjectKnowledgeService {
         Project project = findProject(projectId);
         requireContributor(project, principal);
         ProjectKnowledgeFolder parent = resolveFolder(project, request.parentId());
+        ensureFolderDepthAllowed(parent);
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(projectId, name, request.parentId(), null);
         ProjectKnowledgeFolder folder = new ProjectKnowledgeFolder(project, name, normalizeOptional(request.description()), parent, findUser(principal.getId()));
-        return mapper.toFolderResponse(folderRepository.save(folder));
+        return toFolderResponseWithCounts(folderRepository.save(folder));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -225,10 +227,11 @@ public class ProjectKnowledgeService {
         ensureFolderBelongsToProject(folder, projectId);
         ProjectKnowledgeFolder parent = resolveFolder(project, request.parentId());
         ensureNotDescendant(folderId, parent);
+        ensureFolderDepthAllowed(parent);
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(projectId, name, request.parentId(), folderId);
         folder.updateDetails(name, normalizeOptional(request.description()), parent);
-        return mapper.toFolderResponse(folder);
+        return toFolderResponseWithCounts(folder);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -246,11 +249,21 @@ public class ProjectKnowledgeService {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
-    public Page<ProjectFolderResponse> listFolders(UUID projectId, UUID parentId, Pageable pageable, AuthenticatedUser principal) {
+    public ProjectFolderResponse getFolder(UUID projectId, UUID folderId, AuthenticatedUser principal) {
         Project project = findProject(projectId);
         requireReadAccess(project, principal);
-        return folderRepository.findByProjectAndParent(projectId, parentId, normalizeFolderPageable(pageable))
-                .map(mapper::toFolderResponse);
+        ProjectKnowledgeFolder folder = findFolder(folderId);
+        ensureFolderBelongsToProject(folder, projectId);
+        return toFolderResponseWithCounts(folder);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @Transactional(readOnly = true)
+    public Page<ProjectFolderResponse> listFolders(UUID projectId, UUID parentId, String search, Pageable pageable, AuthenticatedUser principal) {
+        Project project = findProject(projectId);
+        requireReadAccess(project, principal);
+        return folderRepository.findByProjectAndParent(projectId, parentId, toSearchPattern(normalizeSearch(search)), normalizeFolderPageable(pageable))
+                .map(this::toFolderResponseWithCounts);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -333,10 +346,25 @@ public class ProjectKnowledgeService {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
-    public Page<ProjectKnowledgeItemResponse> searchItems(UUID projectId, UUID folderId, KnowledgeCategory category, String search, Pageable pageable, AuthenticatedUser principal) {
+    public Page<ProjectKnowledgeItemResponse> searchItems(
+            UUID projectId,
+            UUID folderId,
+            KnowledgeCategory category,
+            KnowledgeSourceType sourceType,
+            String search,
+            Pageable pageable,
+            AuthenticatedUser principal
+    ) {
         Project project = findProject(projectId);
         requireReadAccess(project, principal);
-        return itemRepository.search(projectId, folderId, category, normalizeSearch(search), normalizeItemPageable(pageable))
+        return itemRepository.search(
+                        projectId,
+                        folderId,
+                        category,
+                        sourceType,
+                        toSearchPattern(normalizeSearch(search)),
+                        normalizeItemPageable(pageable)
+                )
                 .map(mapper::toItemResponse);
     }
 
@@ -468,6 +496,20 @@ public class ProjectKnowledgeService {
             }
             current = current.getParent();
         }
+    }
+
+    private void ensureFolderDepthAllowed(ProjectKnowledgeFolder parent) {
+        if (parent != null && parent.getParent() != null) {
+            throw new IllegalArgumentException("Knowledge base folders are limited to two levels (area and sub-area)");
+        }
+    }
+
+    private ProjectFolderResponse toFolderResponseWithCounts(ProjectKnowledgeFolder folder) {
+        return mapper.toFolderResponse(
+                folder,
+                folderRepository.countByParentId(folder.getId()),
+                itemRepository.countByFolderId(folder.getId())
+        );
     }
 
     private void validateFile(MultipartFile file) {

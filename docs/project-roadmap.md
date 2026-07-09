@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-07-06 (Learn v1.1 complete; Project Module architecture review complete)
+Last updated: 2026-07-09 (P2 Knowledge Base complete)
 
 ## Release Overview
 
@@ -79,20 +79,28 @@ v0.8.0 product design: `docs/v0.8.0/`
 
 ## Next major module — Project Module (P1 complete)
 
-**Status:** P1 — Project Foundation & Overview Portal **complete**; P2–P5 not started
+**Status:** P1 — Project Foundation & Overview Portal **complete**; **P2 — Knowledge Base & Folders complete**; P3–P5 not started
 
-**Documentation:** `docs/project/README.md` · **P1 report:** `docs/project/p1-implementation-report.md`
+**Documentation:** `docs/project/README.md` · **P1 report:** `docs/project/p1-implementation-report.md` · **P2 report:** `docs/project/p2-implementation-report.md`
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | Review | Current-state audit, gap analysis, architecture proposal | ✓ **Complete** |
 | P1 | Project Foundation & Overview | ✓ **Complete** |
-| P2 | Knowledge Base & Folders | Not started |
+| P2 | Knowledge Base & Folders | ✓ **Complete** |
 | P3 | Environments & Repositories | Not started |
 | P4 | Project Search & Cross-Navigation | Not started |
 | P5 | Governance, Review Metadata & Polish | Not started |
 
-**P2 has NOT been started.**
+**P3 has NOT been started.**
+
+### P2 delivered
+- Knowledge Base routes: `/projects/:projectId/knowledge`, `/projects/:projectId/knowledge/folders/:folderId`
+- External-link-first folder navigation with breadcrumbs and project-scoped search
+- Folder/resource management respecting OWNER / CONTRIBUTOR / VIEWER rules
+- Two-level folder depth policy (area + sub-area) for new content
+- Reused V6 knowledge schema — **no new Flyway migration**
+- See `docs/project/p2-implementation-report.md`
 
 ---
 

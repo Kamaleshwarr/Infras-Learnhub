@@ -520,6 +520,7 @@ Certificate workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`,
 - **Project creation is ADMIN-only** (P1). Content management remains OWNER/CONTRIBUTOR per project membership.
 - **Project discovery:** PUBLIC projects visible to employees; MEMBERS_ONLY only to members/admins; archived projects hidden from normal employee discovery unless admin includes archived.
 - **Dashboard "My Projects"** uses `assigned=true` (membership-based), not all visible public projects.
+- **P2 Knowledge Base:** Link-first project knowledge UI; folder depth guard (two levels for new folders); `GET /projects/{id}/folders/{folderId}`; item search supports `sourceType`; MEMBERS_ONLY knowledge hidden as 404 for non-members.
 
 ## API Design Standards
 

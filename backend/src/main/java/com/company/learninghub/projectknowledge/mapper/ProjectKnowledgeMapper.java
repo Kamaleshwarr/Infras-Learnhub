@@ -59,6 +59,10 @@ public class ProjectKnowledgeMapper {
     }
 
     public ProjectFolderResponse toFolderResponse(ProjectKnowledgeFolder folder) {
+        return toFolderResponse(folder, 0L, 0L);
+    }
+
+    public ProjectFolderResponse toFolderResponse(ProjectKnowledgeFolder folder, long childFolderCount, long itemCount) {
         return new ProjectFolderResponse(
                 folder.getId(),
                 folder.getProject().getId(),
@@ -67,7 +71,9 @@ public class ProjectKnowledgeMapper {
                 folder.getParent() == null ? null : folder.getParent().getId(),
                 toUserResponse(folder.getCreatedBy()),
                 folder.getCreatedAt(),
-                folder.getUpdatedAt()
+                folder.getUpdatedAt(),
+                childFolderCount,
+                itemCount
         );
     }
 

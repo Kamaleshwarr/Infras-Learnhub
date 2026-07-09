@@ -3,6 +3,7 @@ package com.company.learninghub.projectknowledge.controller;
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.pagination.PageResponse;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
+import com.company.learninghub.projectknowledge.domain.KnowledgeSourceType;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
 import com.company.learninghub.projectknowledge.domain.ProjectStatus;
 import com.company.learninghub.projectknowledge.dto.CreateProjectLinkRequest;
@@ -187,15 +188,26 @@ public class ProjectKnowledgeController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{projectId}/folders/{folderId}")
+    @Operation(summary = "View project folder details")
+    public ResponseEntity<ProjectFolderResponse> getFolder(
+            @PathVariable UUID projectId,
+            @PathVariable UUID folderId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+        return ResponseEntity.ok(projectKnowledgeService.getFolder(projectId, folderId, authenticatedUser));
+    }
+
     @GetMapping("/{projectId}/folders")
     @Operation(summary = "Browse project folder hierarchy")
     public ResponseEntity<PageResponse<ProjectFolderResponse>> listFolders(
             @PathVariable UUID projectId,
             @RequestParam(required = false) UUID parentId,
+            @RequestParam(required = false) String search,
             @ParameterObject @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
-        return ResponseEntity.ok(PageResponse.from(projectKnowledgeService.listFolders(projectId, parentId, pageable, authenticatedUser)));
+        return ResponseEntity.ok(PageResponse.from(projectKnowledgeService.listFolders(projectId, parentId, search, pageable, authenticatedUser)));
     }
 
     @PostMapping(value = "/{projectId}/items/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -254,11 +266,14 @@ public class ProjectKnowledgeController {
             @PathVariable UUID projectId,
             @RequestParam(required = false) UUID folderId,
             @RequestParam(required = false) KnowledgeCategory category,
+            @RequestParam(required = false) KnowledgeSourceType sourceType,
             @RequestParam(required = false) String search,
             @ParameterObject @PageableDefault(size = 20, sort = "createdAtUtc", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
-        return ResponseEntity.ok(PageResponse.from(projectKnowledgeService.searchItems(projectId, folderId, category, search, pageable, authenticatedUser)));
+        return ResponseEntity.ok(PageResponse.from(
+                projectKnowledgeService.searchItems(projectId, folderId, category, sourceType, search, pageable, authenticatedUser)
+        ));
     }
 
     @GetMapping("/{projectId}/items/{itemId}")

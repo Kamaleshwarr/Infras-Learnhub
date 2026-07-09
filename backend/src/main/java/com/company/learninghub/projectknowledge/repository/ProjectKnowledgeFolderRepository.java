@@ -24,14 +24,20 @@ public interface ProjectKnowledgeFolderRepository extends JpaRepository<ProjectK
             WHERE folder.project.id = :projectId
               AND ((:parentId IS NULL AND folder.parent IS NULL)
                    OR (:parentId IS NOT NULL AND folder.parent.id = :parentId))
+              AND (:searchPattern IS NULL
+                   OR LOWER(folder.name) LIKE :searchPattern
+                   OR LOWER(folder.description) LIKE :searchPattern)
             """)
     Page<ProjectKnowledgeFolder> findByProjectAndParent(
             @Param("projectId") UUID projectId,
             @Param("parentId") UUID parentId,
+            @Param("searchPattern") String searchPattern,
             Pageable pageable
     );
 
     boolean existsByParentId(UUID parentId);
+
+    long countByParentId(UUID parentId);
 
     @Query("""
             SELECT COUNT(folder) > 0

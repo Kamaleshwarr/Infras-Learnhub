@@ -15,6 +15,7 @@ import com.company.learninghub.projectknowledge.domain.ProjectRole;
 import com.company.learninghub.projectknowledge.dto.CreateProjectLinkRequest;
 import com.company.learninghub.projectknowledge.dto.CreateProjectRequest;
 import com.company.learninghub.projectknowledge.dto.ProjectFolderRequest;
+import com.company.learninghub.projectknowledge.dto.ProjectFolderResponse;
 import com.company.learninghub.projectknowledge.dto.ProjectLinkAccessResponse;
 import com.company.learninghub.projectknowledge.dto.ProjectMemberRequest;
 import com.company.learninghub.projectknowledge.dto.ProjectResponse;
@@ -35,6 +36,8 @@ import com.company.learninghub.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,11 +58,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ProjectKnowledgeServiceTest {
 
     @Mock private ProjectRepository projectRepository;
@@ -111,6 +115,8 @@ class ProjectKnowledgeServiceTest {
         viewerPrincipal = AuthenticatedUser.from(viewer);
         project = project("Payments", ProjectAccessType.MEMBERS_ONLY, owner);
         rootFolder = folder(project, "Architecture", null, owner);
+        lenient().when(folderRepository.countByParentId(any())).thenReturn(0L);
+        lenient().when(itemRepository.countByFolderId(any())).thenReturn(0L);
     }
 
     @Test
@@ -319,6 +325,62 @@ class ProjectKnowledgeServiceTest {
 
         assertThatThrownBy(() -> service.getProject(archivedProject.getId(), ownerPrincipal))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void contributorCannotCreateThirdLevelFolder() {
+        ProjectKnowledgeFolder subFolder = folder(project, "Architecture Details", rootFolder, owner);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.OWNER)).thenReturn(false);
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.CONTRIBUTOR)).thenReturn(true);
+        when(folderRepository.findById(subFolder.getId())).thenReturn(Optional.of(subFolder));
+
+        assertThatThrownBy(() -> service.createFolder(
+                project.getId(),
+                new ProjectFolderRequest("Deep Folder", null, subFolder.getId()),
+                contributorPrincipal
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Knowledge base folders are limited to two levels (area and sub-area)");
+    }
+
+    @Test
+    void getFolderReturnsCountsForViewer() {
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserId(project.getId(), viewer.getId())).thenReturn(true);
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(folderRepository.countByParentId(rootFolder.getId())).thenReturn(2L);
+        when(itemRepository.countByFolderId(rootFolder.getId())).thenReturn(4L);
+
+        ProjectFolderResponse response = service.getFolder(project.getId(), rootFolder.getId(), viewerPrincipal);
+
+        assertThat(response.childFolderCount()).isEqualTo(2L);
+        assertThat(response.itemCount()).isEqualTo(4L);
+    }
+
+    @Test
+    void searchItemsUsesPreparedSearchPattern() {
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserId(project.getId(), viewer.getId())).thenReturn(true);
+        when(itemRepository.search(eq(project.getId()), eq(null), eq(null), eq(null), eq("%postman%"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        service.searchItems(project.getId(), null, null, null, " Postman ", pageable, viewerPrincipal);
+
+        verify(itemRepository).search(eq(project.getId()), eq(null), eq(null), eq(null), eq("%postman%"), any(Pageable.class));
+    }
+
+    @Test
+    void ownerCannotDeleteNonEmptyFolder() {
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), owner.getId(), ProjectRole.OWNER)).thenReturn(true);
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(itemRepository.existsByFolderId(rootFolder.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> service.deleteFolder(project.getId(), rootFolder.getId(), ownerPrincipal))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Folder must be empty before deletion");
     }
 
     private void stubEnrichmentForProject() {
