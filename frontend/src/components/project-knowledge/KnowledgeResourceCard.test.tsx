@@ -46,6 +46,14 @@ describe('KnowledgeResourceCard', () => {
     expect(screen.getByText('example.com')).toBeInTheDocument()
   })
 
+  it('fills the width of its parent container', () => {
+    const { container } = render(
+      <KnowledgeResourceCard canManage={false} item={baseItem} onOpen={vi.fn()} />,
+    )
+    const card = container.querySelector('.MuiCard-root')
+    expect(card).toHaveStyle({ width: '100%' })
+  })
+
   it('renders long titles and preserves action buttons', () => {
     const onEdit = vi.fn()
     render(

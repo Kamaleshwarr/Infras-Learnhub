@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { RepositoryCard } from '../../components/project-operational/RepositoryCard'
+import { flexGridItemSx } from '../../components/common/cardLayoutStyles'
 import SearchIcon from '@mui/icons-material/Search'
 import {
   Alert,
@@ -231,7 +232,7 @@ export function ProjectRepositoriesPage() {
       ) : (
         <Grid container spacing={2}>
           {filteredRepositories.map((repository) => (
-            <Grid key={repository.id} size={{ xs: 12, md: 6, lg: 4 }} sx={{ display: 'flex' }}>
+            <Grid key={repository.id} size={{ xs: 12, md: 6, lg: 4 }} sx={flexGridItemSx}>
               <RepositoryCard
                 canDelete={canDelete}
                 canManage={canManage}
