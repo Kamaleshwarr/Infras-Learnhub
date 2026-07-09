@@ -20,6 +20,8 @@ export interface ProjectSummary {
   archived: boolean
   owner?: ProjectUserSummary | null
   memberCount?: number | null
+  environmentCount?: number | null
+  repositoryCount?: number | null
   currentMemberRole?: ProjectRole | null
   relatedTechnologies?: RelatedTechnologySummary[]
   createdAtUtc?: string

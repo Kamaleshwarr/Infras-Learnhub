@@ -18,9 +18,11 @@ interface ProjectAreaItem {
 
 interface ProjectAreasPanelProps {
   projectId: string
+  environmentCount?: number | null
+  repositoryCount?: number | null
 }
 
-export function ProjectAreasPanel({ projectId }: ProjectAreasPanelProps) {
+export function ProjectAreasPanel({ projectId, environmentCount, repositoryCount }: ProjectAreasPanelProps) {
   const areas: ProjectAreaItem[] = [
     {
       icon: <FolderOpenOutlinedIcon color="primary" />,
@@ -29,16 +31,22 @@ export function ProjectAreasPanel({ projectId }: ProjectAreasPanelProps) {
       href: `/projects/${projectId}/knowledge`,
     },
     {
-      icon: <HubOutlinedIcon color="action" />,
+      icon: <HubOutlinedIcon color="primary" />,
       title: PROJECT_MESSAGES.environments,
-      description: 'Environment URLs for QA, UAT, production, and custom targets.',
-      comingSoon: true,
+      description:
+        environmentCount != null && environmentCount > 0
+          ? `${environmentCount} configured environment${environmentCount === 1 ? '' : 's'}`
+          : 'Environment URLs for QA, UAT, production, and custom targets.',
+      href: `/projects/${projectId}/environments`,
     },
     {
-      icon: <StorageOutlinedIcon color="action" />,
+      icon: <StorageOutlinedIcon color="primary" />,
       title: PROJECT_MESSAGES.repositories,
-      description: 'Git repositories and source code entry points.',
-      comingSoon: true,
+      description:
+        repositoryCount != null && repositoryCount > 0
+          ? `${repositoryCount} linked repositor${repositoryCount === 1 ? 'y' : 'ies'}`
+          : 'Git repositories and source code entry points.',
+      href: `/projects/${projectId}/repositories`,
     },
     {
       icon: <GroupsOutlinedIcon color="action" />,

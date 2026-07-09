@@ -27,9 +27,11 @@ import com.company.learninghub.projectknowledge.dto.ProjectResponse;
 import com.company.learninghub.projectknowledge.dto.UpdateProjectItemRequest;
 import com.company.learninghub.projectknowledge.dto.UpdateProjectRequest;
 import com.company.learninghub.projectknowledge.mapper.ProjectKnowledgeMapper;
+import com.company.learninghub.projectknowledge.repository.ProjectEnvironmentRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeAccessEventRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeFolderRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeItemRepository;
+import com.company.learninghub.projectknowledge.repository.ProjectLinkedRepositoryRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectMemberRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectRepository;
 import com.company.learninghub.storage.ProjectKnowledgeStorageService;
@@ -69,6 +71,8 @@ public class ProjectKnowledgeService {
     private final ProjectMemberRepository memberRepository;
     private final ProjectKnowledgeFolderRepository folderRepository;
     private final ProjectKnowledgeItemRepository itemRepository;
+    private final ProjectEnvironmentRepository environmentRepository;
+    private final ProjectLinkedRepositoryRepository linkedRepositoryRepository;
     private final ProjectKnowledgeAccessEventRepository accessEventRepository;
     private final UserRepository userRepository;
     private final ProjectKnowledgeStorageService storageService;
@@ -81,6 +85,8 @@ public class ProjectKnowledgeService {
             ProjectMemberRepository memberRepository,
             ProjectKnowledgeFolderRepository folderRepository,
             ProjectKnowledgeItemRepository itemRepository,
+            ProjectEnvironmentRepository environmentRepository,
+            ProjectLinkedRepositoryRepository linkedRepositoryRepository,
             ProjectKnowledgeAccessEventRepository accessEventRepository,
             UserRepository userRepository,
             ProjectKnowledgeStorageService storageService,
@@ -92,6 +98,8 @@ public class ProjectKnowledgeService {
         this.memberRepository = memberRepository;
         this.folderRepository = folderRepository;
         this.itemRepository = itemRepository;
+        this.environmentRepository = environmentRepository;
+        this.linkedRepositoryRepository = linkedRepositoryRepository;
         this.accessEventRepository = accessEventRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
@@ -685,7 +693,21 @@ public class ProjectKnowledgeService {
                     ));
         });
 
-        return new EnrichmentContext(ownersByProjectId, memberCountsByProjectId, rolesByProjectId, technologiesByProjectId);
+        Map<UUID, Integer> environmentCountsByProjectId = new HashMap<>();
+        Map<UUID, Integer> repositoryCountsByProjectId = new HashMap<>();
+        for (UUID projectId : projectIds) {
+            environmentCountsByProjectId.put(projectId, (int) environmentRepository.countByProjectIdAndActiveTrue(projectId));
+            repositoryCountsByProjectId.put(projectId, (int) linkedRepositoryRepository.countByProjectIdAndActiveTrue(projectId));
+        }
+
+        return new EnrichmentContext(
+                ownersByProjectId,
+                memberCountsByProjectId,
+                environmentCountsByProjectId,
+                repositoryCountsByProjectId,
+                rolesByProjectId,
+                technologiesByProjectId
+        );
     }
 
     private ProjectResponse toEnrichedResponse(Project project, EnrichmentContext context) {
@@ -694,6 +716,8 @@ public class ProjectKnowledgeService {
                 project,
                 context.ownersByProjectId().get(projectId),
                 context.memberCountsByProjectId().getOrDefault(projectId, 0),
+                context.environmentCountsByProjectId().getOrDefault(projectId, 0),
+                context.repositoryCountsByProjectId().getOrDefault(projectId, 0),
                 context.rolesByProjectId().get(projectId),
                 context.technologiesByProjectId().getOrDefault(projectId, List.of())
         );
@@ -706,6 +730,8 @@ public class ProjectKnowledgeService {
     private record EnrichmentContext(
             Map<UUID, com.company.learninghub.projectknowledge.dto.ProjectUserResponse> ownersByProjectId,
             Map<UUID, Integer> memberCountsByProjectId,
+            Map<UUID, Integer> environmentCountsByProjectId,
+            Map<UUID, Integer> repositoryCountsByProjectId,
             Map<UUID, ProjectRole> rolesByProjectId,
             Map<UUID, List<RelatedTechnologySummary>> technologiesByProjectId
     ) {

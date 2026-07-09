@@ -20,13 +20,15 @@ import java.util.List;
 public class ProjectKnowledgeMapper {
 
     public ProjectResponse toProjectResponse(Project project) {
-        return toProjectResponse(project, null, null, null, List.of());
+        return toProjectResponse(project, null, null, null, null, null, List.of());
     }
 
     public ProjectResponse toProjectResponse(
             Project project,
             ProjectUserResponse owner,
             Integer memberCount,
+            Integer environmentCount,
+            Integer repositoryCount,
             ProjectRole currentMemberRole,
             List<RelatedTechnologySummary> relatedTechnologies
     ) {
@@ -40,6 +42,8 @@ public class ProjectKnowledgeMapper {
                 toUserResponse(project.getCreatedBy()),
                 owner,
                 memberCount,
+                environmentCount,
+                repositoryCount,
                 currentMemberRole,
                 relatedTechnologies,
                 project.getCreatedAt(),

@@ -521,6 +521,7 @@ Certificate workflow producers (`CERTIFICATE_SUBMITTED`, `CERTIFICATE_APPROVED`,
 - **Project discovery:** PUBLIC projects visible to employees; MEMBERS_ONLY only to members/admins; archived projects hidden from normal employee discovery unless admin includes archived.
 - **Dashboard "My Projects"** uses `assigned=true` (membership-based), not all visible public projects.
 - **P2 Knowledge Base:** Link-first project knowledge UI; folder depth guard (**three levels** for new folders); `GET /projects/{id}/folders/{folderId}`; item search supports `sourceType`; MEMBERS_ONLY knowledge hidden as 404 for non-members.
+- **P3 Environments & Repositories:** First-class `project_environments`, `project_environment_references`, `project_repositories` (V18); routes `/projects/{id}/environments`, `/projects/{id}/repositories`; `ProjectNavigationUrlValidator` rejects embedded credentials; overview shows env/repo counts.
 
 ## API Design Standards
 
@@ -590,6 +591,7 @@ V14__learn_roadmap_catalog.sql
 V15__learn_progress.sql
 V16__learn_resource_overrides.sql
 V17__project_status.sql
+V18__project_environments_and_repositories.sql
 ```
 
 - Add migrations only for schema changes.

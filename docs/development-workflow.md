@@ -63,7 +63,7 @@ Successfully validated N migrations
 Current version of schema "public": N
 ```
 
-For the current schema, Flyway version is **V17** (`projects.status`).
+For the current schema, Flyway version is **V18** (`project_environments`, `project_environment_references`, `project_repositories`).
 
 ### 5. Backend startup
 

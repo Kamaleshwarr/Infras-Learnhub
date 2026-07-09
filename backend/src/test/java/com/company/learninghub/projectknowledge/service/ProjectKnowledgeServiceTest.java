@@ -21,7 +21,9 @@ import com.company.learninghub.projectknowledge.dto.ProjectMemberRequest;
 import com.company.learninghub.projectknowledge.dto.ProjectResponse;
 import com.company.learninghub.projectknowledge.dto.UpdateProjectRequest;
 import com.company.learninghub.projectknowledge.mapper.ProjectKnowledgeMapper;
+import com.company.learninghub.projectknowledge.repository.ProjectEnvironmentRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeAccessEventRepository;
+import com.company.learninghub.projectknowledge.repository.ProjectLinkedRepositoryRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeFolderRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeItemRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectMemberRepository;
@@ -70,6 +72,8 @@ class ProjectKnowledgeServiceTest {
     @Mock private ProjectMemberRepository memberRepository;
     @Mock private ProjectKnowledgeFolderRepository folderRepository;
     @Mock private ProjectKnowledgeItemRepository itemRepository;
+    @Mock private ProjectEnvironmentRepository environmentRepository;
+    @Mock private ProjectLinkedRepositoryRepository linkedRepositoryRepository;
     @Mock private ProjectKnowledgeAccessEventRepository accessEventRepository;
     @Mock private UserRepository userRepository;
     @Mock private ProjectKnowledgeStorageService storageService;
@@ -97,6 +101,8 @@ class ProjectKnowledgeServiceTest {
                 memberRepository,
                 folderRepository,
                 itemRepository,
+                environmentRepository,
+                linkedRepositoryRepository,
                 accessEventRepository,
                 userRepository,
                 storageService,
@@ -115,7 +121,8 @@ class ProjectKnowledgeServiceTest {
         viewerPrincipal = AuthenticatedUser.from(viewer);
         project = project("Payments", ProjectAccessType.MEMBERS_ONLY, owner);
         rootFolder = folder(project, "Architecture", null, owner);
-        lenient().when(folderRepository.countByParentId(any())).thenReturn(0L);
+        lenient().when(environmentRepository.countByProjectIdAndActiveTrue(any())).thenReturn(0L);
+        lenient().when(linkedRepositoryRepository.countByProjectIdAndActiveTrue(any())).thenReturn(0L);
         lenient().when(itemRepository.countByFolderId(any())).thenReturn(0L);
     }
 

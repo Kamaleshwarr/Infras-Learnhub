@@ -3,6 +3,8 @@ package com.company.learninghub.projectknowledge.service;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.projectknowledge.dto.CreateProjectRequest;
 import com.company.learninghub.projectknowledge.mapper.ProjectKnowledgeMapper;
+import com.company.learninghub.projectknowledge.repository.ProjectEnvironmentRepository;
+import com.company.learninghub.projectknowledge.repository.ProjectLinkedRepositoryRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeAccessEventRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeFolderRepository;
 import com.company.learninghub.projectknowledge.repository.ProjectKnowledgeItemRepository;
@@ -53,6 +55,12 @@ class ProjectKnowledgeMethodSecurityTest {
     @Autowired
     private ProjectMemberRepository memberRepository;
 
+    @Autowired
+    private ProjectEnvironmentRepository environmentRepository;
+
+    @Autowired
+    private ProjectLinkedRepositoryRepository linkedRepositoryRepository;
+
     @Test
     void unauthenticatedSearchIsDenied() {
         assertThatThrownBy(() -> service.searchProjects(null, null, null, false, false, PageRequest.of(0, 20), null))
@@ -102,6 +110,8 @@ class ProjectKnowledgeMethodSecurityTest {
         when(memberRepository.countByProjectId(any())).thenReturn(0L);
         when(memberRepository.findByProjectIdInAndUserId(any(), any())).thenReturn(Collections.emptyList());
         when(projectLinkRepository.findPublishedTechnologiesByProjectIds(any(), any())).thenReturn(Collections.emptyList());
+        when(environmentRepository.countByProjectIdAndActiveTrue(any())).thenReturn(0L);
+        when(linkedRepositoryRepository.countByProjectIdAndActiveTrue(any())).thenReturn(0L);
 
         assertThat(service.createProject(
                 new CreateProjectRequest("Payments", "desc", ProjectAccessType.PUBLIC),
@@ -126,6 +136,8 @@ class ProjectKnowledgeMethodSecurityTest {
                 ProjectMemberRepository memberRepository,
                 ProjectKnowledgeFolderRepository folderRepository,
                 ProjectKnowledgeItemRepository itemRepository,
+                ProjectEnvironmentRepository environmentRepository,
+                ProjectLinkedRepositoryRepository linkedRepositoryRepository,
                 ProjectKnowledgeAccessEventRepository accessEventRepository,
                 UserRepository userRepository,
                 ProjectKnowledgeStorageService storageService,
@@ -134,13 +146,16 @@ class ProjectKnowledgeMethodSecurityTest {
                 LearnTechnologyProjectLinkRepository projectLinkRepository
         ) {
             return new ProjectKnowledgeService(projectRepository, memberRepository, folderRepository, itemRepository,
-                    accessEventRepository, userRepository, storageService, storageProperties, mapper, projectLinkRepository);
+                    environmentRepository, linkedRepositoryRepository, accessEventRepository, userRepository,
+                    storageService, storageProperties, mapper, projectLinkRepository);
         }
 
         @Bean ProjectRepository projectRepository() { return mock(ProjectRepository.class); }
         @Bean ProjectMemberRepository projectMemberRepository() { return mock(ProjectMemberRepository.class); }
         @Bean ProjectKnowledgeFolderRepository projectKnowledgeFolderRepository() { return mock(ProjectKnowledgeFolderRepository.class); }
         @Bean ProjectKnowledgeItemRepository projectKnowledgeItemRepository() { return mock(ProjectKnowledgeItemRepository.class); }
+        @Bean ProjectEnvironmentRepository projectEnvironmentRepository() { return mock(ProjectEnvironmentRepository.class); }
+        @Bean ProjectLinkedRepositoryRepository projectLinkedRepositoryRepository() { return mock(ProjectLinkedRepositoryRepository.class); }
         @Bean ProjectKnowledgeAccessEventRepository projectKnowledgeAccessEventRepository() { return mock(ProjectKnowledgeAccessEventRepository.class); }
         @Bean UserRepository userRepository() { return mock(UserRepository.class); }
         @Bean ProjectKnowledgeStorageService projectKnowledgeStorageService() { return mock(ProjectKnowledgeStorageService.class); }

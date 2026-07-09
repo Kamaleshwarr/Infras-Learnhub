@@ -19,6 +19,8 @@ public record ProjectResponse(
         ProjectUserResponse createdBy,
         ProjectUserResponse owner,
         Integer memberCount,
+        Integer environmentCount,
+        Integer repositoryCount,
         ProjectRole currentMemberRole,
         List<RelatedTechnologySummary> relatedTechnologies,
         Instant createdAtUtc,
