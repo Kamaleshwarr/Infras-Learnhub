@@ -1,5 +1,5 @@
 import type { ProjectKnowledgeFolder } from '../../types/projectKnowledge'
-import { KNOWLEDGE_FOLDER_UI_MAX_PARENT_DEPTH } from '../../types/projectKnowledge'
+import { KNOWLEDGE_FOLDER_MAX_DEPTH } from '../../types/projectKnowledge'
 import { projectKnowledgeApi } from '../../api/projectKnowledgeApi'
 import type { KnowledgeBreadcrumbItem } from './KnowledgeBreadcrumbs'
 
@@ -35,18 +35,13 @@ export async function buildFolderBreadcrumbs(
   return items
 }
 
-export function getFolderDepth(folder: ProjectKnowledgeFolder | null | undefined) {
-  if (!folder?.parentId) {
-    return 0
-  }
-  return 1
+/** Folder depth under Knowledge Base root: 0 at home, 1–3 inside folders. */
+export function getFolderDepthFromBreadcrumbs(breadcrumbItems: KnowledgeBreadcrumbItem[]) {
+  return Math.max(0, breadcrumbItems.length - 2)
 }
 
-export function canCreateSubfolder(currentFolder: ProjectKnowledgeFolder | null | undefined) {
-  if (!currentFolder) {
-    return true
-  }
-  return getFolderDepth(currentFolder) < KNOWLEDGE_FOLDER_UI_MAX_PARENT_DEPTH
+export function canCreateSubfolderAtDepth(folderDepth: number) {
+  return folderDepth < KNOWLEDGE_FOLDER_MAX_DEPTH
 }
 
 export async function loadAllFoldersForSelect(projectId: string) {
@@ -54,13 +49,22 @@ export async function loadAllFoldersForSelect(projectId: string) {
   const root = await projectKnowledgeApi.listFolders(projectId, { size: 100, sort: 'name,asc' })
   collected.push(...root.content)
 
-  for (const area of root.content) {
-    const children = await projectKnowledgeApi.listFolders(projectId, {
-      parentId: area.id,
+  for (const level1 of root.content) {
+    const level2Response = await projectKnowledgeApi.listFolders(projectId, {
+      parentId: level1.id,
       size: 100,
       sort: 'name,asc',
     })
-    collected.push(...children.content)
+    collected.push(...level2Response.content)
+
+    for (const level2 of level2Response.content) {
+      const level3Response = await projectKnowledgeApi.listFolders(projectId, {
+        parentId: level2.id,
+        size: 100,
+        sort: 'name,asc',
+      })
+      collected.push(...level3Response.content)
+    }
   }
 
   return collected

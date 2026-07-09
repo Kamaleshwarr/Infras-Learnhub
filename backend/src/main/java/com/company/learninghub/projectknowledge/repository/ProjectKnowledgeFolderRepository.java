@@ -54,5 +54,8 @@ public interface ProjectKnowledgeFolderRepository extends JpaRepository<ProjectK
             @Param("parentId") UUID parentId,
             @Param("excludeId") UUID excludeId
     );
+
+    @EntityGraph(attributePaths = {"parent"})
+    java.util.List<ProjectKnowledgeFolder> findByProjectId(UUID projectId);
 }
 

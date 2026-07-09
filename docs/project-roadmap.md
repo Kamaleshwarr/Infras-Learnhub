@@ -98,7 +98,7 @@ v0.8.0 product design: `docs/v0.8.0/`
 - Knowledge Base routes: `/projects/:projectId/knowledge`, `/projects/:projectId/knowledge/folders/:folderId`
 - External-link-first folder navigation with breadcrumbs and project-scoped search
 - Folder/resource management respecting OWNER / CONTRIBUTOR / VIEWER rules
-- Two-level folder depth policy (area + sub-area) for new content
+- Three-level folder depth policy for new content (Level 1 area → Level 2 sub-area → Level 3 topic)
 - Reused V6 knowledge schema — **no new Flyway migration**
 - See `docs/project/p2-implementation-report.md`
 

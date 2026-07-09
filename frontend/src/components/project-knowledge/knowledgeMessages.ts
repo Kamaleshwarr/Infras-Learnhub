@@ -43,5 +43,5 @@ export const KNOWLEDGE_MESSAGES = {
   resourceType: 'Resource type',
   parentFolder: 'Folder',
   rootFolder: 'Knowledge Base root',
-  depthLimitHint: 'Sub-areas can be created under top-level knowledge areas only.',
+  depthLimitHint: 'Knowledge Base folders support a maximum depth of 3 levels.',
 }

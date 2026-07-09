@@ -32,7 +32,8 @@ import { KnowledgeResourceDialog } from '../../components/project-knowledge/Know
 import { KNOWLEDGE_MESSAGES } from '../../components/project-knowledge/knowledgeMessages'
 import {
   buildFolderBreadcrumbs,
-  canCreateSubfolder,
+  canCreateSubfolderAtDepth,
+  getFolderDepthFromBreadcrumbs,
   loadAllFoldersForSelect,
 } from '../../components/project-knowledge/knowledgeUtils'
 import type { ProjectDetail } from '../../types/projects'
@@ -74,7 +75,8 @@ export function KnowledgeBasePage() {
   const canDeleteFolder = isAdmin || project?.currentMemberRole === 'OWNER'
   const canDeleteResource = canDeleteFolder
   const isSearchMode = appliedSearch.trim().length > 0
-  const allowSubfolderCreate = canCreateSubfolder(currentFolder)
+  const currentFolderDepth = getFolderDepthFromBreadcrumbs(breadcrumbs)
+  const allowSubfolderCreate = canCreateSubfolderAtDepth(currentFolderDepth)
 
   const loadKnowledge = useCallback(async () => {
     if (!projectId) {

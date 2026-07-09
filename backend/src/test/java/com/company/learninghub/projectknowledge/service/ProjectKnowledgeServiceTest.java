@@ -328,20 +328,167 @@ class ProjectKnowledgeServiceTest {
     }
 
     @Test
-    void contributorCannotCreateThirdLevelFolder() {
-        ProjectKnowledgeFolder subFolder = folder(project, "Architecture Details", rootFolder, owner);
+    void createLevel1FolderSucceeds() {
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
-        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.OWNER)).thenReturn(false);
         when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.CONTRIBUTOR)).thenReturn(true);
-        when(folderRepository.findById(subFolder.getId())).thenReturn(Optional.of(subFolder));
+        when(folderRepository.existsSiblingWithName(project.getId(), "QA", null, null)).thenReturn(false);
+        when(userRepository.findById(contributor.getId())).thenReturn(Optional.of(contributor));
+        when(folderRepository.save(any(ProjectKnowledgeFolder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProjectFolderResponse response = service.createFolder(
+                project.getId(),
+                new ProjectFolderRequest("QA", "Quality area", null),
+                contributorPrincipal
+        );
+
+        assertThat(response.name()).isEqualTo("QA");
+    }
+
+    @Test
+    void createLevel2FolderSucceeds() {
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.CONTRIBUTOR)).thenReturn(true);
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(folderRepository.existsSiblingWithName(project.getId(), "Automation", rootFolder.getId(), null)).thenReturn(false);
+        when(userRepository.findById(contributor.getId())).thenReturn(Optional.of(contributor));
+        when(folderRepository.save(any(ProjectKnowledgeFolder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProjectFolderResponse response = service.createFolder(
+                project.getId(),
+                new ProjectFolderRequest("Automation", null, rootFolder.getId()),
+                contributorPrincipal
+        );
+
+        assertThat(response.name()).isEqualTo("Automation");
+    }
+
+    @Test
+    void createLevel3FolderSucceeds() {
+        ProjectKnowledgeFolder level2Folder = folder(project, "Automation", rootFolder, owner);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.CONTRIBUTOR)).thenReturn(true);
+        when(folderRepository.findById(level2Folder.getId())).thenReturn(Optional.of(level2Folder));
+        when(folderRepository.existsSiblingWithName(project.getId(), "API Testing", level2Folder.getId(), null)).thenReturn(false);
+        when(userRepository.findById(contributor.getId())).thenReturn(Optional.of(contributor));
+        when(folderRepository.save(any(ProjectKnowledgeFolder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProjectFolderResponse response = service.createFolder(
+                project.getId(),
+                new ProjectFolderRequest("API Testing", null, level2Folder.getId()),
+                contributorPrincipal
+        );
+
+        assertThat(response.name()).isEqualTo("API Testing");
+    }
+
+    @Test
+    void createLevel4FolderFails() {
+        ProjectKnowledgeFolder level2Folder = folder(project, "Automation", rootFolder, owner);
+        ProjectKnowledgeFolder level3Folder = folder(project, "API Testing", level2Folder, owner);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.CONTRIBUTOR)).thenReturn(true);
+        when(folderRepository.findById(level3Folder.getId())).thenReturn(Optional.of(level3Folder));
 
         assertThatThrownBy(() -> service.createFolder(
                 project.getId(),
-                new ProjectFolderRequest("Deep Folder", null, subFolder.getId()),
+                new ProjectFolderRequest("Postman", null, level3Folder.getId()),
                 contributorPrincipal
         ))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Knowledge base folders are limited to two levels (area and sub-area)");
+                .hasMessage("Knowledge Base folders support a maximum depth of 3 levels.");
+    }
+
+    @Test
+    void updateFolderWithinThreeLevelsSucceeds() {
+        ProjectKnowledgeFolder level2Folder = folder(project, "Automation", rootFolder, owner);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), contributor.getId(), ProjectRole.CONTRIBUTOR)).thenReturn(true);
+        when(folderRepository.findById(level2Folder.getId())).thenReturn(Optional.of(level2Folder));
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(folderRepository.existsSiblingWithName(project.getId(), "Automation Suite", rootFolder.getId(), level2Folder.getId())).thenReturn(false);
+        when(folderRepository.findByProjectId(project.getId())).thenReturn(List.of(rootFolder, level2Folder));
+
+        ProjectFolderResponse response = service.updateFolder(
+                project.getId(),
+                level2Folder.getId(),
+                new ProjectFolderRequest("Automation Suite", "Updated", rootFolder.getId()),
+                contributorPrincipal
+        );
+
+        assertThat(response.name()).isEqualTo("Automation Suite");
+    }
+
+    @Test
+    void movingFolderSubtreeBeyondMaximumDepthFails() {
+        ProjectKnowledgeFolder qa = folder(project, "QA", null, owner);
+        ProjectKnowledgeFolder automation = folder(project, "Automation", qa, owner);
+        ProjectKnowledgeFolder apiTesting = folder(project, "API Testing", automation, owner);
+        ProjectKnowledgeFolder engineering = folder(project, "Engineering", null, owner);
+
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), owner.getId(), ProjectRole.OWNER)).thenReturn(true);
+        when(folderRepository.findById(qa.getId())).thenReturn(Optional.of(qa));
+        when(folderRepository.findById(engineering.getId())).thenReturn(Optional.of(engineering));
+        when(folderRepository.findByProjectId(project.getId())).thenReturn(List.of(qa, automation, apiTesting, engineering));
+
+        assertThatThrownBy(() -> service.updateFolder(
+                project.getId(),
+                qa.getId(),
+                new ProjectFolderRequest("QA", null, engineering.getId()),
+                ownerPrincipal
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Knowledge Base folders support a maximum depth of 3 levels.");
+    }
+
+    @Test
+    void movingFolderUnderItselfFails() {
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), owner.getId(), ProjectRole.OWNER)).thenReturn(true);
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+
+        assertThatThrownBy(() -> service.updateFolder(
+                project.getId(),
+                rootFolder.getId(),
+                new ProjectFolderRequest(rootFolder.getName(), null, rootFolder.getId()),
+                ownerPrincipal
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Folder cannot be its own parent");
+    }
+
+    @Test
+    void movingFolderUnderDescendantFails() {
+        ProjectKnowledgeFolder level2Folder = folder(project, "Automation", rootFolder, owner);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserIdAndProjectRole(project.getId(), owner.getId(), ProjectRole.OWNER)).thenReturn(true);
+        when(folderRepository.findById(rootFolder.getId())).thenReturn(Optional.of(rootFolder));
+        when(folderRepository.findById(level2Folder.getId())).thenReturn(Optional.of(level2Folder));
+
+        assertThatThrownBy(() -> service.updateFolder(
+                project.getId(),
+                rootFolder.getId(),
+                new ProjectFolderRequest(rootFolder.getName(), null, level2Folder.getId()),
+                ownerPrincipal
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Folder cannot be moved under its descendant");
+    }
+
+    @Test
+    void existingDeepHierarchyRemainsReadable() {
+        ProjectKnowledgeFolder level2Folder = folder(project, "Automation", rootFolder, owner);
+        ProjectKnowledgeFolder level3Folder = folder(project, "API Testing", level2Folder, owner);
+        ProjectKnowledgeFolder level4Folder = folder(project, "Legacy Deep", level3Folder, owner);
+        when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
+        when(memberRepository.existsByProjectIdAndUserId(project.getId(), viewer.getId())).thenReturn(true);
+        when(folderRepository.findById(level4Folder.getId())).thenReturn(Optional.of(level4Folder));
+        when(folderRepository.countByParentId(level4Folder.getId())).thenReturn(0L);
+        when(itemRepository.countByFolderId(level4Folder.getId())).thenReturn(0L);
+
+        ProjectFolderResponse response = service.getFolder(project.getId(), level4Folder.getId(), viewerPrincipal);
+
+        assertThat(response.name()).isEqualTo("Legacy Deep");
     }
 
     @Test

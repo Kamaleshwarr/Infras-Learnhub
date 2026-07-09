@@ -61,6 +61,10 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectKnowledgeService {
 
+    private static final int MAX_FOLDER_DEPTH = 3;
+    private static final String FOLDER_DEPTH_LIMIT_MESSAGE =
+            "Knowledge Base folders support a maximum depth of 3 levels.";
+
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository memberRepository;
     private final ProjectKnowledgeFolderRepository folderRepository;
@@ -227,7 +231,7 @@ public class ProjectKnowledgeService {
         ensureFolderBelongsToProject(folder, projectId);
         ProjectKnowledgeFolder parent = resolveFolder(project, request.parentId());
         ensureNotDescendant(folderId, parent);
-        ensureFolderDepthAllowed(parent);
+        ensureFolderDepthAllowedForMove(folder, parent, project.getId());
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(projectId, name, request.parentId(), folderId);
         folder.updateDetails(name, normalizeOptional(request.description()), parent);
@@ -499,9 +503,61 @@ public class ProjectKnowledgeService {
     }
 
     private void ensureFolderDepthAllowed(ProjectKnowledgeFolder parent) {
-        if (parent != null && parent.getParent() != null) {
-            throw new IllegalArgumentException("Knowledge base folders are limited to two levels (area and sub-area)");
+        if (parent == null) {
+            return;
         }
+        int newFolderDepth = computeFolderDepth(parent) + 1;
+        if (newFolderDepth > MAX_FOLDER_DEPTH) {
+            throw new IllegalArgumentException(FOLDER_DEPTH_LIMIT_MESSAGE);
+        }
+    }
+
+    private void ensureFolderDepthAllowedForMove(
+            ProjectKnowledgeFolder folder,
+            ProjectKnowledgeFolder newParent,
+            UUID projectId
+    ) {
+        int newFolderDepth = newParent == null ? 1 : computeFolderDepth(newParent) + 1;
+        int maxRelativeDescendantDepth = computeMaxDescendantRelativeDepth(folder.getId(), projectId);
+        if (newFolderDepth + maxRelativeDescendantDepth > MAX_FOLDER_DEPTH) {
+            throw new IllegalArgumentException(FOLDER_DEPTH_LIMIT_MESSAGE);
+        }
+    }
+
+    private int computeFolderDepth(ProjectKnowledgeFolder folder) {
+        int depth = 1;
+        ProjectKnowledgeFolder current = folder.getParent();
+        while (current != null) {
+            depth++;
+            current = current.getParent();
+        }
+        return depth;
+    }
+
+    private int computeMaxDescendantRelativeDepth(UUID folderId, UUID projectId) {
+        Map<UUID, List<ProjectKnowledgeFolder>> childrenByParent = folderRepository.findByProjectId(projectId).stream()
+                .filter(folder -> folder.getParent() != null)
+                .collect(Collectors.groupingBy(folder -> folder.getParent().getId()));
+
+        return measureMaxDescendantRelativeDepth(folderId, childrenByParent);
+    }
+
+    private int measureMaxDescendantRelativeDepth(
+            UUID folderId,
+            Map<UUID, List<ProjectKnowledgeFolder>> childrenByParent
+    ) {
+        List<ProjectKnowledgeFolder> children = childrenByParent.getOrDefault(folderId, List.of());
+        if (children.isEmpty()) {
+            return 0;
+        }
+        int maxChildDepth = 0;
+        for (ProjectKnowledgeFolder child : children) {
+            maxChildDepth = Math.max(
+                    maxChildDepth,
+                    1 + measureMaxDescendantRelativeDepth(child.getId(), childrenByParent)
+            );
+        }
+        return maxChildDepth;
     }
 
     private ProjectFolderResponse toFolderResponseWithCounts(ProjectKnowledgeFolder folder) {

@@ -102,11 +102,24 @@ class ProjectModuleP2IntegrationTest {
                 objectMapper.readTree(architectureFolder.getResponse().getContentAsString()).get("id").asText()
         );
 
+        MvcResult apiTestingFolder = mockMvc.perform(post("/api/v1/projects/" + projectId + "/folders")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new ProjectFolderRequest("API Testing", "API docs", architectureId)
+                        )))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        UUID apiTestingId = UUID.fromString(
+                objectMapper.readTree(apiTestingFolder.getResponse().getContentAsString()).get("id").asText()
+        );
+
         mockMvc.perform(post("/api/v1/projects/" + projectId + "/folders")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ProjectFolderRequest("Blocked", "Too deep", architectureId)
+                                new ProjectFolderRequest("Blocked", "Too deep", apiTestingId)
                         )))
                 .andExpect(status().isBadRequest());
 
@@ -114,7 +127,7 @@ class ProjectModuleP2IntegrationTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new CreateProjectLinkRequest(
-                                architectureId,
+                                apiTestingId,
                                 "API Documentation",
                                 "Swagger",
                                 KnowledgeCategory.KT_DOCUMENTS,
@@ -134,7 +147,7 @@ class ProjectModuleP2IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title").value("API Documentation"));
 
-        mockMvc.perform(get("/api/v1/projects/" + projectId + "/folders/" + architectureId)
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/folders/" + apiTestingId)
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.itemCount").value(1));
@@ -148,7 +161,7 @@ class ProjectModuleP2IntegrationTest {
                         .header("Authorization", "Bearer " + employeeToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new UpdateProjectItemRequest(
-                                architectureId,
+                                apiTestingId,
                                 "Updated API Docs",
                                 "Swagger",
                                 KnowledgeCategory.KT_DOCUMENTS,
@@ -164,7 +177,7 @@ class ProjectModuleP2IntegrationTest {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(delete("/api/v1/projects/" + projectId + "/folders/" + architectureId)
+        mockMvc.perform(delete("/api/v1/projects/" + projectId + "/folders/" + apiTestingId)
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
 

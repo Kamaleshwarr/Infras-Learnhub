@@ -88,5 +88,5 @@ export const KNOWLEDGE_CATEGORY_LABELS: Record<KnowledgeCategory, string> = {
   EXTERNAL_LINKS: 'Useful Link',
 }
 
-/** UI allows root areas and one sub-area level for new folders. */
-export const KNOWLEDGE_FOLDER_UI_MAX_PARENT_DEPTH = 1
+/** Maximum folder levels under Knowledge Base root (Level 1–3). */
+export const KNOWLEDGE_FOLDER_MAX_DEPTH = 3

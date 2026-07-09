@@ -22,7 +22,8 @@ vi.mock('../../components/project-knowledge/knowledgeUtils', () => ({
     { label: 'Payments', href: '/projects/project-1' },
     { label: 'Knowledge Base', href: '/projects/project-1/knowledge' },
   ]),
-  canCreateSubfolder: vi.fn(() => true),
+  canCreateSubfolderAtDepth: vi.fn(() => true),
+  getFolderDepthFromBreadcrumbs: vi.fn(() => 0),
   loadAllFoldersForSelect: vi.fn(async () => []),
 }))
 

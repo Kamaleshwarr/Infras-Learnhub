@@ -14,7 +14,7 @@
 |------|----------|
 | **Existing backend reused** | V6 `project_knowledge_folders`, `project_knowledge_items`, `project_knowledge_access_events`; folder CRUD; link CRUD; file upload (dormant in UI); membership authorization; project-scoped search |
 | **Existing APIs reused** | `POST/PUT/DELETE /folders`, `POST/PUT/DELETE /items/links`, `GET /items`, `GET /items/{id}/link`, member/visibility rules |
-| **API gaps filled** | `GET /folders/{folderId}`; folder `childFolderCount` / `itemCount`; folder list `search`; item search `sourceType`; PostgreSQL-safe `searchPattern`; two-level folder depth guard on create/update |
+| **API gaps filled** | `GET /folders/{folderId}`; folder `childFolderCount` / `itemCount`; folder list `search`; item search `sourceType`; PostgreSQL-safe `searchPattern`; **three-level** folder depth guard on create/update/move |
 | **Schema gaps** | None — existing `KnowledgeCategory` enum sufficient for P2 link classification |
 | **Frontend work** | Knowledge Base home + folder routes; breadcrumb navigation; folder/resource cards; add/edit/delete dialogs; project-scoped search; permission-aware actions; P1 Knowledge Base entry activation |
 | **Authorization impact** | No model change — OWNER/CONTRIBUTOR manage content; OWNER deletes folders/items; VIEWER read-only; MEMBERS_ONLY returns 404 for non-members |
@@ -36,7 +36,7 @@
 
 ## 3. Existing V6 Knowledge Functionality Reused
 
-- Recursive folder hierarchy in database (UI policy limits new depth to two levels)
+- Recursive folder hierarchy in database (UI policy limits new depth to **three levels**)
 - `KnowledgeSourceType` FILE / LINK
 - `KnowledgeCategory` enum for resource classification
 - HTTPS URL validation on link create/update
@@ -120,13 +120,18 @@ External platforms remain source of truth. The app organizes navigation and meta
 | Level | Role | Example |
 |-------|------|---------|
 | 0 | Knowledge Base root | — |
-| 1 | Main knowledge area | Technical Documentation |
-| 2 | Sub-area | Architecture |
-| Resources | Inside folder | API Documentation link |
+| 1 | Main knowledge area | QA |
+| 2 | Sub-area | Automation |
+| 3 | Topic folder | API Testing |
+| Resources | Inside folder | Postman Collection link |
 
-- **UI:** `canCreateSubfolder()` blocks subfolder creation when current folder already has a parent.
-- **Backend:** `ensureFolderDepthAllowed()` rejects create/update when parent folder itself has a parent (max two folder levels).
-- **Legacy data:** Deeper existing folders remain accessible via direct URL/API; UI does not encourage deeper nesting.
+- **UI:** `canCreateSubfolderAtDepth()` hides Add Subfolder when current folder is at depth 3; info alert explains the limit.
+- **Backend:** `ensureFolderDepthAllowed()` on create; `ensureFolderDepthAllowedForMove()` validates entire subtree on reparent (API-supported; UI edit preserves parent).
+- **Legacy data:** Folders deeper than 3 levels remain readable; new create/move operations enforce the 3-level cap.
+
+### Post-QA refinement (2026-07-09)
+
+Manual QA approved increasing the cap from **2 to 3 folder levels**. Level 4 folder creation is rejected with: *"Knowledge Base folders support a maximum depth of 3 levels."*
 
 ---
 
@@ -156,7 +161,7 @@ UI filters links with `sourceType=LINK` (file upload not promoted in P2 UX).
 - `getFolder` returns folder metadata with child/item counts
 - `listFolders` supports optional name `search` (PostgreSQL-safe pattern)
 - `searchItems` supports `sourceType` filter and fixed multi-field search pattern
-- Folder create/update enforces two-level depth for new structure
+- Folder create/update enforces **three-level** depth for new structure (subtree-aware on move)
 - Folder delete requires empty folder (no child folders, no items) — unchanged V6 rule
 - Link access via `GET /items/{id}/link` increments `accessCount` and records access event — preserved
 
@@ -387,7 +392,7 @@ See `docs/screenshots/p2-knowledge-base/`:
 
 ## 29. Risks and Known Limitations
 
-- Folder depth guard applies to create/update only; legacy deeper trees not flattened
+- Folder depth guard applies to create/move only; legacy folders deeper than 3 levels remain readable
 - Authorization insufficient-role responses remain HTTP 400 (`IllegalArgumentException`) for some write operations — existing V6 behavior; non-members still get 404 on read
 - File upload API remains available but is intentionally not promoted in P2 UI
 - Docker-based integration tests and image builds require local Docker
