@@ -61,6 +61,16 @@ describe('KnowledgeFolderCard', () => {
     expect(card).toHaveStyle({ width: '100%' })
   })
 
+  it('keeps folder content left-aligned inside the action area', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <KnowledgeFolderCard folder={baseFolder} href="/projects/project-1/knowledge/folders/folder-1" />
+      </MemoryRouter>,
+    )
+    const actionArea = container.querySelector('.MuiCardActionArea-root')
+    expect(actionArea).toHaveStyle({ alignItems: 'stretch', justifyContent: 'flex-start', textAlign: 'left' })
+  })
+
   it('wraps long folder names', () => {
     render(
       <MemoryRouter>

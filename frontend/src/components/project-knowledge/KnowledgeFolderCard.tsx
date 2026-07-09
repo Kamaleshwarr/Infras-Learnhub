@@ -25,10 +25,19 @@ export function KnowledgeFolderCard({ folder, href }: KnowledgeFolderCardProps) 
       .filter(Boolean)
       .join(' · ') || 'No resources yet'
 
+  const folderActionAreaSx = {
+    ...flexCardSx,
+    flexGrow: 1,
+    // CardActionArea extends ButtonBase (alignItems/justifyContent: center by default).
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+  } as const
+
   return (
     <Card sx={flexCardSx} variant="outlined">
-      <CardActionArea component={RouterLink} sx={{ ...flexCardSx, flexGrow: 1 }} to={href}>
-        <CardContent sx={{ ...flexCardContentSx, gap: 1 }}>
+      <CardActionArea component={RouterLink} sx={folderActionAreaSx} to={href}>
+        <CardContent sx={{ ...flexCardContentSx, gap: 1, textAlign: 'left', width: '100%' }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
             <FolderOutlinedIcon color="primary" fontSize="small" sx={{ flexShrink: 0, mt: 0.25 }} />
             <Typography sx={{ ...longTextWrapSx, flex: 1 }} variant="subtitle1">
@@ -40,7 +49,11 @@ export function KnowledgeFolderCard({ folder, href }: KnowledgeFolderCardProps) 
               {description}
             </Typography>
           ) : null}
-          <Typography color="text.secondary" sx={{ mt: 'auto', pt: description ? 0.5 : 0 }} variant="caption">
+          <Typography
+            color="text.secondary"
+            sx={{ alignSelf: 'flex-start', mt: 'auto', pt: description ? 0.5 : 0, width: '100%' }}
+            variant="caption"
+          >
             {summary}
           </Typography>
         </CardContent>
