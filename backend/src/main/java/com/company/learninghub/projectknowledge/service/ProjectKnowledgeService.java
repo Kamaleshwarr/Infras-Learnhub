@@ -6,6 +6,7 @@ import com.company.learninghub.learn.dto.RelatedTechnologySummary;
 import com.company.learninghub.learn.repository.LearnTechnologyProjectLinkRepository;
 import com.company.learninghub.learn.domain.TechnologyStatus;
 import com.company.learninghub.projectknowledge.domain.KnowledgeCategory;
+import com.company.learninghub.projectknowledge.domain.KnowledgeSourceType;
 import com.company.learninghub.projectknowledge.domain.Project;
 import com.company.learninghub.projectknowledge.domain.ProjectAccessType;
 import com.company.learninghub.projectknowledge.domain.ProjectKnowledgeAccessEvent;
@@ -59,6 +60,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProjectKnowledgeService {
+
+    private static final int MAX_FOLDER_DEPTH = 3;
+    private static final String FOLDER_DEPTH_LIMIT_MESSAGE =
+            "Knowledge Base folders support a maximum depth of 3 levels.";
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository memberRepository;
@@ -207,10 +212,11 @@ public class ProjectKnowledgeService {
         Project project = findProject(projectId);
         requireContributor(project, principal);
         ProjectKnowledgeFolder parent = resolveFolder(project, request.parentId());
+        ensureFolderDepthAllowed(parent);
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(projectId, name, request.parentId(), null);
         ProjectKnowledgeFolder folder = new ProjectKnowledgeFolder(project, name, normalizeOptional(request.description()), parent, findUser(principal.getId()));
-        return mapper.toFolderResponse(folderRepository.save(folder));
+        return toFolderResponseWithCounts(folderRepository.save(folder));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -225,10 +231,11 @@ public class ProjectKnowledgeService {
         ensureFolderBelongsToProject(folder, projectId);
         ProjectKnowledgeFolder parent = resolveFolder(project, request.parentId());
         ensureNotDescendant(folderId, parent);
+        ensureFolderDepthAllowedForMove(folder, parent, project.getId());
         String name = normalizeRequired(request.name(), "Folder name is required");
         ensureUniqueFolderName(projectId, name, request.parentId(), folderId);
         folder.updateDetails(name, normalizeOptional(request.description()), parent);
-        return mapper.toFolderResponse(folder);
+        return toFolderResponseWithCounts(folder);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -246,11 +253,21 @@ public class ProjectKnowledgeService {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
-    public Page<ProjectFolderResponse> listFolders(UUID projectId, UUID parentId, Pageable pageable, AuthenticatedUser principal) {
+    public ProjectFolderResponse getFolder(UUID projectId, UUID folderId, AuthenticatedUser principal) {
         Project project = findProject(projectId);
         requireReadAccess(project, principal);
-        return folderRepository.findByProjectAndParent(projectId, parentId, normalizeFolderPageable(pageable))
-                .map(mapper::toFolderResponse);
+        ProjectKnowledgeFolder folder = findFolder(folderId);
+        ensureFolderBelongsToProject(folder, projectId);
+        return toFolderResponseWithCounts(folder);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @Transactional(readOnly = true)
+    public Page<ProjectFolderResponse> listFolders(UUID projectId, UUID parentId, String search, Pageable pageable, AuthenticatedUser principal) {
+        Project project = findProject(projectId);
+        requireReadAccess(project, principal);
+        return folderRepository.findByProjectAndParent(projectId, parentId, toSearchPattern(normalizeSearch(search)), normalizeFolderPageable(pageable))
+                .map(this::toFolderResponseWithCounts);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -333,10 +350,25 @@ public class ProjectKnowledgeService {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Transactional(readOnly = true)
-    public Page<ProjectKnowledgeItemResponse> searchItems(UUID projectId, UUID folderId, KnowledgeCategory category, String search, Pageable pageable, AuthenticatedUser principal) {
+    public Page<ProjectKnowledgeItemResponse> searchItems(
+            UUID projectId,
+            UUID folderId,
+            KnowledgeCategory category,
+            KnowledgeSourceType sourceType,
+            String search,
+            Pageable pageable,
+            AuthenticatedUser principal
+    ) {
         Project project = findProject(projectId);
         requireReadAccess(project, principal);
-        return itemRepository.search(projectId, folderId, category, normalizeSearch(search), normalizeItemPageable(pageable))
+        return itemRepository.search(
+                        projectId,
+                        folderId,
+                        category,
+                        sourceType,
+                        toSearchPattern(normalizeSearch(search)),
+                        normalizeItemPageable(pageable)
+                )
                 .map(mapper::toItemResponse);
     }
 
@@ -468,6 +500,72 @@ public class ProjectKnowledgeService {
             }
             current = current.getParent();
         }
+    }
+
+    private void ensureFolderDepthAllowed(ProjectKnowledgeFolder parent) {
+        if (parent == null) {
+            return;
+        }
+        int newFolderDepth = computeFolderDepth(parent) + 1;
+        if (newFolderDepth > MAX_FOLDER_DEPTH) {
+            throw new IllegalArgumentException(FOLDER_DEPTH_LIMIT_MESSAGE);
+        }
+    }
+
+    private void ensureFolderDepthAllowedForMove(
+            ProjectKnowledgeFolder folder,
+            ProjectKnowledgeFolder newParent,
+            UUID projectId
+    ) {
+        int newFolderDepth = newParent == null ? 1 : computeFolderDepth(newParent) + 1;
+        int maxRelativeDescendantDepth = computeMaxDescendantRelativeDepth(folder.getId(), projectId);
+        if (newFolderDepth + maxRelativeDescendantDepth > MAX_FOLDER_DEPTH) {
+            throw new IllegalArgumentException(FOLDER_DEPTH_LIMIT_MESSAGE);
+        }
+    }
+
+    private int computeFolderDepth(ProjectKnowledgeFolder folder) {
+        int depth = 1;
+        ProjectKnowledgeFolder current = folder.getParent();
+        while (current != null) {
+            depth++;
+            current = current.getParent();
+        }
+        return depth;
+    }
+
+    private int computeMaxDescendantRelativeDepth(UUID folderId, UUID projectId) {
+        Map<UUID, List<ProjectKnowledgeFolder>> childrenByParent = folderRepository.findByProjectId(projectId).stream()
+                .filter(folder -> folder.getParent() != null)
+                .collect(Collectors.groupingBy(folder -> folder.getParent().getId()));
+
+        return measureMaxDescendantRelativeDepth(folderId, childrenByParent);
+    }
+
+    private int measureMaxDescendantRelativeDepth(
+            UUID folderId,
+            Map<UUID, List<ProjectKnowledgeFolder>> childrenByParent
+    ) {
+        List<ProjectKnowledgeFolder> children = childrenByParent.getOrDefault(folderId, List.of());
+        if (children.isEmpty()) {
+            return 0;
+        }
+        int maxChildDepth = 0;
+        for (ProjectKnowledgeFolder child : children) {
+            maxChildDepth = Math.max(
+                    maxChildDepth,
+                    1 + measureMaxDescendantRelativeDepth(child.getId(), childrenByParent)
+            );
+        }
+        return maxChildDepth;
+    }
+
+    private ProjectFolderResponse toFolderResponseWithCounts(ProjectKnowledgeFolder folder) {
+        return mapper.toFolderResponse(
+                folder,
+                folderRepository.countByParentId(folder.getId()),
+                itemRepository.countByFolderId(folder.getId())
+        );
     }
 
     private void validateFile(MultipartFile file) {

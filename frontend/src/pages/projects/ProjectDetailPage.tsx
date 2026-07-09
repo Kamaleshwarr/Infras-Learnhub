@@ -187,7 +187,7 @@ export function ProjectDetailPage() {
               </CardContent>
             </Card>
             <RelatedTechnologiesCard technologies={project.relatedTechnologies ?? []} />
-            <ProjectAreasPanel />
+            <ProjectAreasPanel projectId={project.id} />
           </Stack>
 
           <Stack spacing={3}>

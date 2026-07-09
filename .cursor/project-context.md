@@ -57,7 +57,9 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 
 **Learn module v1.1 is the current development baseline.** F19 has NOT been started.
 
-**Project Module:** P1 — Project Foundation & Overview **complete** (`docs/project/`). P2–P5 **not started**.
+**Project Module:** P1 — Project Foundation & Overview **complete**; P2 — Knowledge Base & Folders **complete** (`docs/project/`). P3–P5 **not started**.
+
+**P2 routes:** `/projects/:projectId/knowledge`, `/projects/:projectId/knowledge/folders/:folderId` — external-link-first knowledge navigation; **three-level** folder depth for new content; reuses V6 knowledge APIs (no P2 migration).
 
 Documentation:
 - `README.md` — project entry point

@@ -61,7 +61,8 @@ describe('ProjectDetailPage', () => {
 
     expect(await screen.findByText('Payments Platform')).toBeInTheDocument()
     expect(screen.getByText('Spring Boot')).toBeInTheDocument()
-    expect(screen.getAllByText(/coming in a future release/i).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /Knowledge Base/i })).toBeInTheDocument()
+    expect(screen.getAllByText(/coming in a future release/i).length).toBe(3)
     expect(screen.queryByRole('button', { name: /edit project/i })).not.toBeInTheDocument()
   })
 })

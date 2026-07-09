@@ -11,7 +11,9 @@ public record ProjectFolderResponse(
         UUID parentId,
         ProjectUserResponse createdBy,
         Instant createdAtUtc,
-        Instant updatedAtUtc
+        Instant updatedAtUtc,
+        long childFolderCount,
+        long itemCount
 ) {
 }
 

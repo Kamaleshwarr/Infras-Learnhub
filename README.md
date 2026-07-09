@@ -34,7 +34,7 @@ Employees browse technologies, follow catalog roadmaps, track stage completion, 
 └────────────────────────────┬────────────────────────────────────┘
                              │ JDBC
 ┌────────────────────────────▼────────────────────────────────────┐
-│                    PostgreSQL 16 (Flyway V1–V16)                   │
+│                    PostgreSQL 16 (Flyway V1–V17)                   │
 │  Catalog tables (read-only content) + progress overlay (F18)       │
 └─────────────────────────────────────────────────────────────────┘
 
@@ -55,7 +55,7 @@ Detailed architecture: [`.cursor/architecture.md`](.cursor/architecture.md) · L
 | Spring Boot | 3.x |
 | Spring Security | JWT bearer authentication |
 | Spring Data JPA | PostgreSQL |
-| Flyway | Schema migrations V1–V16 |
+| Flyway | Schema migrations V1–V17 |
 | Maven | Build and test |
 | OpenAPI / Swagger | API docs at `/swagger-ui.html` |
 | Testcontainers | Integration tests |
@@ -292,7 +292,7 @@ Routes: `/learn`, `/learn/technologies`, `/learn/technologies/:id`, `/learn/tech
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| **Project Module** | Engineering project portal (P1–P5) | **P1 complete** — see [`docs/project/`](docs/project/) |
+| **Project Module** | Engineering project portal (P1–P5) | **P1 + P2 complete** — Knowledge Base at `/projects/:id/knowledge`; see [`docs/project/`](docs/project/) |
 | F19 | Career Path Catalog | Not started |
 | F20 | Certification Catalog | Not started |
 | F21 | Optional Initiative Association | Not started |
