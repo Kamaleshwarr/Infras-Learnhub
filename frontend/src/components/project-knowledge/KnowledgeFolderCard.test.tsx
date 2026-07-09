@@ -51,6 +51,16 @@ describe('KnowledgeFolderCard', () => {
     expect(screen.getByText('3 sub-areas')).toBeInTheDocument()
   })
 
+  it('fills the width of its parent container', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <KnowledgeFolderCard folder={baseFolder} href="/projects/project-1/knowledge/folders/folder-1" />
+      </MemoryRouter>,
+    )
+    const card = container.querySelector('.MuiCard-root')
+    expect(card).toHaveStyle({ width: '100%' })
+  })
+
   it('wraps long folder names', () => {
     render(
       <MemoryRouter>
