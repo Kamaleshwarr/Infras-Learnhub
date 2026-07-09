@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-07-03 (v0.8.0 — Learn module v1 complete)
+Last updated: 2026-07-06 (Learn v1.1 complete; Project Module architecture review complete)
 
 ## Release Overview
 
@@ -74,6 +74,27 @@ v0.8.0 product design: `docs/v0.8.0/`
 - Flyway V15
 
 **F19 has NOT been started.**
+
+---
+
+## Next major module — Project Module (architecture review complete)
+
+**Status:** Architecture review and implementation planning complete — **no implementation started**
+
+**Documentation:** `docs/project/README.md`
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| Review | Current-state audit, gap analysis, architecture proposal | ✓ **Complete** |
+| P1 | Project Foundation & Overview | Not started |
+| P2 | Knowledge Base & Folders | Not started |
+| P3 | Environments & Repositories | Not started |
+| P4 | Project Search & Cross-Navigation | Not started |
+| P5 | Governance, Review Metadata & Polish | Not started |
+
+**Recommended architecture:** Hybrid (Option C) — typed Environments/Repositories/Credential References + generic link resources in folders.
+
+**P1 has NOT been started.** Do not begin implementation without explicit approval of open decisions in `docs/project/10-risks-and-open-decisions.md`.
 
 ---
 
