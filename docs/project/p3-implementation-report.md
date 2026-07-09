@@ -393,6 +393,8 @@ Structured `repository_type`, `provider`, `reference_type`, and project scoping 
 
 **Width regression fix:** Grid items with `display: flex` caused cards to shrink to content width (missing `width: 100%`). Added `width: '100%'` to `flexCardSx` and `flexGridItemSx` for grid items. Post-fix screenshots: `docs/screenshots/p3-qa-card-alignment-post-width-fix/`
 
+**Folder left-align fix:** `CardActionArea` extends MUI `ButtonBase` (`alignItems`/`justifyContent: center`). Applying `flexCardSx` without overrides centered folder content. Restored `alignItems: 'stretch'`, `justifyContent: 'flex-start'`, `textAlign: 'left'` on folder action area only. Screenshots: `docs/screenshots/p3-qa-folder-left-align-fix/`
+
 ---
 
 ## Local Verification Commands
