@@ -10,10 +10,16 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import {
+  descriptionClampSx,
+  flexCardBodySx,
+  flexCardContentSx,
+  flexCardSx,
+} from '../common/cardLayoutStyles'
+import { longTextWrapSx } from '../common/textStyles'
 import type { ProjectKnowledgeItem } from '../../types/projectKnowledge'
 import { KNOWLEDGE_CATEGORY_LABELS } from '../../types/projectKnowledge'
 import { KNOWLEDGE_MESSAGES } from './knowledgeMessages'
-import { WrappingText } from '../common/WrappingText'
 
 function formatExternalHost(url?: string | null) {
   if (!url) {
@@ -36,50 +42,54 @@ interface KnowledgeResourceCardProps {
 
 export function KnowledgeResourceCard({ canManage, item, onDelete, onEdit, onOpen }: KnowledgeResourceCardProps) {
   const host = formatExternalHost(item.externalUrl)
+  const description = item.description?.trim()
 
   return (
-    <Card sx={{ height: '100%' }} variant="outlined">
-      <CardContent>
-        <Stack spacing={1.5} sx={{ height: '100%' }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle1">{item.title}</Typography>
-              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                <Chip label={KNOWLEDGE_CATEGORY_LABELS[item.category]} size="small" variant="outlined" />
-                {item.sourceType === 'LINK' ? (
-                  <Chip color="info" label={KNOWLEDGE_MESSAGES.externalLink} size="small" variant="outlined" />
-                ) : null}
-              </Stack>
-            </Stack>
-            <Stack direction="row" spacing={0.5}>
-              <Tooltip title={KNOWLEDGE_MESSAGES.openResource}>
-                <IconButton aria-label={KNOWLEDGE_MESSAGES.openResource} onClick={() => onOpen(item)} size="small">
-                  <OpenInNewIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              {canManage && onEdit ? (
-                <Tooltip title={KNOWLEDGE_MESSAGES.editResource}>
-                  <IconButton aria-label={KNOWLEDGE_MESSAGES.editResource} onClick={() => onEdit(item)} size="small">
-                    <EditOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              ) : null}
-              {canManage && onDelete ? (
-                <Tooltip title={KNOWLEDGE_MESSAGES.deleteResource}>
-                  <IconButton aria-label={KNOWLEDGE_MESSAGES.deleteResource} onClick={() => onDelete(item)} size="small">
-                    <DeleteOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+    <Card sx={flexCardSx} variant="outlined">
+      <CardContent sx={{ ...flexCardContentSx, gap: 1.5 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={longTextWrapSx} variant="subtitle1">
+              {item.title}
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <Chip label={KNOWLEDGE_CATEGORY_LABELS[item.category]} size="small" variant="outlined" />
+              {item.sourceType === 'LINK' ? (
+                <Chip color="info" label={KNOWLEDGE_MESSAGES.externalLink} size="small" variant="outlined" />
               ) : null}
             </Stack>
           </Stack>
-          {item.description ? (
-            <Typography color="text.secondary" variant="body2">
-              <WrappingText>{item.description}</WrappingText>
+          <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+            <Tooltip title={KNOWLEDGE_MESSAGES.openResource}>
+              <IconButton aria-label={KNOWLEDGE_MESSAGES.openResource} onClick={() => onOpen(item)} size="small">
+                <OpenInNewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            {canManage && onEdit ? (
+              <Tooltip title={KNOWLEDGE_MESSAGES.editResource}>
+                <IconButton aria-label={KNOWLEDGE_MESSAGES.editResource} onClick={() => onEdit(item)} size="small">
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ) : null}
+            {canManage && onDelete ? (
+              <Tooltip title={KNOWLEDGE_MESSAGES.deleteResource}>
+                <IconButton aria-label={KNOWLEDGE_MESSAGES.deleteResource} onClick={() => onDelete(item)} size="small">
+                  <DeleteOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ) : null}
+          </Stack>
+        </Stack>
+
+        <Stack sx={flexCardBodySx}>
+          {description ? (
+            <Typography color="text.secondary" sx={descriptionClampSx} variant="body2">
+              {description}
             </Typography>
           ) : null}
           {host ? (
-            <Typography color="text.secondary" variant="caption">
+            <Typography color="text.secondary" sx={{ ...longTextWrapSx, mt: description ? 0 : 'auto' }} variant="caption">
               {host}
             </Typography>
           ) : null}

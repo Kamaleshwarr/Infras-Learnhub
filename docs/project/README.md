@@ -1,8 +1,8 @@
 # Project Module — Architecture & Planning
 
-**Status:** P2 complete — Knowledge Base & Folders shipped; P3–P5 not started  
+**Status:** P3 complete — Environments & Repositories shipped; P4–P5 not started  
 **Last updated:** 2026-07-09  
-**Baseline:** Learn module v1.1 complete (v0.8.0); Project P1 + P2 complete
+**Baseline:** Learn module v1.1 complete (v0.8.0); Project P1 + P2 + P3 complete
 
 The Project Module will become the **internal project knowledge and navigation hub** for engineering teams. The platform owns **organization and navigation**; external systems continue to own source content.
 
@@ -34,14 +34,14 @@ The Project Module will become the **internal project knowledge and navigation h
 | Area | Today | Target |
 |------|-------|--------|
 | Backend | Full **Project Knowledge Repository** API (V6) | Extend with overview metadata, environments, repositories, credential refs, search |
-| Frontend | **P1:** Projects list + overview portal · **P2:** Knowledge Base folders + external links | P3+ env/repo UX |
-| Database | 5 project tables + Learn junction + `projects.status` (V17) | Add typed tables; optional review metadata |
+| Frontend | **P1:** Projects list + overview portal · **P2:** Knowledge Base folders + external links · **P3:** Environments + Repositories | P4+ cross-project search |
+| Database | 8 project tables + Learn junction + `projects.status` (V17) + operational tables (V18) | Add review metadata (P5) |
 | Learn integration | Admin-managed tech ↔ project links | Reuse junction; enrich both directions |
 | Initiatives | No relationship | Document future M:N association only |
 | File upload | Supported (local storage) | MVP: links only; retain file infra for later |
 
 **Recommended architecture:** **Hybrid (Option C)** — first-class entities for Environments, Repositories, and Credential References; generic `ProjectResource` items for navigational links and documents.
 
-**Next step:** **P3 — Environments & Repositories** (not started). See [p2-implementation-report.md](./p2-implementation-report.md).
+**Next step:** **P4 — Project Search & Cross-Navigation** (not started). See [p3-implementation-report.md](./p3-implementation-report.md).
 
 All implementation phases must pass the mandatory [11-step development workflow](../development-workflow.md).

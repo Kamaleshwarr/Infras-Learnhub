@@ -18,6 +18,8 @@ import { GlobalLeaderboardPage } from '../pages/leaderboards/GlobalLeaderboardPa
 import { InitiativeLeaderboardPage } from '../pages/leaderboards/InitiativeLeaderboardPage'
 import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
 import { KnowledgeBasePage } from '../pages/projects/KnowledgeBasePage'
+import { ProjectEnvironmentsPage } from '../pages/projects/ProjectEnvironmentsPage'
+import { ProjectRepositoriesPage } from '../pages/projects/ProjectRepositoriesPage'
 import { ProjectsPage } from '../pages/projects/ProjectsPage'
 import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
 import { AdminReviewPage } from '../pages/submissions/AdminReviewPage'
@@ -70,6 +72,8 @@ export function AppRoutes() {
             <Route element={<ProjectDetailPage />} path="projects/:projectId" />
             <Route element={<KnowledgeBasePage />} path="projects/:projectId/knowledge" />
             <Route element={<KnowledgeBasePage />} path="projects/:projectId/knowledge/folders/:folderId" />
+            <Route element={<ProjectEnvironmentsPage />} path="projects/:projectId/environments" />
+            <Route element={<ProjectRepositoriesPage />} path="projects/:projectId/repositories" />
           </Route>
         </Route>
       </Route>
