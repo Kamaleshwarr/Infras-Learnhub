@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API="${API_BASE:-http://localhost:8080/api/v1}"
 
 login() {
@@ -90,5 +91,12 @@ curl -fsS "$API/projects/$PROJECT_ID/folders" -H "Authorization: Bearer $ADMIN_T
 curl -fsS "$API/projects/$PROJECT_ID/environments" -H "Authorization: Bearer $ADMIN_TOKEN" >/dev/null
 curl -fsS "$API/projects/$PROJECT_ID/repositories" -H "Authorization: Bearer $ADMIN_TOKEN" >/dev/null
 curl -fsS "$API/learn/technologies?size=1" -H "Authorization: Bearer $ADMIN_TOKEN" >/dev/null
+
+if curl -fsS -o /dev/null "http://localhost:5173" 2>/dev/null; then
+  echo "== Browser select regression (Add/Edit member dialogs) =="
+  (cd "$ROOT_DIR/frontend" && node scripts/p4-team-member-select-smoke.mjs)
+else
+  echo "Skipping browser select regression: frontend dev server not reachable on :5173"
+fi
 
 echo "P4 team & contacts E2E smoke passed for project $PROJECT_ID"

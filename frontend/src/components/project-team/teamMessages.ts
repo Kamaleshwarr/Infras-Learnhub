@@ -29,5 +29,6 @@ export const TEAM_MESSAGES = {
   functionalRole: 'Functional role',
   searchUsers: 'Search users',
   selectUser: 'User',
+  selectFunctionalRole: 'Select functional role',
   noResponsibility: 'No responsibility summary provided.',
 }

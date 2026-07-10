@@ -52,11 +52,11 @@ describe('TeamMemberDialog functional role select', () => {
     )
 
     const functionalRoleSelect = screen.getByRole('combobox', { name: /functional role/i })
-    expect(functionalRoleSelect).toHaveTextContent('Other')
+    expect(functionalRoleSelect).toHaveTextContent('Select functional role')
 
     await user.click(functionalRoleSelect)
     expect(screen.getByRole('listbox')).toBeInTheDocument()
-    expect(functionalRoleSelect).toHaveTextContent('Other')
+    expect(functionalRoleSelect).toHaveTextContent('Select functional role')
     expect(projectsApi.addOrUpdateMember).not.toHaveBeenCalled()
   })
 
@@ -100,7 +100,7 @@ describe('TeamMemberDialog functional role select', () => {
     await user.click(accessRoleSelect)
     await user.click(screen.getByRole('option', { name: 'Viewer' }))
     expect(accessRoleSelect).toHaveTextContent('Viewer')
-    expect(functionalRoleSelect).toHaveTextContent('Other')
+    expect(functionalRoleSelect).toHaveTextContent('Select functional role')
 
     await user.click(functionalRoleSelect)
     await user.click(screen.getByRole('option', { name: 'Business Analyst' }))
@@ -125,7 +125,7 @@ describe('TeamMemberDialog functional role select', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument()
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-    expect(functionalRoleSelect).toHaveTextContent('Other')
+    expect(functionalRoleSelect).toHaveTextContent('Select functional role')
   })
 
   it('preserves edit member functional role until an explicit new choice', async () => {
@@ -176,6 +176,20 @@ describe('TeamMemberDialog functional role select', () => {
       primaryContact: true,
     })
     expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('requires functional role before save in add dialog', async () => {
+    render(
+      <TeamMemberDialog
+        member={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        open
+        projectId="project-1"
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
   })
 
   it('does not change user select when opening the menu in add dialog', async () => {

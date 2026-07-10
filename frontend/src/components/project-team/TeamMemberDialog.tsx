@@ -23,7 +23,7 @@ import { PROJECT_ROLE_LABELS } from '../../types/projects'
 import type { ProjectFunctionalRole, ProjectMemberCandidate } from '../../types/projectTeam'
 import { PROJECT_FUNCTIONAL_ROLE_LABELS } from '../../types/projectTeam'
 import { resolveApiError } from '../../utils/apiErrors'
-import { dialogSelectMenuProps } from '../common/dialogSelectMenuProps'
+import { useDialogSelectMenuProps } from '../common/useDialogSelectMenuProps'
 import { TEAM_MESSAGES } from './teamMessages'
 
 interface TeamMemberDialogProps {
@@ -44,9 +44,10 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
   const [userResults, setUserResults] = useState<ProjectMemberCandidate[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [projectRole, setProjectRole] = useState<ProjectRole>('CONTRIBUTOR')
-  const [functionalRole, setFunctionalRole] = useState<ProjectFunctionalRole>(DEFAULT_FUNCTIONAL_ROLE)
+  const [functionalRole, setFunctionalRole] = useState<ProjectFunctionalRole | ''>('')
   const [responsibility, setResponsibility] = useState('')
   const [primaryContact, setPrimaryContact] = useState(false)
+  const { menuProps: selectMenuProps, onOpen: handleSelectOpen } = useDialogSelectMenuProps()
 
   useEffect(() => {
     if (!open) {
@@ -57,7 +58,7 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
     setUserResults([])
     setSelectedUserId(member?.user.id ?? '')
     setProjectRole(member?.projectRole ?? 'CONTRIBUTOR')
-    setFunctionalRole(member?.functionalRole ?? DEFAULT_FUNCTIONAL_ROLE)
+    setFunctionalRole(member?.functionalRole ?? (member ? DEFAULT_FUNCTIONAL_ROLE : ''))
     setResponsibility(member?.responsibility ?? '')
     setPrimaryContact(member?.primaryContact ?? false)
   }, [member, open])
@@ -80,6 +81,10 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
 
   async function handleSubmit() {
     if (!projectId || (!isEdit && !selectedUserId)) {
+      return
+    }
+    if (!functionalRole) {
+      setError('Functional role is required.')
       return
     }
     setSubmitting(true)
@@ -128,12 +133,17 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
                 <Select
                   label={TEAM_MESSAGES.selectUser}
                   labelId="team-member-user-label"
-                  MenuProps={dialogSelectMenuProps}
+                  MenuProps={selectMenuProps}
                   onChange={(event) => setSelectedUserId(event.target.value)}
+                  onOpen={handleSelectOpen}
                   value={selectedUserId}
                 >
                   {userResults.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
+                    <MenuItem
+                      key={user.id}
+                      onMouseDown={(event) => event.preventDefault()}
+                      value={user.id}
+                    >
                       {user.fullName} ({user.email})
                     </MenuItem>
                   ))}
@@ -146,28 +156,46 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
             <Select
               label={TEAM_MESSAGES.accessRole}
               labelId="team-access-role-label"
-              MenuProps={dialogSelectMenuProps}
+              MenuProps={selectMenuProps}
               onChange={(event) => setProjectRole(event.target.value as ProjectRole)}
+              onOpen={handleSelectOpen}
               value={projectRole}
             >
               {Object.entries(PROJECT_ROLE_LABELS).map(([value, label]) => (
-                <MenuItem key={value} value={value}>
+                <MenuItem
+                  key={value}
+                  onMouseDown={(event) => event.preventDefault()}
+                  value={value}
+                >
                   {label}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth>
-            <InputLabel id="team-functional-role-label">{TEAM_MESSAGES.functionalRole}</InputLabel>
+          <FormControl fullWidth required={!isEdit}>
+            <InputLabel id="team-functional-role-label" shrink={isEdit || Boolean(functionalRole)}>
+              {TEAM_MESSAGES.functionalRole}
+            </InputLabel>
             <Select
+              displayEmpty={!isEdit}
               label={TEAM_MESSAGES.functionalRole}
               labelId="team-functional-role-label"
-              MenuProps={dialogSelectMenuProps}
+              MenuProps={selectMenuProps}
               onChange={(event) => setFunctionalRole(event.target.value as ProjectFunctionalRole)}
+              onOpen={handleSelectOpen}
+              renderValue={(value) =>
+                value
+                  ? PROJECT_FUNCTIONAL_ROLE_LABELS[value as ProjectFunctionalRole]
+                  : TEAM_MESSAGES.selectFunctionalRole
+              }
               value={functionalRole}
             >
               {Object.entries(PROJECT_FUNCTIONAL_ROLE_LABELS).map(([value, label]) => (
-                <MenuItem key={value} value={value}>
+                <MenuItem
+                  key={value}
+                  onMouseDown={(event) => event.preventDefault()}
+                  value={value}
+                >
                   {label}
                 </MenuItem>
               ))}
@@ -198,7 +226,7 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
           Cancel
         </Button>
         <Button
-          disabled={submitting || (!isEdit && !selectedUserId)}
+          disabled={submitting || (!isEdit && !selectedUserId) || !functionalRole}
           onClick={() => void handleSubmit()}
           startIcon={submitting ? <CircularProgress size={16} /> : undefined}
           variant="contained"
