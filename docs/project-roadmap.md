@@ -1,6 +1,6 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-07-09 (P3 Environments & Repositories complete)
+Last updated: 2026-07-10 (Leaderboard architecture review complete — awaiting approval)
 
 ## Release Overview
 
@@ -318,12 +318,29 @@ Release notes: `docs/releases/release-v0.6.2.md`
 
 ---
 
+## Leaderboard Module — architecture review (2026-07-10)
+
+**Status:** Architecture review **complete** — **awaiting manual approval before implementation**
+
+**Documentation:** `docs/leaderboard/README.md` · `architecture-review.md` · `scoring-model-proposal.md`
+
+| Finding | Detail |
+|---------|--------|
+| Backend | Cert-based global + initiative APIs **shipped** (dynamic SQL, no leaderboard tables) |
+| Frontend | Global + Initiative pages **placeholder only**; Dashboard + Initiative Detail consume APIs |
+| L1 plan | UI on existing APIs; initiative visibility fix; no migration |
+| L2 plan | Score ledger for Learn + unified global points (optional, post-approval) |
+
+**Do not implement until architecture review is manually approved.**
+
+---
+
 ## Backlog (post v0.7.1)
 
 | ID | Item | Notes |
 |----|------|-------|
 | — | Rejected submission resubmission workflow | Future — backend `UNIQUE(employee_id, initiative_id)` |
-| — | Initiative leaderboard full page UI | Route exists; placeholder only |
+| — | Initiative leaderboard full page UI | Route exists; placeholder only — see `docs/leaderboard/` |
 | — | Top 3 learners on detail + leaderboard navigation | Future release |
 | — | Dashboard initiative drilldowns | Active/Expiring Initiatives, Top Learners |
 | — | Clone Initiative | Future enhancement — deferred from F14 |
