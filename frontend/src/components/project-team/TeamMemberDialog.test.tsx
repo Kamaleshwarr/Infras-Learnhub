@@ -39,6 +39,23 @@ describe('TeamMemberDialog functional role select', () => {
     vi.mocked(projectsApi.addOrUpdateMember).mockResolvedValue(sampleMember)
   })
 
+  it('renders functional role label in the notch without overlapping the placeholder', () => {
+    render(
+      <TeamMemberDialog
+        member={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        open
+        projectId="project-1"
+      />,
+    )
+
+    const label = document.querySelector('#team-functional-role-label')
+    const functionalRoleSelect = screen.getByRole('combobox', { name: /functional role/i })
+    expect(label).toHaveClass('MuiInputLabel-shrink')
+    expect(functionalRoleSelect).toHaveTextContent('Select functional role')
+  })
+
   it('does not change functional role when the menu is opened', async () => {
     const user = userEvent.setup()
     render(

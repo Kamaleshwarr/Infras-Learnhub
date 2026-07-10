@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Alert,
+  Box,
   Button,
   Checkbox,
   CircularProgress,
@@ -47,7 +48,8 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
   const [functionalRole, setFunctionalRole] = useState<ProjectFunctionalRole | ''>('')
   const [responsibility, setResponsibility] = useState('')
   const [primaryContact, setPrimaryContact] = useState(false)
-  const { menuProps: selectMenuProps, onOpen: handleSelectOpen } = useDialogSelectMenuProps()
+  const { menuProps: selectMenuProps, onOpen: handleSelectOpen, onClose: handleSelectClose } =
+    useDialogSelectMenuProps()
 
   useEffect(() => {
     if (!open) {
@@ -135,15 +137,12 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
                   labelId="team-member-user-label"
                   MenuProps={selectMenuProps}
                   onChange={(event) => setSelectedUserId(event.target.value)}
+                  onClose={handleSelectClose}
                   onOpen={handleSelectOpen}
                   value={selectedUserId}
                 >
                   {userResults.map((user) => (
-                    <MenuItem
-                      key={user.id}
-                      onMouseDown={(event) => event.preventDefault()}
-                      value={user.id}
-                    >
+                    <MenuItem key={user.id} value={user.id}>
                       {user.fullName} ({user.email})
                     </MenuItem>
                   ))}
@@ -158,22 +157,19 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
               labelId="team-access-role-label"
               MenuProps={selectMenuProps}
               onChange={(event) => setProjectRole(event.target.value as ProjectRole)}
+              onClose={handleSelectClose}
               onOpen={handleSelectOpen}
               value={projectRole}
             >
               {Object.entries(PROJECT_ROLE_LABELS).map(([value, label]) => (
-                <MenuItem
-                  key={value}
-                  onMouseDown={(event) => event.preventDefault()}
-                  value={value}
-                >
+                <MenuItem key={value} value={value}>
                   {label}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl fullWidth required={!isEdit}>
-            <InputLabel id="team-functional-role-label" shrink={isEdit || Boolean(functionalRole)}>
+            <InputLabel id="team-functional-role-label" shrink>
               {TEAM_MESSAGES.functionalRole}
             </InputLabel>
             <Select
@@ -182,20 +178,21 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
               labelId="team-functional-role-label"
               MenuProps={selectMenuProps}
               onChange={(event) => setFunctionalRole(event.target.value as ProjectFunctionalRole)}
+              onClose={handleSelectClose}
               onOpen={handleSelectOpen}
               renderValue={(value) =>
-                value
-                  ? PROJECT_FUNCTIONAL_ROLE_LABELS[value as ProjectFunctionalRole]
-                  : TEAM_MESSAGES.selectFunctionalRole
+                value ? (
+                  PROJECT_FUNCTIONAL_ROLE_LABELS[value as ProjectFunctionalRole]
+                ) : (
+                  <Box component="span" sx={{ color: 'text.secondary' }}>
+                    {TEAM_MESSAGES.selectFunctionalRole}
+                  </Box>
+                )
               }
               value={functionalRole}
             >
               {Object.entries(PROJECT_FUNCTIONAL_ROLE_LABELS).map(([value, label]) => (
-                <MenuItem
-                  key={value}
-                  onMouseDown={(event) => event.preventDefault()}
-                  value={value}
-                >
+                <MenuItem key={value} value={value}>
                   {label}
                 </MenuItem>
               ))}
