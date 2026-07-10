@@ -23,6 +23,7 @@ import { PROJECT_ROLE_LABELS } from '../../types/projects'
 import type { ProjectFunctionalRole, ProjectMemberCandidate } from '../../types/projectTeam'
 import { PROJECT_FUNCTIONAL_ROLE_LABELS } from '../../types/projectTeam'
 import { resolveApiError } from '../../utils/apiErrors'
+import { dialogSelectMenuProps } from '../common/dialogSelectMenuProps'
 import { TEAM_MESSAGES } from './teamMessages'
 
 interface TeamMemberDialogProps {
@@ -127,6 +128,7 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
                 <Select
                   label={TEAM_MESSAGES.selectUser}
                   labelId="team-member-user-label"
+                  MenuProps={dialogSelectMenuProps}
                   onChange={(event) => setSelectedUserId(event.target.value)}
                   value={selectedUserId}
                 >
@@ -144,6 +146,7 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
             <Select
               label={TEAM_MESSAGES.accessRole}
               labelId="team-access-role-label"
+              MenuProps={dialogSelectMenuProps}
               onChange={(event) => setProjectRole(event.target.value as ProjectRole)}
               value={projectRole}
             >
@@ -159,6 +162,7 @@ export function TeamMemberDialog({ member, onClose, onSuccess, open, projectId }
             <Select
               label={TEAM_MESSAGES.functionalRole}
               labelId="team-functional-role-label"
+              MenuProps={dialogSelectMenuProps}
               onChange={(event) => setFunctionalRole(event.target.value as ProjectFunctionalRole)}
               value={functionalRole}
             >
