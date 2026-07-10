@@ -20,6 +20,7 @@ import { ProjectDetailPage } from '../pages/projects/ProjectDetailPage'
 import { KnowledgeBasePage } from '../pages/projects/KnowledgeBasePage'
 import { ProjectEnvironmentsPage } from '../pages/projects/ProjectEnvironmentsPage'
 import { ProjectRepositoriesPage } from '../pages/projects/ProjectRepositoriesPage'
+import { ProjectTeamPage } from '../pages/projects/ProjectTeamPage'
 import { ProjectsPage } from '../pages/projects/ProjectsPage'
 import { StudyMaterialsPage } from '../pages/studyMaterials/StudyMaterialsPage'
 import { AdminReviewPage } from '../pages/submissions/AdminReviewPage'
@@ -74,6 +75,7 @@ export function AppRoutes() {
             <Route element={<KnowledgeBasePage />} path="projects/:projectId/knowledge/folders/:folderId" />
             <Route element={<ProjectEnvironmentsPage />} path="projects/:projectId/environments" />
             <Route element={<ProjectRepositoriesPage />} path="projects/:projectId/repositories" />
+            <Route element={<ProjectTeamPage />} path="projects/:projectId/team" />
           </Route>
         </Route>
       </Route>

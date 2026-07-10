@@ -18,7 +18,17 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, UU
     Optional<ProjectMember> findByProjectIdAndUserId(UUID projectId, UUID userId);
 
     @EntityGraph(attributePaths = {"project", "user"})
-    List<ProjectMember> findByProjectId(UUID projectId);
+    @Query("""
+            SELECT member
+            FROM ProjectMember member
+            WHERE member.project.id = :projectId
+            ORDER BY member.displayOrder ASC, member.functionalRole ASC, member.user.fullName ASC
+            """)
+    List<ProjectMember> findByProjectIdOrdered(@Param("projectId") UUID projectId);
+
+    long countByProjectIdAndPrimaryContactTrue(UUID projectId);
+
+    long countByProjectIdAndProjectRole(UUID projectId, ProjectRole projectRole);
 
     boolean existsByProjectIdAndUserId(UUID projectId, UUID userId);
 

@@ -19,6 +19,7 @@ public record ProjectResponse(
         ProjectUserResponse createdBy,
         ProjectUserResponse owner,
         Integer memberCount,
+        Integer primaryContactCount,
         Integer environmentCount,
         Integer repositoryCount,
         ProjectRole currentMemberRole,

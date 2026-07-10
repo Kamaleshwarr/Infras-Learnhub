@@ -20,9 +20,17 @@ interface ProjectAreasPanelProps {
   projectId: string
   environmentCount?: number | null
   repositoryCount?: number | null
+  memberCount?: number | null
+  primaryContactCount?: number | null
 }
 
-export function ProjectAreasPanel({ projectId, environmentCount, repositoryCount }: ProjectAreasPanelProps) {
+export function ProjectAreasPanel({
+  environmentCount,
+  memberCount,
+  primaryContactCount,
+  projectId,
+  repositoryCount,
+}: ProjectAreasPanelProps) {
   const areas: ProjectAreaItem[] = [
     {
       icon: <FolderOpenOutlinedIcon color="primary" />,
@@ -49,10 +57,13 @@ export function ProjectAreasPanel({ projectId, environmentCount, repositoryCount
       href: `/projects/${projectId}/repositories`,
     },
     {
-      icon: <GroupsOutlinedIcon color="action" />,
+      icon: <GroupsOutlinedIcon color="primary" />,
       title: PROJECT_MESSAGES.teamContacts,
-      description: 'Expanded team directory and contact context.',
-      comingSoon: true,
+      description:
+        memberCount != null && memberCount > 0
+          ? `${memberCount} team member${memberCount === 1 ? '' : 's'}${primaryContactCount ? ` · ${primaryContactCount} primary contact${primaryContactCount === 1 ? '' : 's'}` : ''}`
+          : 'Team directory, responsibilities, and operational contacts.',
+      href: `/projects/${projectId}/team`,
     },
   ]
 

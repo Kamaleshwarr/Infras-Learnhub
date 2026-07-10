@@ -79,9 +79,9 @@ v0.8.0 product design: `docs/v0.8.0/`
 
 ## Next major module — Project Module (P1 complete)
 
-**Status:** P1 — Project Foundation & Overview Portal **complete**; **P2 — Knowledge Base & Folders complete**; **P3 — Environments & Repositories complete**; P4–P5 not started
+**Status:** P1 — Project Foundation & Overview Portal **complete**; **P2 — Knowledge Base & Folders complete**; **P3 — Environments & Repositories complete**; **P4 — Team & Contacts complete (awaiting QA)**; P5 not started
 
-**Documentation:** `docs/project/README.md` · **P1 report:** `docs/project/p1-implementation-report.md` · **P2 report:** `docs/project/p2-implementation-report.md` · **P3 report:** `docs/project/p3-implementation-report.md`
+**Documentation:** `docs/project/README.md` · **P1 report:** `docs/project/p1-implementation-report.md` · **P2 report:** `docs/project/p2-implementation-report.md` · **P3 report:** `docs/project/p3-implementation-report.md` · **P4 report:** `docs/project/p4-team-contacts-implementation-report.md`
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
@@ -89,8 +89,18 @@ v0.8.0 product design: `docs/v0.8.0/`
 | P1 | Project Foundation & Overview | ✓ **Complete** |
 | P2 | Knowledge Base & Folders | ✓ **Complete** |
 | P3 | Environments & Repositories | ✓ **Complete** |
-| P4 | Project Search & Cross-Navigation | Not started |
+| P4 | Team & Contacts | ✓ **Complete** (awaiting manual QA) |
+| — | Cross-Project Search & Discovery | **SKIPPED** / not planned for current version |
 | P5 | Governance, Review Metadata & Polish | Not started |
+
+### P4 delivered
+- Extended `project_members` with functional role, responsibility, primary contact, display order
+- External contacts: `project_external_contacts` for non-platform operational contacts
+- Team directory: `/projects/:projectId/team`
+- Overview portal activated Team & Contacts card with member/primary-contact counts
+- Member candidate search for project owners (`/member-candidates`)
+- V19 Flyway migration
+- See `docs/project/p4-team-contacts-implementation-report.md`
 
 ### P3 delivered
 - Environment directory: `/projects/:projectId/environments` with typed navigation references

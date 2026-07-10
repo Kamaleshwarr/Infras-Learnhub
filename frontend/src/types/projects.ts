@@ -1,4 +1,5 @@
 import type { RelatedTechnologySummary } from './learn'
+import type { ProjectFunctionalRole } from './projectTeam'
 
 export type ProjectStatus = 'ACTIVE' | 'ON_HOLD' | 'COMPLETED' | 'ARCHIVED'
 export type ProjectAccessType = 'PUBLIC' | 'MEMBERS_ONLY'
@@ -20,6 +21,7 @@ export interface ProjectSummary {
   archived: boolean
   owner?: ProjectUserSummary | null
   memberCount?: number | null
+  primaryContactCount?: number | null
   environmentCount?: number | null
   repositoryCount?: number | null
   currentMemberRole?: ProjectRole | null
@@ -37,6 +39,10 @@ export interface ProjectMember {
   projectId: string
   user: ProjectUserSummary
   projectRole: ProjectRole
+  functionalRole: ProjectFunctionalRole
+  responsibility?: string | null
+  primaryContact: boolean
+  displayOrder: number
   createdAtUtc: string
   updatedAtUtc: string
 }
@@ -57,6 +63,10 @@ export interface UpdateProjectPayload {
 export interface ProjectMemberPayload {
   userId: string
   projectRole: ProjectRole
+  functionalRole: ProjectFunctionalRole
+  responsibility?: string
+  primaryContact?: boolean
+  displayOrder?: number
 }
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {

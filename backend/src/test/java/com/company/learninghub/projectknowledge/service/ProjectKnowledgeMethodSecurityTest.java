@@ -143,12 +143,15 @@ class ProjectKnowledgeMethodSecurityTest {
                 ProjectKnowledgeStorageService storageService,
                 StorageProperties storageProperties,
                 ProjectKnowledgeMapper mapper,
-                LearnTechnologyProjectLinkRepository projectLinkRepository
+                LearnTechnologyProjectLinkRepository projectLinkRepository,
+                ProjectTeamService teamService
         ) {
             return new ProjectKnowledgeService(projectRepository, memberRepository, folderRepository, itemRepository,
                     environmentRepository, linkedRepositoryRepository, accessEventRepository, userRepository,
-                    storageService, storageProperties, mapper, projectLinkRepository);
+                    storageService, storageProperties, mapper, projectLinkRepository, teamService);
         }
+
+        @Bean ProjectTeamService projectTeamService() { return mock(ProjectTeamService.class); }
 
         @Bean ProjectRepository projectRepository() { return mock(ProjectRepository.class); }
         @Bean ProjectMemberRepository projectMemberRepository() { return mock(ProjectMemberRepository.class); }
