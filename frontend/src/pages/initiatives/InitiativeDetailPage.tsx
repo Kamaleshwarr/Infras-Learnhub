@@ -228,6 +228,7 @@ export function InitiativeDetailPage() {
     <TopLearnerCard
       entry={secondary.topLearner}
       error={secondary.topLearnerError}
+      initiativeId={initiative.id}
       loading={loadingSecondary}
     />
   )

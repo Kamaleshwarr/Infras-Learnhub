@@ -67,6 +67,7 @@ export function AppRoutes() {
               <Route element={<AdminReviewPage />} path="submissions/review" />
             </Route>
             <Route element={<GlobalLeaderboardPage />} path="leaderboards/global" />
+            <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives" />
             <Route element={<InitiativeLeaderboardPage />} path="leaderboards/initiatives/:initiativeId" />
             <Route element={<StudyMaterialsPage />} path="study-materials" />
             <Route element={<ProjectsPage />} path="projects" />

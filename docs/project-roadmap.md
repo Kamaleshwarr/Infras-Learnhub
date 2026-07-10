@@ -318,20 +318,20 @@ Release notes: `docs/releases/release-v0.6.2.md`
 
 ---
 
-## Leaderboard Module — architecture review (2026-07-10)
+## Leaderboard Module — L1 complete (2026-07-10)
 
-**Status:** Architecture review **complete** — **awaiting manual approval before implementation**
+**Status:** L1 Global + Initiative Leaderboards **complete** — **awaiting manual QA**
 
-**Documentation:** `docs/leaderboard/README.md` · `architecture-review.md` · `scoring-model-proposal.md`
+**Documentation:** `docs/leaderboard/README.md` · `l1-ranking-rules.md` · `release-leaderboard-l1-implementation-report.md`
 
-| Finding | Detail |
-|---------|--------|
-| Backend | Cert-based global + initiative APIs **shipped** (dynamic SQL, no leaderboard tables) |
-| Frontend | Global + Initiative pages **placeholder only**; Dashboard + Initiative Detail consume APIs |
-| L1 plan | UI on existing APIs; initiative visibility fix; no migration |
-| L2 plan | Score ledger for Learn + unified global points (optional, post-approval) |
+| Delivered | Detail |
+|-----------|--------|
+| Global Leaderboard UI | Top performers, my rank, table, pagination |
+| Initiative Leaderboard UI | Picker + ranked view, initiative visibility enforced |
+| Dashboard / Detail | Navigation + label alignment |
+| Database | **No migration** — approved certifications only |
 
-**Do not implement until architecture review is manually approved.**
+**Deferred:** L2 Learn points, score ledger, monthly periods (see `scoring-model-proposal.md`)
 
 ---
 
@@ -340,7 +340,7 @@ Release notes: `docs/releases/release-v0.6.2.md`
 | ID | Item | Notes |
 |----|------|-------|
 | — | Rejected submission resubmission workflow | Future — backend `UNIQUE(employee_id, initiative_id)` |
-| — | Initiative leaderboard full page UI | Route exists; placeholder only — see `docs/leaderboard/` |
+| — | Initiative leaderboard full page UI | **L1 complete** — see `docs/leaderboard/` |
 | — | Top 3 learners on detail + leaderboard navigation | Future release |
 | — | Dashboard initiative drilldowns | Active/Expiring Initiatives, Top Learners |
 | — | Clone Initiative | Future enhancement — deferred from F14 |

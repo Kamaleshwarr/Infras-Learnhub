@@ -103,8 +103,10 @@ function adminMetrics(data: DashboardData | null) {
       value: formatNumber(data?.pendingReviewsCount),
     },
     {
-      helperText: 'Top learners shown below',
+      helperText: 'By approved certification count',
+      href: '/leaderboards/global',
       icon: <EmojiEventsOutlinedIcon />,
+      linkAriaLabel: 'View global leaderboard',
       title: 'Top Learners',
       value: formatNumber(data?.leaderboardPreview.length),
     },
@@ -126,8 +128,10 @@ function employeeMetrics(data: DashboardData | null) {
       value: formatNumber(data?.mySubmissions.length),
     },
     {
-      helperText: 'Your current global rank',
+      helperText: 'Your current global rank by approved certifications',
+      href: '/leaderboards/global',
       icon: <WorkspacePremiumOutlinedIcon />,
+      linkAriaLabel: 'View global leaderboard',
       title: 'My Rank',
       value: data?.myRank?.globalRank ? `#${data.myRank.globalRank}` : '--',
     },
@@ -143,7 +147,12 @@ function employeeMetrics(data: DashboardData | null) {
 function AdminDashboardLists({ data, loading }: { data: DashboardData | null; loading: boolean }) {
   return (
     <DashboardGrid>
-      <DashboardListCard emptyText="No leaderboard data yet." items={leaderboardItems(data)} loading={loading} title="Top Learners Preview" />
+      <DashboardListCard
+        emptyText="No leaderboard data yet."
+        items={leaderboardItems(data)}
+        loading={loading}
+        title="Top Learners Preview"
+      />
       <DashboardListCard emptyText="No recent study materials." items={materialItems(data)} loading={loading} title="Recent Study Materials" />
       <DashboardListCard emptyText="No recent project updates." items={projectItems(data?.recentProjectUpdates)} loading={loading} title="Recent Project Updates" />
     </DashboardGrid>
@@ -155,7 +164,12 @@ function EmployeeDashboardLists({ data, loading }: { data: DashboardData | null;
     <DashboardGrid>
       <DashboardListCard emptyText="No active initiatives available." items={initiativeItems(data)} loading={loading} title="Active Initiatives" />
       <DashboardListCard emptyText="No submissions yet." items={submissionItems(data)} loading={loading} title="My Submissions" />
-      <DashboardListCard emptyText="No leaderboard data yet." items={leaderboardItems(data)} loading={loading} title="Leaderboard Preview" />
+      <DashboardListCard
+        emptyText="No leaderboard data yet."
+        items={leaderboardItems(data)}
+        loading={loading}
+        title="Leaderboard Preview"
+      />
       <DashboardListCard emptyText="No recent study materials." items={materialItems(data)} loading={loading} title="Recent Study Materials" />
       <DashboardListCard emptyText="No assigned projects." items={projectItems(data?.assignedProjects)} loading={loading} title="Assigned Projects" />
     </DashboardGrid>
@@ -188,10 +202,11 @@ function submissionItems(data: DashboardData | null): DashboardListItem[] {
 
 function leaderboardItems(data: DashboardData | null): DashboardListItem[] {
   return (data?.leaderboardPreview ?? []).map((entry) => ({
+    href: '/leaderboards/global',
     id: entry.employee.id,
     primary: `#${entry.rank} ${entry.employee.fullName}`,
     secondary: entry.totalApprovedCertifications
-      ? `${entry.totalApprovedCertifications} approved certifications`
+      ? `${entry.totalApprovedCertifications} approved certification${entry.totalApprovedCertifications === 1 ? '' : 's'}`
       : entry.employee.email,
   }))
 }

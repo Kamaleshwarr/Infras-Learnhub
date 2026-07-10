@@ -54,6 +54,7 @@ const topLearnerEntry = {
   approvedAtUtc: '2026-06-05T00:00:00Z',
   employee: {
     email: 'jane@example.com',
+    employeeId: 'EMP002',
     fullName: 'Jane Smith',
     id: 'employee-2',
   },
@@ -139,6 +140,13 @@ describe('InitiativeDetailPage', () => {
     renderDetailPage()
 
     expect(await screen.findByText(/#1 Jane Smith/i)).toBeInTheDocument()
+  })
+
+  it('links to the initiative leaderboard page', async () => {
+    renderDetailPage()
+
+    const leaderboardLink = await screen.findByRole('link', { name: /View Leaderboard/i })
+    expect(leaderboardLink).toHaveAttribute('href', '/leaderboards/initiatives/initiative-1')
   })
 
   it('shows submit certificate CTA when employee has no submission', async () => {
