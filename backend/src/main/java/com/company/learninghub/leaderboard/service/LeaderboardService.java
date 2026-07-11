@@ -13,6 +13,7 @@ import com.company.learninghub.leaderboard.repository.LeaderboardQueryRepository
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +37,7 @@ public class LeaderboardService {
     private final UserRepository userRepository;
     private final Clock clock;
 
+    @Autowired
     public LeaderboardService(
             LeaderboardQueryRepository leaderboardQueryRepository,
             LearningInitiativeRepository initiativeRepository,
