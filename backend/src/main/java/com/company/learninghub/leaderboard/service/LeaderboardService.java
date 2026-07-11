@@ -41,7 +41,10 @@ public class LeaderboardService {
             LearningInitiativeRepository initiativeRepository,
             UserRepository userRepository
     ) {
-        this(leaderboardQueryRepository, initiativeRepository, userRepository, Clock.systemUTC());
+        this.leaderboardQueryRepository = leaderboardQueryRepository;
+        this.initiativeRepository = initiativeRepository;
+        this.userRepository = userRepository;
+        this.clock = Clock.systemUTC();
     }
 
     LeaderboardService(
