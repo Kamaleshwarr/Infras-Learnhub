@@ -326,6 +326,7 @@ Authoritative roadmap: [`docs/project-roadmap.md`](docs/project-roadmap.md)
 | Testing guide | [`docs/testing-guide.md`](docs/testing-guide.md) |
 | Development workflow | [`docs/development-workflow.md`](docs/development-workflow.md) |
 | Project Module (planning) | [`docs/project/README.md`](docs/project/README.md) |
+| Leaderboard (architecture review) | [`docs/leaderboard/README.md`](docs/leaderboard/README.md) |
 | v0.8.0 product design | [`docs/v0.8.0/`](docs/v0.8.0/) |
 | Release reports | [`docs/releases/`](docs/releases/) |
 
