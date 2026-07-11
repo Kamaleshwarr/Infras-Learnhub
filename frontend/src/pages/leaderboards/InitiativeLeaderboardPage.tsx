@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material'
+import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { initiativesApi } from '../../api/initiativesApi'
 import { leaderboardsApi } from '../../api/leaderboardsApi'
@@ -31,6 +31,7 @@ export function InitiativeLeaderboardPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [initiatives, setInitiatives] = useState<Initiative[]>([])
+  const [initiative, setInitiative] = useState<Initiative | null>(null)
   const [initiativeTitle, setInitiativeTitle] = useState('')
   const [pageData, setPageData] = useState<PageResponse<InitiativeLeaderboardEntry>>(EMPTY_PAGE)
   const [loadingInitiatives, setLoadingInitiatives] = useState(!initiativeId)
@@ -94,6 +95,7 @@ export function InitiativeLeaderboardPage() {
           setNotFound(true)
           setPageData(EMPTY_PAGE)
           setInitiativeTitle('')
+          setInitiative(null)
           return
         }
         throw initiativeResult.reason
@@ -104,12 +106,14 @@ export function InitiativeLeaderboardPage() {
           setNotFound(true)
           setPageData(EMPTY_PAGE)
           setInitiativeTitle(initiativeResult.value.title)
+          setInitiative(initiativeResult.value)
           return
         }
         throw leaderboardResult.reason
       }
 
       setInitiativeTitle(initiativeResult.value.title)
+      setInitiative(initiativeResult.value)
       setPageData(leaderboardResult.value)
     } catch (loadError) {
       setLeaderboardError(resolveApiError(loadError, LEADERBOARD_MESSAGES.errorInitiative))
@@ -135,7 +139,9 @@ export function InitiativeLeaderboardPage() {
         <Stack spacing={2}>
           {initiativesError ? <Alert severity="error">{initiativesError}</Alert> : null}
           <FormControl fullWidth sx={{ maxWidth: 480 }}>
-            <InputLabel id="initiative-leaderboard-select-label">{LEADERBOARD_MESSAGES.initiativeSelectLabel}</InputLabel>
+            <InputLabel id="initiative-leaderboard-select-label" shrink>
+              {LEADERBOARD_MESSAGES.initiativeSelectLabel}
+            </InputLabel>
             <Select
               disabled={loadingInitiatives}
               displayEmpty
@@ -147,14 +153,16 @@ export function InitiativeLeaderboardPage() {
                   navigate(`/leaderboards/initiatives/${event.target.value}`)
                 }
               }}
+              renderValue={() => (
+                <Typography color="text.secondary" component="span" variant="body1">
+                  {loadingInitiatives ? 'Loading initiatives...' : LEADERBOARD_MESSAGES.initiativeSelectPlaceholder}
+                </Typography>
+              )}
               value=""
             >
-              <MenuItem disabled value="">
-                {loadingInitiatives ? 'Loading initiatives...' : LEADERBOARD_MESSAGES.initiativeSelectPlaceholder}
-              </MenuItem>
-              {initiatives.map((initiative) => (
-                <MenuItem key={initiative.id} value={initiative.id}>
-                  {initiative.title}
+              {initiatives.map((initiativeOption) => (
+                <MenuItem key={initiativeOption.id} value={initiativeOption.id}>
+                  {initiativeOption.title}
                 </MenuItem>
               ))}
             </Select>
@@ -169,20 +177,24 @@ export function InitiativeLeaderboardPage() {
             currentUserId={user?.id}
             entries={pageData.content}
             error={leaderboardError}
+            initiative={initiative}
             initiativeTitle={initiativeTitle || pageData.content[0]?.initiativeTitle || 'Initiative'}
             loading={loadingLeaderboard}
             onRetry={() => setRefreshToken((current) => current + 1)}
-          />
-          <TablePaginationBar
-            onPageChange={setPage}
-            onSizeChange={(nextSize) => {
-              setSize(nextSize)
-              setPage(0)
-            }}
-            page={page}
-            size={size}
             totalElements={pageData.totalElements}
           />
+          {pageData.totalElements > 0 ? (
+            <TablePaginationBar
+              onPageChange={setPage}
+              onSizeChange={(nextSize) => {
+                setSize(nextSize)
+                setPage(0)
+              }}
+              page={page}
+              size={size}
+              totalElements={pageData.totalElements}
+            />
+          ) : null}
           <Button component={RouterLink} sx={{ mt: 2 }} to={`/initiatives/${initiativeId}`} variant="text">
             View Initiative Details
           </Button>

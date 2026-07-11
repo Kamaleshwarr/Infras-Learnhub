@@ -122,7 +122,7 @@ describe('InitiativeLeaderboardPage', () => {
     renderRoutes('/leaderboards/initiatives/initiative-123')
 
     expect(await screen.findByText('AWS Certification')).toBeInTheDocument()
-    expect(screen.getByText(/Ranking is based on certification submission time/i)).toBeInTheDocument()
+    expect(screen.getByText(/Ranking is based on certification submission time, not approval time/i)).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.getAllByText('Employee One').length).toBeGreaterThan(0)
     })
@@ -158,5 +158,28 @@ describe('InitiativeLeaderboardPage', () => {
     await user.click(screen.getByRole('option', { name: 'AWS Certification' }))
 
     expect(await screen.findByText('AWS Certification')).toBeInTheDocument()
+  })
+
+  it('hides pagination when the initiative leaderboard is empty', async () => {
+    vi.mocked(initiativesApi.get).mockResolvedValue(initiative)
+    vi.mocked(leaderboardsApi.initiative).mockResolvedValue({
+      content: [],
+      first: true,
+      last: true,
+      page: 0,
+      size: 20,
+      sort: [],
+      totalElements: 0,
+      totalPages: 0,
+    })
+
+    renderRoutes('/leaderboards/initiatives/initiative-123')
+
+    expect(
+      await screen.findByText(
+        'No approved certifications have been submitted for this initiative yet. Employees will appear here once certifications are approved.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Rows per page')).not.toBeInTheDocument()
   })
 })

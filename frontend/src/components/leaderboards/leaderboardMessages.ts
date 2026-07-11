@@ -4,16 +4,19 @@ export const LEADERBOARD_MESSAGES = {
   approvedCertificationLabel: 'Approved Certifications',
   currentUserSummary: 'Your standing on the global leaderboard.',
   emptyGlobal: 'No approved certifications yet. Complete and get certifications approved to appear here.',
-  emptyInitiative: 'No approved certifications for this initiative yet.',
+  emptyInitiative:
+    'No approved certifications have been submitted for this initiative yet. Employees will appear here once certifications are approved.',
   errorGlobal: 'Unable to load the global leaderboard. Please refresh or try again later.',
   errorInitiative: 'Unable to load the initiative leaderboard. Please refresh or try again later.',
   globalDescription:
     'Employees ranked by verified approved certifications across all initiatives. All-time results only.',
   globalTitle: 'Global Leaderboard',
   initiativeDescription:
-    'Employees ranked by earliest approved certification submission within this initiative.',
+    'Employees ranked by earliest certification submission time within this initiative. Only approved certifications are eligible.',
   initiativeRankingRule:
-    'Ranking is based on certification submission time. The earliest approved submission ranks highest.',
+    'Ranking is based on certification submission time, not approval time. The earliest submitted approved certification ranks highest.',
+  initiativeRankedEmployees: 'Ranked employees',
+  initiativeYourRank: 'Your rank',
   initiativeSelectLabel: 'Learning initiative',
   initiativeSelectPlaceholder: 'Select an initiative',
   initiativeTab: 'Initiative',
@@ -26,7 +29,7 @@ export const LEADERBOARD_MESSAGES = {
   rank: 'Rank',
   retry: 'Retry',
   submitted: 'Submitted',
-  approved: 'Approved',
+  approved: 'Approved on',
   topPerformers: 'Top Performers',
   viewLeaderboard: 'View Leaderboard',
   viewFullLeaderboard: 'View Full Leaderboard',
