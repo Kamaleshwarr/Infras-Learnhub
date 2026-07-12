@@ -1,56 +1,40 @@
-# Leaderboard Module — Architecture Review
+# Leaderboard Module
 
-**Status:** Architecture review complete — **awaiting manual approval before implementation**  
-**Review date:** 2026-07-10  
-**Flyway baseline at review:** V19 (`project_team_and_contacts`)
+**Status:** L1 complete (2026-07-10) — **awaiting manual QA approval**  
+**Flyway:** V19 (no leaderboard migration in L1)
 
 ## Purpose
 
-This folder documents the architecture review and implementation plan for:
-
-1. **Global Leaderboard** — verified employee achievement across the platform
-2. **Initiative-Specific Leaderboard** — ranking within one learning initiative
+1. **Global Leaderboard** — employees ranked by approved certification count (all time)
+2. **Initiative Leaderboard** — employees ranked by earliest approved certification submission within one initiative
 
 ## Documents
 
 | Document | Contents |
 |----------|----------|
-| [architecture-review.md](./architecture-review.md) | Current-state audit, gaps, doc/code mismatches, UX/permission/data architecture, APIs, performance, tests, phases, risks |
-| [scoring-model-proposal.md](./scoring-model-proposal.md) | Score sources, exclusions, duplicate prevention, reversal, backfill, ranking rules |
+| [architecture-review.md](./architecture-review.md) | Original audit and phased plan |
+| [scoring-model-proposal.md](./scoring-model-proposal.md) | L2+ scoring proposal (**deferred**) |
+| [l1-ranking-rules.md](./l1-ranking-rules.md) | L1 ranking semantics (`ROW_NUMBER` + tie-breakers) |
+| [../releases/release-leaderboard-l1-implementation-report.md](../releases/release-leaderboard-l1-implementation-report.md) | L1 implementation report |
 
-## Executive summary
+## L1 scope (shipped)
 
-### What already exists (production code)
+| Area | Detail |
+|------|--------|
+| Scoring | **Approved certifications only** — no points abstraction |
+| Backend | Existing `/api/v1/leaderboards/*` + initiative visibility fix |
+| Frontend | Global page, Initiative page (picker + view), Dashboard/Detail integration |
+| Database | **No migration** |
+| Time period | All Time only |
 
-- **Backend leaderboard module is shipped** (v0.2 era): three read APIs under `/api/v1/leaderboards` ranking **approved certificate submissions only**
-- **No leaderboard tables**, score ledger, scheduled jobs, or notification producers
-- **Ranking is dynamic SQL** against `certificate_submissions` via `LeaderboardQueryRepository`
-- **Frontend leaderboard pages are placeholders**; Dashboard and Initiative Detail already consume APIs
+## Deferred (L2+)
 
-### Recommended direction (pending approval)
+Learn stage/roadmap points, score ledger, monthly periods, manager contribution points, project scoring, gamification.
 
-| Area | Recommendation |
-|------|----------------|
-| **L1 (first implementation phase)** | Build Global + Initiative UI on **existing cert-based APIs** — no schema change |
-| **L2** | Add **hybrid score ledger** (Option C) for Learn achievements; extend global ranking to multi-source points |
-| **Initiative leaderboard** | Keep **submission-order ranking** (earliest approved submission wins) — matches current backend and initiative model |
-| **Learn in global** | Stage points + one-time roadmap bonus; idempotent ledger rows keyed by source |
-| **Projects** | **Exclude** from scoring (membership, KB access, env/repo navigation) |
-| **Time scope** | **All Time only** in first release; defer Monthly until product need is confirmed |
-| **Permissions** | All authenticated users (ADMIN + EMPLOYEE) view leaderboards; add initiative visibility checks |
+## Routes
 
-### Explicitly not in scope for this review
-
-- Implementation code or Flyway migrations
-- Email notifications, AI assistant, Learn v2 expansion, final UI polish beyond leaderboard pages
-
-## Related documentation
-
-- `.cursor/architecture.md` — system patterns (custom SQL for leaderboards noted)
-- `docs/project-roadmap.md` — backlog item: initiative leaderboard full page UI
-- `docs/v0.8.0/03-business-rules.md` — Learn leaderboards explicitly deferred from v0.8.0
-- `docs/development-workflow.md` — mandatory 11-step completion checklist for future phases
-
-## Approval gate
-
-**Do not begin leaderboard implementation until this architecture review is manually approved.**
+| Route | Page |
+|-------|------|
+| `/leaderboards/global` | Global Leaderboard |
+| `/leaderboards/initiatives` | Initiative picker |
+| `/leaderboards/initiatives/:initiativeId` | Initiative Leaderboard |

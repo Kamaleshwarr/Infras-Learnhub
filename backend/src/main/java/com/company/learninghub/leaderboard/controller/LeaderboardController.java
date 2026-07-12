@@ -40,7 +40,9 @@ public class LeaderboardController {
             summary = "Get the global leaderboard",
             description = """
                     Ranks employees by total approved certifications descending.
-                    Ties are resolved by earliest submittedAtUtc ascending, then employee ID.
+                    Each employee receives a unique sequential position (ROW_NUMBER).
+                    Equal certification counts are ordered by earliest submittedAtUtc ascending,
+                    then employee ID ascending for deterministic results.
                     Only approved submissions are eligible.
                     """
     )
@@ -58,9 +60,11 @@ public class LeaderboardController {
     @Operation(
             summary = "Get an initiative leaderboard",
             description = """
-                    Ranks approved submissions within one initiative by submittedAtUtc ascending.
+                    Ranks approved submissions within one initiative by submittedAtUtc ascending
+                    (earliest verified submission ranks highest).
                     Tie breakers: approvedAtUtc ascending, then submissionId ascending.
-                    Approval determines eligibility only and does not become the primary ranking timestamp.
+                    Approval determines eligibility only; submission time is the primary ranking key.
+                    Employees receive 404 when the initiative is not visible to them.
                     """
     )
     public ResponseEntity<PageResponse<InitiativeLeaderboardEntryResponse>> getInitiativeLeaderboard(
@@ -69,10 +73,11 @@ public class LeaderboardController {
                     description = "Pagination and sorting. Supported sort fields: rank, submissionId, employeeId, employeeName, submittedAtUtc, approvedAtUtc."
             )
             @ParameterObject
-            @PageableDefault(size = 20, sort = "rank", direction = Sort.Direction.ASC) Pageable pageable
+            @PageableDefault(size = 20, sort = "rank", direction = Sort.Direction.ASC) Pageable pageable,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
         return ResponseEntity.ok(PageResponse.from(
-                leaderboardService.getInitiativeLeaderboard(initiativeId, pageable)
+                leaderboardService.getInitiativeLeaderboard(initiativeId, pageable, authenticatedUser)
         ));
     }
 

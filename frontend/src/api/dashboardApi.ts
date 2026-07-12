@@ -4,7 +4,7 @@ import { projectsApi } from './projectsApi'
 import { studyMaterialsApi } from './studyMaterialsApi'
 import { submissionsApi } from './submissionsApi'
 import type { Initiative } from '../types/initiatives'
-import type { LeaderboardEntry, PersonalLeaderboard } from './leaderboardsApi'
+import type { GlobalLeaderboardEntry, PersonalLeaderboard } from '../types/leaderboards'
 import type { ProjectSummary } from './projectsApi'
 import type { StudyMaterial } from './studyMaterialsApi'
 import type { CertificateSubmission } from '../types/submissions'
@@ -17,7 +17,7 @@ export interface DashboardData {
   expiringInitiativesCount: number
   mySubmissions: CertificateSubmission[]
   pendingReviewsCount: number
-  leaderboardPreview: LeaderboardEntry[]
+  leaderboardPreview: GlobalLeaderboardEntry[]
   myRank: PersonalLeaderboard | null
   recentStudyMaterials: StudyMaterial[]
   assignedProjects: ProjectSummary[]

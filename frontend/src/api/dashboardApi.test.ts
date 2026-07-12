@@ -36,11 +36,14 @@ const initiative = {
 }
 
 const leaderboardEntry = {
+  earliestSubmittedAtUtc: '2026-06-01T00:00:00Z',
   employee: {
     email: 'learner@example.com',
+    employeeId: 'EMP002',
     fullName: 'Top Learner',
     id: 'user-1',
   },
+  latestApprovedAtUtc: '2026-06-05T00:00:00Z',
   rank: 1,
   totalApprovedCertifications: 4,
 }
@@ -133,6 +136,13 @@ function mockEmployeeDefaults() {
   vi.mocked(submissionsApi.listMine).mockResolvedValue(emptyPage)
   vi.mocked(leaderboardsApi.global).mockResolvedValue(emptyPage)
   vi.mocked(leaderboardsApi.me).mockResolvedValue({
+    earliestSubmittedAtUtc: null,
+    employee: {
+      email: 'employee@example.com',
+      employeeId: 'EMP001',
+      fullName: 'Employee One',
+      id: 'employee-1',
+    },
     globalRank: null,
     recentApprovals: [],
     totalApprovedCertifications: 0,

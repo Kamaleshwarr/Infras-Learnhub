@@ -786,6 +786,30 @@ Full API reference: `docs/learn/api-reference.md`
 - `frontend/src/components/learn/*`
 - `frontend/src/types/learn.ts`, `roadmap.ts`, `progress.ts`
 
+## Leaderboard Module (L1 — certification-based)
+
+**Documentation:** `docs/leaderboard/README.md`
+
+### APIs
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/leaderboards/global` | Paginated global rank by approved certification count |
+| `GET` | `/api/v1/leaderboards/initiatives/{initiativeId}` | Initiative rank by earliest submission (visibility enforced) |
+| `GET` | `/api/v1/leaderboards/me` | Current user's global rank and recent approvals |
+
+### Ranking
+
+- Global: `ROW_NUMBER()` by cert count DESC, earliest submission ASC, user ID ASC
+- Initiative: `ROW_NUMBER()` by `submitted_at_utc` ASC among APPROVED submissions
+- See `docs/leaderboard/l1-ranking-rules.md`
+
+### Frontend routes
+
+- `/leaderboards/global` — `GlobalLeaderboardPage`
+- `/leaderboards/initiatives` — initiative picker
+- `/leaderboards/initiatives/:initiativeId` — `InitiativeLeaderboardPage`
+
 ### Learn Controllers
 
 | Controller | Base path |

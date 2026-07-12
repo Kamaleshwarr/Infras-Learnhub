@@ -2,6 +2,9 @@ package com.company.learninghub.leaderboard.service;
 
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
+import com.company.learninghub.initiative.domain.InitiativeStatus;
+import com.company.learninghub.initiative.domain.LearningInitiative;
+import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
 import com.company.learninghub.leaderboard.dto.GlobalLeaderboardEntryResponse;
 import com.company.learninghub.leaderboard.dto.InitiativeLeaderboardEntryResponse;
 import com.company.learninghub.leaderboard.dto.LeaderboardEmployeeResponse;
@@ -22,7 +25,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,12 +36,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LeaderboardServiceTest {
 
+    private static final Instant NOW = Instant.parse("2026-06-15T12:00:00Z");
     private static final Instant SUBMITTED_AT = Instant.parse("2026-06-06T07:00:00Z");
     private static final Instant APPROVED_AT = Instant.parse("2026-06-06T08:00:00Z");
 
@@ -44,17 +51,29 @@ class LeaderboardServiceTest {
     private LeaderboardQueryRepository leaderboardQueryRepository;
 
     @Mock
+    private LearningInitiativeRepository initiativeRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     private LeaderboardService leaderboardService;
     private User employee;
-    private AuthenticatedUser principal;
+    private User admin;
+    private AuthenticatedUser employeePrincipal;
+    private AuthenticatedUser adminPrincipal;
 
     @BeforeEach
     void setUp() {
-        leaderboardService = new LeaderboardService(leaderboardQueryRepository, userRepository);
+        leaderboardService = new LeaderboardService(
+                leaderboardQueryRepository,
+                initiativeRepository,
+                userRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC)
+        );
         employee = user(RoleName.EMPLOYEE);
-        principal = AuthenticatedUser.from(employee);
+        admin = user(RoleName.ADMIN);
+        employeePrincipal = AuthenticatedUser.from(employee);
+        adminPrincipal = AuthenticatedUser.from(admin);
     }
 
     @Test
@@ -71,9 +90,10 @@ class LeaderboardServiceTest {
     }
 
     @Test
-    void getInitiativeLeaderboardDelegatesToQueryRepository() {
+    void getInitiativeLeaderboardDelegatesToQueryRepositoryWhenInitiativeVisible() {
         UUID initiativeId = UUID.randomUUID();
         PageRequest pageable = PageRequest.of(0, 20);
+        LearningInitiative initiative = visibleInitiative(initiativeId);
         InitiativeLeaderboardEntryResponse entry = new InitiativeLeaderboardEntryResponse(
                 1,
                 UUID.randomUUID(),
@@ -83,13 +103,58 @@ class LeaderboardServiceTest {
                 SUBMITTED_AT,
                 APPROVED_AT
         );
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
         when(leaderboardQueryRepository.findInitiativeLeaderboard(initiativeId, pageable))
                 .thenReturn(new PageImpl<>(List.of(entry), pageable, 1));
 
-        Page<InitiativeLeaderboardEntryResponse> response = leaderboardService.getInitiativeLeaderboard(initiativeId, pageable);
+        Page<InitiativeLeaderboardEntryResponse> response = leaderboardService.getInitiativeLeaderboard(
+                initiativeId,
+                pageable,
+                employeePrincipal
+        );
 
         assertThat(response.getContent()).containsExactly(entry);
         verify(leaderboardQueryRepository).findInitiativeLeaderboard(initiativeId, pageable);
+    }
+
+    @Test
+    void getInitiativeLeaderboardAllowsAdminForDraftInitiative() {
+        UUID initiativeId = UUID.randomUUID();
+        PageRequest pageable = PageRequest.of(0, 20);
+        LearningInitiative initiative = draftInitiative(initiativeId);
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(initiative));
+        when(leaderboardQueryRepository.findInitiativeLeaderboard(initiativeId, pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        leaderboardService.getInitiativeLeaderboard(initiativeId, pageable, adminPrincipal);
+
+        verify(leaderboardQueryRepository).findInitiativeLeaderboard(initiativeId, pageable);
+    }
+
+    @Test
+    void getInitiativeLeaderboardReturnsNotFoundForEmployeeWhenInitiativeNotVisible() {
+        UUID initiativeId = UUID.randomUUID();
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.of(draftInitiative(initiativeId)));
+
+        assertThatThrownBy(() -> leaderboardService.getInitiativeLeaderboard(initiativeId, pageable, employeePrincipal))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Learning initiative was not found");
+
+        verify(leaderboardQueryRepository, never()).findInitiativeLeaderboard(eq(initiativeId), any());
+    }
+
+    @Test
+    void getInitiativeLeaderboardReturnsNotFoundWhenInitiativeMissing() {
+        UUID initiativeId = UUID.randomUUID();
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(initiativeRepository.findById(initiativeId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> leaderboardService.getInitiativeLeaderboard(initiativeId, pageable, employeePrincipal))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Learning initiative was not found");
+
+        verify(leaderboardQueryRepository, never()).findInitiativeLeaderboard(eq(initiativeId), any());
     }
 
     @Test
@@ -107,7 +172,7 @@ class LeaderboardServiceTest {
         when(leaderboardQueryRepository.findRecentApprovalsForEmployee(eq(employee.getId()), any()))
                 .thenReturn(List.of(recentApproval));
 
-        PersonalLeaderboardResponse response = leaderboardService.getPersonalRanking(principal);
+        PersonalLeaderboardResponse response = leaderboardService.getPersonalRanking(employeePrincipal);
 
         assertThat(response.employee().id()).isEqualTo(employee.getId());
         assertThat(response.globalRank()).isEqualTo(2);
@@ -123,7 +188,7 @@ class LeaderboardServiceTest {
         when(leaderboardQueryRepository.findRecentApprovalsForEmployee(eq(employee.getId()), any()))
                 .thenReturn(List.of());
 
-        PersonalLeaderboardResponse response = leaderboardService.getPersonalRanking(principal);
+        PersonalLeaderboardResponse response = leaderboardService.getPersonalRanking(employeePrincipal);
 
         assertThat(response.globalRank()).isNull();
         assertThat(response.totalApprovedCertifications()).isZero();
@@ -135,9 +200,37 @@ class LeaderboardServiceTest {
     void getPersonalRankingFailsWhenAuthenticatedUserCannotBeFound() {
         when(userRepository.findById(employee.getId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> leaderboardService.getPersonalRanking(principal))
+        assertThatThrownBy(() -> leaderboardService.getPersonalRanking(employeePrincipal))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Authenticated user was not found");
+    }
+
+    private LearningInitiative visibleInitiative(UUID initiativeId) {
+        LearningInitiative initiative = new LearningInitiative(
+                "Visible Initiative",
+                "Description",
+                "Reward",
+                Instant.parse("2026-01-01T00:00:00Z"),
+                Instant.parse("2026-12-31T00:00:00Z"),
+                InitiativeStatus.ACTIVE,
+                admin
+        );
+        ReflectionTestUtils.setField(initiative, "id", initiativeId);
+        return initiative;
+    }
+
+    private LearningInitiative draftInitiative(UUID initiativeId) {
+        LearningInitiative initiative = new LearningInitiative(
+                "Draft Initiative",
+                "Description",
+                "Reward",
+                Instant.parse("2026-01-01T00:00:00Z"),
+                Instant.parse("2026-12-31T00:00:00Z"),
+                InitiativeStatus.DRAFT,
+                admin
+        );
+        ReflectionTestUtils.setField(initiative, "id", initiativeId);
+        return initiative;
     }
 
     private GlobalLeaderboardEntryResponse globalEntry(long rank, User user, long totalApproved) {
@@ -166,4 +259,3 @@ class LeaderboardServiceTest {
         return user;
     }
 }
-

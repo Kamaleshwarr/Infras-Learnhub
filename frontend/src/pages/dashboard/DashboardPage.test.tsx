@@ -39,16 +39,26 @@ const dashboardData: DashboardData = {
   expiringInitiativesCount: 1,
   leaderboardPreview: [
     {
+      earliestSubmittedAtUtc: '2026-06-01T00:00:00Z',
       employee: {
         email: 'learner@example.com',
+        employeeId: 'EMP002',
         fullName: 'Top Learner',
         id: 'user-1',
       },
+      latestApprovedAtUtc: '2026-06-05T00:00:00Z',
       rank: 1,
       totalApprovedCertifications: 4,
     },
   ],
   myRank: {
+    earliestSubmittedAtUtc: '2026-06-01T00:00:00Z',
+    employee: {
+      email: 'employee@example.com',
+      employeeId: 'EMP001',
+      fullName: 'Employee One',
+      id: 'employee-1',
+    },
     globalRank: 2,
     recentApprovals: [],
     totalApprovedCertifications: 5,

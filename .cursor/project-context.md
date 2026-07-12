@@ -244,6 +244,7 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 10. Initiatives Experience UI — List, detail, submit integration (v0.7.0)
 11. Initiative Management UI — Create, Edit, Lifecycle, Delete (v0.7.1)
 12. **Learn module v1** — Technology discovery, roadmap viewer, learning journey (v0.8.0 F16–F18)
+13. **Leaderboard L1** — Global + Initiative leaderboard UI (certification-based; awaiting QA)
 
 ## Completed Features
 
@@ -299,7 +300,7 @@ See: `docs/v0.8.0/08-navigation-platform-revision.md`, `docs/v0.8.0/09-implement
 2. F20 Certification Catalog
 3. F21 Optional Initiative Association
 4. F22 Dashboard, Unified Search & Release
-5. Initiative leaderboard full page UI
+5. ~~Initiative leaderboard full page UI~~ — **L1 complete** (`docs/leaderboard/`)
 6. Rejected submission resubmission workflow
 7. Employee self-service certificate download
 8. Dashboard drilldowns (initiatives, top learners)
