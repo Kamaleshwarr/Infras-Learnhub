@@ -1,5 +1,6 @@
 package com.company.learninghub;
 
+import com.company.learninghub.communication.config.CommunicationProperties;
 import com.company.learninghub.auth.config.MailProperties;
 import com.company.learninghub.auth.config.PasswordResetProperties;
 import com.company.learninghub.auth.security.JwtProperties;
@@ -17,7 +18,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
         MailProperties.class,
         PasswordResetProperties.class,
         ProfileProperties.class,
-        CatalogImportProperties.class
+        CatalogImportProperties.class,
+        CommunicationProperties.class
 })
 public class LearningHubApplication {
 
