@@ -55,7 +55,19 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 **v0.7.1** — Initiative Management (Complete — F11–F15)  
 **Philosophy:** *Engineering Learning Hub owns guidance, not knowledge.*
 
-**Learn module v1.1 is the current development baseline.** F19 has NOT been started.
+## Version 1 Priorities (current — authoritative)
+
+1. **Communication Framework** (Email + existing In-App Notifications) — **C1 infrastructure complete** (`docs/communication/`, `docs/releases/release-communication-c1-implementation-report.md`); C2/C3 not started
+2. **AI Assistant**
+3. **Final UI / UX Polish**
+
+Do not infer next work from older roadmap entries (e.g. F19 Career Paths).
+
+## Version 2 (deferred)
+
+Career Paths (F19), Learn v2 expansion, Certification Catalog, 500+ technologies, advanced gamification, advanced analytics.
+
+**Learn module v1.1 is the shipped baseline.** F19 has NOT been started and is deferred to Version 2.
 
 **Project Module:** P1 — Project Foundation & Overview **complete**; P2 — Knowledge Base & Folders **complete**; P3 — Environments & Repositories **complete**; P4 — Team & Contacts **complete** (awaiting QA) (`docs/project/`). Cross-Project Search **skipped**. P5 **not started**.
 
@@ -63,6 +75,7 @@ Read `engineering-standards.md` **before starting any feature phase**. Language-
 
 Documentation:
 - `README.md` — project entry point
+- `docs/communication/` — Communication Framework architecture (V1 priority #1)
 - `docs/learn/` — Learn module reference (database, API, catalog)
 - `docs/development-workflow.md` — mandatory 11-step feature workflow
 - `docs/contributing.md` — contributor guide

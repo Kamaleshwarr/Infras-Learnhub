@@ -1,6 +1,20 @@
 # Engineering Learning Hub — Project Roadmap
 
-Last updated: 2026-07-10 (Leaderboard architecture review complete — awaiting approval)
+Last updated: 2026-07-12 (Communication Framework architecture review — awaiting approval)
+
+## Version 1 Priorities (current — authoritative)
+
+| # | Workstream | Status |
+|---|------------|--------|
+| 1 | **Communication Framework** (Email + In-App Notifications) | **C1 complete** — `docs/communication/`, `docs/releases/release-communication-c1-implementation-report.md` — C2/C3 not started |
+| 2 | AI Assistant | Not started |
+| 3 | Final UI / UX Polish | Not started |
+
+**Version 2 (deferred):** Career Paths (F19), Learn v2 expansion, Certification Catalog, 500+ technologies, advanced gamification, advanced analytics.
+
+Do not infer priorities from older roadmap entries below.
+
+---
 
 ## Release Overview
 

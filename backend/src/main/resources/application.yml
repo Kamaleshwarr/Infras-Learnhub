@@ -85,4 +85,15 @@ app:
     import:
       enabled: ${APP_CATALOG_IMPORT_ENABLED:true}
       fail-fast: ${APP_CATALOG_IMPORT_FAIL_FAST:true}
+  communication:
+    enabled: ${APP_COMMUNICATION_ENABLED:true}
+    support-email: ${APP_SUPPORT_EMAIL:support@learninghub.local}
+    frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
+    email:
+      provider: ${APP_COMMUNICATION_EMAIL_PROVIDER:log}
+      from: ${APP_MAIL_FROM:noreply@learninghub.local}
+    outbox:
+      poll-interval: ${APP_COMMUNICATION_OUTBOX_POLL_INTERVAL:PT10S}
+      batch-size: ${APP_COMMUNICATION_OUTBOX_BATCH_SIZE:20}
+      max-retries: ${APP_COMMUNICATION_OUTBOX_MAX_RETRIES:3}
 
