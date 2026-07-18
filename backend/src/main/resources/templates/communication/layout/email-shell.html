@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="shell (content)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Engineering Learning Hub</title>
+    <th:block th:replace="~{fragments/email-styles :: styles}"/>
+</head>
+<body>
+<table role="presentation" class="email-wrapper" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center">
+            <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0">
+                <tr th:replace="~{fragments/header :: header}"></tr>
+                <tr>
+                    <td class="email-content" th:insert="${content}">Content</td>
+                </tr>
+                <tr th:replace="~{fragments/support-section :: support}"></tr>
+                <tr th:replace="~{fragments/footer :: footer}"></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

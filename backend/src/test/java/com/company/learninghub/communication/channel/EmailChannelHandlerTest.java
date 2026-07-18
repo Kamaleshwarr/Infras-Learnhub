@@ -13,7 +13,7 @@ import com.company.learninghub.communication.email.EmailMessage;
 import com.company.learninghub.communication.email.EmailProvider;
 import com.company.learninghub.communication.repository.CommunicationOutboxRepository;
 import com.company.learninghub.communication.service.CommunicationEventSerializer;
-import com.company.learninghub.communication.template.SimpleEmailContentBuilder;
+import com.company.learninghub.communication.template.EmailTemplateRenderer;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +35,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +49,8 @@ class EmailChannelHandlerTest {
     private CommunicationOutboxRepository outboxRepository;
     @Mock
     private EmailProvider emailProvider;
+    @Mock
+    private EmailTemplateRenderer emailTemplateRenderer;
     @Mock
     private UserRepository userRepository;
 
@@ -64,7 +67,7 @@ class EmailChannelHandlerTest {
                 serializer,
                 properties,
                 emailProvider,
-                new SimpleEmailContentBuilder(properties),
+                emailTemplateRenderer,
                 userRepository,
                 Clock.fixed(NOW, ZoneOffset.UTC)
         );
@@ -100,8 +103,16 @@ class EmailChannelHandlerTest {
         User recipient = activeUser();
         CommunicationEvent event = sampleEvent();
         CommunicationOutboxEntry entry = outboxEntry(event);
+        EmailMessage emailMessage = new EmailMessage(
+                "noreply@learninghub.local",
+                recipient.getEmail(),
+                "Certificate approved",
+                "text body",
+                "<p>html body</p>"
+        );
         when(userRepository.findById(event.recipientUserId())).thenReturn(Optional.of(recipient));
-        when(emailProvider.send(any(EmailMessage.class))).thenReturn(EmailDeliveryResult.success("msg-1"));
+        when(emailTemplateRenderer.buildEmailMessage(eq(recipient), any(CommunicationEvent.class))).thenReturn(emailMessage);
+        when(emailProvider.send(emailMessage)).thenReturn(EmailDeliveryResult.success("msg-1"));
         when(outboxRepository.save(entry)).thenReturn(entry);
 
         handler.processEntry(entry);
@@ -115,8 +126,16 @@ class EmailChannelHandlerTest {
         User recipient = activeUser();
         CommunicationEvent event = sampleEvent();
         CommunicationOutboxEntry entry = outboxEntry(event);
+        EmailMessage emailMessage = new EmailMessage(
+                "noreply@learninghub.local",
+                recipient.getEmail(),
+                "Certificate approved",
+                "text body",
+                "<p>html body</p>"
+        );
         when(userRepository.findById(event.recipientUserId())).thenReturn(Optional.of(recipient));
-        when(emailProvider.send(any(EmailMessage.class))).thenReturn(EmailDeliveryResult.failure("smtp down"));
+        when(emailTemplateRenderer.buildEmailMessage(eq(recipient), any(CommunicationEvent.class))).thenReturn(emailMessage);
+        when(emailProvider.send(emailMessage)).thenReturn(EmailDeliveryResult.failure("smtp down"));
         when(outboxRepository.save(entry)).thenReturn(entry);
 
         handler.processEntry(entry);

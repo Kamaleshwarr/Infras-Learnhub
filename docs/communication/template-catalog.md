@@ -1,97 +1,129 @@
 # Communication Template Catalog
 
-**Status:** Design specification — not implemented  
+**Status:** Implemented (C2)  
 **Companion:** [architecture-review.md](./architecture-review.md)
 
 ---
 
-## Design goals
+## Rendering architecture
 
-1. **Single master layout** for all HTML emails (branding consistency)
-2. **Paired HTML + plain text** for every template (accessibility + deliverability)
-3. **No duplication** — content blocks composed into layout
-4. **Future localization** — externalized strings; keys not inline prose in Java
-5. **Dynamic variables** — typed, validated before render
+The email template engine lives in `com.company.learninghub.communication.template` and renders Thymeleaf templates without sending email. `EmailChannelHandler` uses `EmailTemplateRenderer.buildEmailMessage()` when processing outbox entries.
+
+```text
+CommunicationEvent + User
+        │
+        ▼
+EmailTemplateVariables.build()
+        │
+        ▼
+EmailTemplateModel (subject, variables, template name)
+        │
+        ├─► communicationHtmlTemplateEngine → HTML body
+        └─► communicationTextTemplateEngine → plain-text body
+        │
+        ▼
+RenderedEmail / EmailMessage
+```
+
+### Key classes
+
+| Class | Responsibility |
+|-------|----------------|
+| `CommunicationEmailTemplate` | Maps `CommunicationEventType` → template name + default subject |
+| `EmailTemplateModel` | Structured render model (recipient, actor, URLs, extras) |
+| `EmailTemplateVariables` | Builds model from `User` + `CommunicationEvent` |
+| `EmailTemplateRenderer` | `render()`, `renderHtml()`, `renderText()`, `renderSubject()` |
+| `CommunicationEmailTemplateConfiguration` | Dedicated HTML and TEXT Thymeleaf engines |
+
+### Preview support
+
+`EmailTemplateRenderer` exposes render methods without side effects. No REST preview API is included in C2; future admin preview can call these methods directly.
 
 ---
 
-## Template engine recommendation
-
-| Approach | V1 recommendation |
-|----------|-------------------|
-| Current `{{var}}` replace | Used only for forgot-password today |
-| **Thymeleaf** (classpath templates) | **Adopt in C2** — layout fragments, conditionals, i18n-ready |
-| Stored DB templates | Defer — catalog in repo is sufficient for V1 |
-
-Migrate `templates/email/forgot-password.*` into Thymeleaf structure without changing user-visible copy.
-
----
-
-## Directory structure (proposed)
+## Template hierarchy
 
 ```text
 backend/src/main/resources/templates/communication/
 ├── layout/
-│   ├── master.html              # HTML shell
-│   └── master.txt               # Plain text shell
+│   ├── email-shell.html          # HTML master layout (header, content slot, support, footer)
+│   └── email-shell.txt           # Plain-text master layout
 ├── fragments/
-│   ├── header.html
-│   ├── footer.html
-│   ├── cta-button.html
-│   └── support-section.html
-├── email/
-│   ├── password-reset.html
-│   ├── password-reset.txt
-│   ├── password-reset-by-admin.html
-│   ├── password-reset-by-admin.txt
-│   ├── welcome-user.html
-│   ├── welcome-user.txt
-│   ├── account-activated.html
-│   ├── account-activated.txt
-│   ├── account-deactivated.html
-│   ├── account-deactivated.txt
-│   ├── certificate-submitted-admin.html
-│   ├── certificate-submitted-admin.txt
-│   ├── certificate-approved.html
-│   ├── certificate-approved.txt
-│   ├── certificate-rejected.html
-│   ├── certificate-rejected.txt
-│   ├── roadmap-completed.html      # optional V1
-│   ├── roadmap-completed.txt
-│   ├── project-member-added.html
-│   └── project-member-added.txt
-└── in-app/                         # optional JSON copy maps
-    └── messages.properties
+│   ├── email-styles.html         # Brand CSS (inline-safe)
+│   ├── header.html               # Logo + tagline
+│   ├── footer.html               # Automated message + copyright
+│   ├── support-section.html      # Support contact block
+│   ├── cta-button.html           # Primary action button
+│   ├── email-body.html           # Shared HTML body content
+│   └── email-body.txt            # Shared plain-text body content
+└── email/
+    ├── certificate-submitted.{html,txt}
+    ├── certificate-approved.{html,txt}
+    ├── certificate-rejected.{html,txt}
+    ├── account-created.{html,txt}
+    ├── account-activated.{html,txt}
+    ├── account-deactivated.{html,txt}
+    ├── password-reset.{html,txt}
+    ├── password-reset-by-admin.{html,txt}
+    ├── project-member-added.{html,txt}
+    ├── project-repository-added.{html,txt}
+    ├── project-environment-added.{html,txt}
+    └── generic-notification.{html,txt}
 ```
 
----
+### HTML composition
 
-## Master layout (HTML)
-
-### Structure
+Each catalog template delegates to the shared shell and body fragments:
 
 ```html
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title th:text="${subject}">Engineering Learning Hub</title>
-  <style>/* inline-safe styles — see brand tokens */</style>
-</head>
-<body>
-  <table role="presentation" class="container">
-    <tr><td th:replace="~{fragments/header :: header}"></td></tr>
-    <tr><td class="content" th:utext="${content}">...</td></tr>
-    <tr><td th:if="${ctaUrl}" th:replace="~{fragments/cta-button :: cta}"></td></tr>
-    <tr><td th:replace="~{fragments/support-section :: support}"></td></tr>
-    <tr><td th:replace="~{fragments/footer :: footer}"></td></tr>
-  </table>
-</body>
+<html th:replace="~{layout/email-shell :: shell(~{::main})}">
+  <th:block th:fragment="main" th:replace="~{fragments/email-body :: body}"/>
 </html>
 ```
 
-### Brand tokens (align with `appTheme.ts`)
+### Plain-text composition
+
+TEXT mode requires whole-template inclusion (no fragment selectors). Each `email/*.txt` replaces the text shell, which inserts `fragments/email-body` as a full template.
+
+---
+
+## Variable model
+
+`EmailTemplateVariables` centralizes variable mapping. Templates receive both the full `model` object and individual context variables.
+
+### Core variables
+
+| Variable | Source |
+|----------|--------|
+| `recipientName` | `User.fullName` |
+| `recipientEmail` | `User.email` |
+| `actorName` | Event `variables.actorName` |
+| `message` | Event `variables.message` / `emailBody` or template default |
+| `subject` | Event `variables.emailSubject` or template default |
+| `actionUrl` | Event `variables.actionUrl` / `resetUrl` or `{frontendBaseUrl}{actionPath}` |
+| `actionLabel` | Event `variables.actionLabel` or template default |
+| `applicationUrl` | `app.communication.frontend-base-url` |
+| `supportEmail` | `app.communication.support-email` |
+| `currentYear` | Current UTC year |
+| `projectName` | Event `variables.projectName` |
+| `certificationName` | Event `variables.certificationName` or `initiativeTitle` |
+| `technologyName` | Event `variables.technologyName` |
+| `resetUrl` | Event `variables.resetUrl` |
+| `expirationMinutes` | Event `variables.expirationMinutes` |
+| `priority` | `CommunicationEvent.priority()` |
+| `extraVariables` | Remaining event variables (e.g. `rejectionReason`) |
+
+### URL construction
+
+- Base URL from `app.communication.frontend-base-url`
+- Relative paths from `CommunicationEntityRef.actionPath`
+- Absolute URLs in event variables are passed through unchanged
+
+---
+
+## Branding rules
+
+Aligned with `frontend/src/theme/appTheme.ts`:
 
 | Token | Value |
 |-------|-------|
@@ -102,159 +134,84 @@ backend/src/main/resources/templates/communication/
 | Font | Inter, Roboto, Arial, sans-serif |
 | Border radius | 12px |
 
-### Header fragment
+### Header
 
-- Engineering Learning Hub wordmark / logo (hosted static asset or inline SVG)
-- Optional subtitle: "Internal enablement"
+- Wordmark: **Engineering Learning Hub**
+- Tagline: *Internal enablement*
+- Gradient header using primary → secondary
 
-### Footer fragment
+### Footer (required on all templates)
 
-- Company name
 - "This is an automated message from Engineering Learning Hub."
-- Link to platform base URL (`app.frontend.base-url` config)
+- Copyright with dynamic `currentYear`
 
-### CTA button fragment
+### CTA button
 
-- Primary button style
-- Variables: `ctaLabel`, `ctaUrl`
-- Fallback plain link in text template
-
-### Support section fragment
-
-- Variables: `supportEmail` (default from config)
-- Copy: "Need help? Contact your administrator or …"
+- Primary `#1f5eff` button when `actionUrl` is present
+- Plain-text fallback: `{actionLabel}: {actionUrl}`
 
 ---
 
-## Plain text master
+## Naming conventions
 
-```text
-Engineering Learning Hub
-========================
-
-${content}
-
-${ctaLabel}: ${ctaUrl}
-
----
-${supportLine}
-This is an automated message. Please do not reply to this email.
-```
+| Pattern | Example |
+|---------|---------|
+| Template file | `{domain}-{action}.html` / `.txt` |
+| Enum constant | `CERTIFICATE_APPROVED` → `certificate-approved` |
+| Fragment | `email-{purpose}` in `fragments/` |
+| Layout | `email-shell` in `layout/` |
+| Event override keys | `emailSubject`, `emailBody`, `actionUrl`, `actionLabel` |
 
 ---
 
-## Template inventory (Version 1)
+## Template inventory (C2)
 
-| Template key | Subject line | Primary CTA |
-|--------------|--------------|-------------|
-| `password-reset` | Reset your Learning Hub password | Reset password |
-| `password-reset-by-admin` | Your password was reset | Sign in |
-| `welcome-user` | Welcome to Engineering Learning Hub | Sign in |
-| `account-activated` | Your account has been activated | Open Learning Hub |
-| `account-deactivated` | Your account has been deactivated | — |
-| `certificate-submitted-admin` | New certificate submission | Review submission |
-| `certificate-approved` | Certificate approved | View certifications |
-| `certificate-rejected` | Certificate requires attention | View submissions |
-| `roadmap-completed` | You completed a learning roadmap | View progress |
-| `project-member-added` | You were added to a project | View project |
-
----
-
-## Variable catalog
-
-### Global variables (all templates)
-
-| Variable | Source |
-|----------|--------|
-| `fullName` | `User.fullName` |
-| `recipientEmail` | `User.email` |
-| `platformName` | Config constant |
-| `platformUrl` | `app.frontend.base-url` |
-| `supportEmail` | `app.communication.support-email` |
-| `year` | Current UTC year |
-
-### Per-template variables
-
-| Template | Additional variables |
-|----------|---------------------|
-| `password-reset` | `resetUrl`, `expirationMinutes` |
-| `password-reset-by-admin` | `loginUrl` |
-| `welcome-user` | `loginUrl`, `mustChangePassword` |
-| `certificate-submitted-admin` | `employeeName`, `initiativeTitle`, `reviewUrl`, `submittedAt` |
-| `certificate-approved` | `initiativeTitle`, `approvedAt` |
-| `certificate-rejected` | `initiativeTitle`, `rejectionReason` |
-| `roadmap-completed` | `technologyName`, `roadmapUrl` |
-| `project-member-added` | `projectName`, `projectRole`, `projectUrl` |
+| Template key | Event type(s) | Default subject |
+|--------------|---------------|-----------------|
+| `certificate-submitted` | `CERTIFICATE_SUBMITTED` | New certificate submission |
+| `certificate-approved` | `CERTIFICATE_APPROVED` | Certificate approved |
+| `certificate-rejected` | `CERTIFICATE_REJECTED` | Certificate requires attention |
+| `account-created` | `ACCOUNT_CREATED` | Welcome to Engineering Learning Hub |
+| `account-activated` | `ACCOUNT_ACTIVATED` | Your account has been activated |
+| `account-deactivated` | `ACCOUNT_DEACTIVATED` | Your account has been deactivated |
+| `password-reset` | `PASSWORD_RESET_REQUESTED` | Reset your Learning Hub password |
+| `password-reset-by-admin` | `PASSWORD_RESET_BY_ADMIN` | Your password was reset |
+| `project-member-added` | `PROJECT_MEMBER_ADDED` | You were added to a project |
+| `project-repository-added` | `PROJECT_REPOSITORY_ADDED` | Repository added to project |
+| `project-environment-added` | `PROJECT_ENVIRONMENT_ADDED` | Environment added to project |
+| `generic-notification` | Learning reminders / completions | Notification from Engineering Learning Hub |
 
 ---
 
-## URL construction
+## Thymeleaf configuration
 
-- Base URL from `app.frontend.base-url` (new config; today only reset URL exists)
-- Paths from `CommunicationEntityRef.actionPath`
-- **Never** embed JWT or reset token except in `password-reset` template
-
-```text
-{baseUrl}{actionPath}
-```
-
-Example: `http://localhost:5173/submissions/review`
+- `spring.thymeleaf.enabled: false` — Spring Boot auto-config disabled to avoid MVC impact
+- `communicationHtmlTemplateEngine` — HTML templates under `templates/communication/`
+- `communicationTextTemplateEngine` — TEXT templates with `.txt` suffix
+- Engines are isolated beans; no view controller registration
 
 ---
 
-## In-app copy alignment
+## Legacy password reset (unchanged)
 
-`NotificationFactory` strings should be sourced from the same `messages.properties` keys as email summaries where possible:
-
-```properties
-notification.certificate-approved.title=Certificate approved
-notification.certificate-approved.message=Your certificate submission for "{initiativeTitle}" was approved.
-email.certificate-approved.subject=Certificate approved
-```
-
-Prevents drift between bell inbox and email subject/body.
+Production password reset continues to use `auth.EmailService` with `templates/email/forgot-password.{html,txt}` and `{{placeholder}}` replacement. The C2 `password-reset` templates are infrastructure-only and are not wired to `PasswordResetService`.
 
 ---
 
-## Attachments
+## Testing
 
-**Version 1:** No attachments.
-
-**Future:** Certificate PDF as attachment on approval — defer (employee download deferred from v0.6.2).
-
----
-
-## Localization (future)
-
-- Thymeleaf `#{key}` message bundles
-- `templates/communication/messages_en.properties`
-- User `locale` column deferred to V2
+| Test class | Coverage |
+|------------|----------|
+| `EmailTemplateRendererTest` | All catalog templates, branding, CTA, optional variables, preview methods |
+| `EmailTemplateVariablesTest` | Model building, URL construction, variable mapping |
+| `EmailChannelHandlerTest` | Handler uses renderer (mocked) |
+| `PasswordResetServiceTest` | Regression — legacy flow unchanged |
 
 ---
 
-## Admin preview (C5)
+## Future work (not in C2)
 
-`POST /admin/communication/preview` accepts:
-
-```json
-{
-  "templateKey": "certificate-approved",
-  "format": "html",
-  "variables": { "fullName": "Sample User", "initiativeTitle": "AWS Cert" }
-}
-```
-
-Returns rendered HTML or text without sending.
-
----
-
-## Testing requirements
-
-| Test | Assert |
-|------|--------|
-| Each template renders | No unsubstituted `${` or `{{` |
-| HTML + text pairs exist | Catalog completeness |
-| Master layout | Header/footer on all HTML |
-| CTA URLs | Valid https?:// in smtp mode |
-| Long initiative titles | No layout break (smoke) |
-| Missing optional var | `rejectionReason` empty → graceful copy |
+- Admin preview REST API (C5)
+- Localization via message bundles
+- Attachments and inline images
+- Migrate `auth.EmailService` to communication templates (separate task)

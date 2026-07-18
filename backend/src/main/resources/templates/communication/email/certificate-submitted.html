@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/email-shell :: shell(~{::main})}">
+<th:block th:fragment="main" th:replace="~{fragments/email-body :: body}"/>
+</html>

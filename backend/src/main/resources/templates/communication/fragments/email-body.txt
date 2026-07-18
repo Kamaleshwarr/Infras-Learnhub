@@ -1,0 +1,31 @@
+Hello [( ${recipientName} )],
+
+[( ${message} )]
+
+[# th:if="${actorName != null}"]
+Submitted by: [( ${actorName} )]
+[/]
+
+[# th:if="${certificationName != null}"]
+Initiative: [( ${certificationName} )]
+[/]
+
+[# th:if="${projectName != null}"]
+Project: [( ${projectName} )]
+[/]
+
+[# th:if="${technologyName != null}"]
+Technology: [( ${technologyName} )]
+[/]
+
+[# th:if="${rejectionReason != null}"]
+Reason: [( ${rejectionReason} )]
+[/]
+
+[# th:if="${resetUrl != null}"]
+This link expires in [( ${expirationMinutes} )] minutes.
+[/]
+
+[# th:if="${actionUrl != null}"]
+[( ${actionLabel} )]: [( ${actionUrl} )]
+[/]
