@@ -13,6 +13,7 @@ import com.company.learninghub.communication.service.CommunicationEventSerialize
 import com.company.learninghub.communication.template.EmailTemplateRenderer;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class EmailChannelHandler {
     private final UserRepository userRepository;
     private final Clock clock;
 
+    @Autowired
     public EmailChannelHandler(
             CommunicationOutboxRepository outboxRepository,
             CommunicationEventSerializer eventSerializer,
