@@ -56,10 +56,11 @@ public class CommunicationProperties {
 
     public static class Email {
         /**
-         * Supported providers: log (development) or smtp (production).
+         * Supported providers: log (development), resend (production), or smtp (legacy).
          */
         private String provider = "log";
         private String from = "noreply@learninghub.local";
+        private Resend resend = new Resend();
 
         public String getProvider() {
             return provider;
@@ -77,8 +78,63 @@ public class CommunicationProperties {
             this.from = from;
         }
 
+        public Resend getResend() {
+            return resend;
+        }
+
+        public void setResend(Resend resend) {
+            this.resend = resend;
+        }
+
         public boolean isLogMode() {
-            return "log".equalsIgnoreCase(provider);
+            return provider == null || provider.equalsIgnoreCase("log");
+        }
+
+        public boolean isResendMode() {
+            return "resend".equalsIgnoreCase(provider);
+        }
+
+        public boolean isSmtpMode() {
+            return "smtp".equalsIgnoreCase(provider);
+        }
+    }
+
+    public static class Resend {
+        private String apiKey = "";
+        private String baseUrl = "https://api.resend.com";
+        private Duration connectTimeout = Duration.ofSeconds(10);
+        private Duration readTimeout = Duration.ofSeconds(30);
+
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
+        public String getBaseUrl() {
+            return baseUrl;
+        }
+
+        public void setBaseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+        }
+
+        public Duration getConnectTimeout() {
+            return connectTimeout;
+        }
+
+        public void setConnectTimeout(Duration connectTimeout) {
+            this.connectTimeout = connectTimeout;
+        }
+
+        public Duration getReadTimeout() {
+            return readTimeout;
+        }
+
+        public void setReadTimeout(Duration readTimeout) {
+            this.readTimeout = readTimeout;
         }
     }
 

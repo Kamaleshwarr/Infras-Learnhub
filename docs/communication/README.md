@@ -1,8 +1,8 @@
 # Communication Framework
 
-**Status:** C1 infrastructure **shipped** — C2/C3 not started  
+**Status:** C1–C4 shipped — C5 diagnostics not started  
 **Version 1 priority:** #1 — Communication Framework (Email + existing In-App Notifications)  
-**Last updated:** 2026-07-12
+**Last updated:** 2026-07-19
 
 ## C1 delivered (approved refinements)
 
@@ -12,7 +12,8 @@
 | `communication_delivery_log` | **Deferred** — no audit table until operational need |
 | Password reset migration | **Deferred** — `auth.EmailService` unchanged |
 | `CommunicationPriority` | HIGH / NORMAL / LOW — outbox poll ordering only in V1 |
-| Module integrations | **Deferred to C3** — certifications still use `NotificationService` directly |
+| Module integrations | **Shipped in C3** — certifications use Communication Framework |
+| Email providers | **C4** — `LogEmailProvider` (default) + `ResendEmailProvider` (production) |
 
 ## Purpose
 
@@ -32,7 +33,7 @@ Version 2+ may add Slack, Microsoft Teams, SMS, push, and WhatsApp without chang
 | [architecture-review.md](./architecture-review.md) | Full audit, options comparison, recommendation, risks, open decisions |
 | [communication-events.md](./communication-events.md) | Event catalog, ownership, payloads, channel mapping |
 | [template-catalog.md](./template-catalog.md) | Master layout, template inventory, variable conventions |
-| [delivery-model.md](./delivery-model.md) | Sync vs queue, retry, idempotency, audit, performance |
+| [email-providers.md](./email-providers.md) | LOG / Resend provider architecture, configuration, setup guide |
 
 ## Relationship to existing infrastructure
 
@@ -66,8 +67,9 @@ Version 2+ may add Slack, Microsoft Teams, SMS, push, and WhatsApp without chang
 | C1 | Communication Infrastructure | Events, dispatcher, channels, audit, provider abstraction |
 | C2 | Email Templates | Master layout, HTML + plain text, template catalog |
 | C3 | Module Integrations | Wire completed modules to communication events |
-| C4 | Preferences (minimal) | Global email enable + category flags if approved |
-| C5 | Diagnostics | Admin health, preview/test send |
+| C4 | Resend Email Provider | Production `ResendEmailProvider` + configuration-based provider selection |
+| C5 | Preferences (minimal) | Global email enable + category flags if approved |
+| C6 | Diagnostics | Admin health, preview/test send |
 
 Do **not** start implementation until [architecture-review.md](./architecture-review.md) is manually approved.
 
