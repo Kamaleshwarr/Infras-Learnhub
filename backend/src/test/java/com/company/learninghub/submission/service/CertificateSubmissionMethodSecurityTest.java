@@ -4,7 +4,7 @@ import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.GlobalExceptionHandler;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
-import com.company.learninghub.notification.service.NotificationService;
+import com.company.learninghub.submission.communication.CertificateCommunicationPublisher;
 import com.company.learninghub.storage.CertificateFileStorageService;
 import com.company.learninghub.storage.StorageProperties;
 import com.company.learninghub.submission.mapper.CertificateSubmissionMapper;
@@ -121,7 +121,7 @@ class CertificateSubmissionMethodSecurityTest {
                 CertificateFileStorageService fileStorageService,
                 StorageProperties storageProperties,
                 CertificateSubmissionMapper submissionMapper,
-                NotificationService notificationService
+                CertificateCommunicationPublisher certificateCommunicationPublisher
         ) {
             return new CertificateSubmissionService(
                     submissionRepository,
@@ -131,7 +131,7 @@ class CertificateSubmissionMethodSecurityTest {
                     fileStorageService,
                     storageProperties,
                     submissionMapper,
-                    notificationService,
+                    certificateCommunicationPublisher,
                     Clock.fixed(NOW, ZoneOffset.UTC)
             );
         }
@@ -174,8 +174,8 @@ class CertificateSubmissionMethodSecurityTest {
         }
 
         @Bean
-        NotificationService notificationService() {
-            return mock(NotificationService.class);
+        CertificateCommunicationPublisher certificateCommunicationPublisher() {
+            return mock(CertificateCommunicationPublisher.class);
         }
     }
 }
