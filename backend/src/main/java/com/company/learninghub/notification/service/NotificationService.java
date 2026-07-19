@@ -30,9 +30,9 @@ import java.util.UUID;
 /**
  * In-app notification inbox service.
  * <p>
- * v0.6 actively produces certificate-workflow notifications only. Account lifecycle
- * helper methods remain for schema compatibility and a future email channel; they
- * are not called by domain producers in v0.6.
+ * Certificate workflow notifications are produced by the Communication Framework (C3).
+ * Account lifecycle helper methods remain for schema compatibility and a future email workstream;
+ * they are not called by domain producers in v0.6.
  */
 @Service
 public class NotificationService {

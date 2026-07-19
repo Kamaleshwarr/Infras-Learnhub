@@ -4,7 +4,7 @@ import com.company.learninghub.auth.security.AuthenticatedUser;
 import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.initiative.domain.LearningInitiative;
 import com.company.learninghub.initiative.repository.LearningInitiativeRepository;
-import com.company.learninghub.notification.service.NotificationService;
+import com.company.learninghub.submission.communication.CertificateCommunicationPublisher;
 import com.company.learninghub.storage.CertificateFileStorageService;
 import com.company.learninghub.storage.StorageProperties;
 import com.company.learninghub.storage.StoredFile;
@@ -54,7 +54,7 @@ public class CertificateSubmissionService {
     private final CertificateFileStorageService fileStorageService;
     private final StorageProperties storageProperties;
     private final CertificateSubmissionMapper submissionMapper;
-    private final NotificationService notificationService;
+    private final CertificateCommunicationPublisher certificateCommunicationPublisher;
     private final Clock clock;
 
     @Autowired
@@ -66,7 +66,7 @@ public class CertificateSubmissionService {
             CertificateFileStorageService fileStorageService,
             StorageProperties storageProperties,
             CertificateSubmissionMapper submissionMapper,
-            NotificationService notificationService
+            CertificateCommunicationPublisher certificateCommunicationPublisher
     ) {
         this(
                 submissionRepository,
@@ -76,7 +76,7 @@ public class CertificateSubmissionService {
                 fileStorageService,
                 storageProperties,
                 submissionMapper,
-                notificationService,
+                certificateCommunicationPublisher,
                 Clock.systemUTC()
         );
     }
@@ -89,7 +89,7 @@ public class CertificateSubmissionService {
             CertificateFileStorageService fileStorageService,
             StorageProperties storageProperties,
             CertificateSubmissionMapper submissionMapper,
-            NotificationService notificationService,
+            CertificateCommunicationPublisher certificateCommunicationPublisher,
             Clock clock
     ) {
         this.submissionRepository = submissionRepository;
@@ -99,7 +99,7 @@ public class CertificateSubmissionService {
         this.fileStorageService = fileStorageService;
         this.storageProperties = storageProperties;
         this.submissionMapper = submissionMapper;
-        this.notificationService = notificationService;
+        this.certificateCommunicationPublisher = certificateCommunicationPublisher;
         this.clock = clock;
     }
 
@@ -142,7 +142,7 @@ public class CertificateSubmissionService {
                     Instant.now(clock)
             );
             CertificateSubmission savedSubmission = submissionRepository.save(submission);
-            notificationService.notifyCertificateSubmitted(savedSubmission);
+            certificateCommunicationPublisher.publishSubmitted(savedSubmission);
             return submissionMapper.toResponse(savedSubmission);
         } catch (RuntimeException ex) {
             if (storedFile != null) {
@@ -210,8 +210,9 @@ public class CertificateSubmissionService {
     public CertificateSubmissionResponse approve(UUID submissionId, AuthenticatedUser authenticatedUser) {
         CertificateSubmission submission = findSubmissionOrThrow(submissionId);
         ensureSubmitted(submission);
-        submission.approve(findUserOrThrow(authenticatedUser.getId()), Instant.now(clock));
-        notificationService.notifyCertificateApproved(submission);
+        User reviewer = findUserOrThrow(authenticatedUser.getId());
+        submission.approve(reviewer, Instant.now(clock));
+        certificateCommunicationPublisher.publishApproved(submission, reviewer);
         return submissionMapper.toResponse(submission);
     }
 
@@ -225,8 +226,9 @@ public class CertificateSubmissionService {
         String normalizedReason = normalizeRejectionReason(rejectionReason);
         CertificateSubmission submission = findSubmissionOrThrow(submissionId);
         ensureSubmitted(submission);
-        submission.reject(findUserOrThrow(authenticatedUser.getId()), Instant.now(clock), normalizedReason);
-        notificationService.notifyCertificateRejected(submission);
+        User reviewer = findUserOrThrow(authenticatedUser.getId());
+        submission.reject(reviewer, Instant.now(clock), normalizedReason);
+        certificateCommunicationPublisher.publishRejected(submission, reviewer);
         return submissionMapper.toResponse(submission);
     }
 

@@ -1,13 +1,46 @@
 # Communication Events Catalog
 
-**Status:** Design specification — not implemented  
+**Status:** Implemented for certificate workflow (C3); other events remain planned  
 **Companion:** [architecture-review.md](./architecture-review.md)
 
 Events are immutable records published by domain services **after** successful business transactions. The Communication Framework maps each event to one or more channels.
 
 ---
 
-## Event record shape (proposed)
+## Certificate event flow (C3 — implemented)
+
+```text
+CertificateSubmissionService
+  submit()   → CertificateCommunicationPublisher.publishSubmitted()
+  approve()  → CertificateCommunicationPublisher.publishApproved()
+  reject()   → CertificateCommunicationPublisher.publishRejected()
+        ↓
+CommunicationService.publish(CommunicationEvent)
+        ↓
+CommunicationDispatcher
+  ├─ IN_APP  → InAppChannelHandler → notifications (existing UI)
+  └─ EMAIL   → EmailChannelHandler → communication_outbox → EmailTemplateRenderer
+```
+
+### Template mapping (certificate)
+
+| Event | Email template | In-app title |
+|-------|----------------|--------------|
+| `CERTIFICATE_SUBMITTED` | `certificate-submitted` | New certificate submission |
+| `CERTIFICATE_APPROVED` | `certificate-approved` | Certificate approved |
+| `CERTIFICATE_REJECTED` | `certificate-rejected` | Certificate rejected |
+
+### Idempotency key (implemented)
+
+```text
+{eventType}:{submissionId}:{recipientUserId}
+```
+
+Email outbox appends `:EMAIL` in `EmailChannelHandler`.
+
+---
+
+## Event record shape
 
 ```java
 public record CommunicationEvent(
@@ -60,9 +93,9 @@ Duplicate publish with same key → delivery log returns existing result; no sec
 | `ACCOUNT_CREATED` | user | `UserManagementService.createUser` / import row |
 | `ACCOUNT_ACTIVATED` | user | `UserManagementService.activate` |
 | `ACCOUNT_DEACTIVATED` | user | `UserManagementService.deactivate` |
-| `CERTIFICATE_SUBMITTED` | submission | `CertificateSubmissionService.create` |
-| `CERTIFICATE_APPROVED` | submission | `CertificateSubmissionService.approve` |
-| `CERTIFICATE_REJECTED` | submission | `CertificateSubmissionService.reject` |
+| `CERTIFICATE_SUBMITTED` | submission | `CertificateSubmissionService.submit` → `CertificateCommunicationPublisher` |
+| `CERTIFICATE_APPROVED` | submission | `CertificateSubmissionService.approve` → `CertificateCommunicationPublisher` |
+| `CERTIFICATE_REJECTED` | submission | `CertificateSubmissionService.reject` → `CertificateCommunicationPublisher` |
 | `LEARNING_STAGE_COMPLETED` | learn | `LearningProgressService.completeStage` |
 | `LEARNING_ROADMAP_COMPLETED` | learn | `LearningProgressService` on final stage |
 | `CONTINUE_LEARNING_REMINDER` | learn | Scheduled job (deferred C3b) |
@@ -129,9 +162,9 @@ Duplicate publish with same key → delivery log returns existing result; no sec
 | Recipients | **Each active ADMIN** (fan-out) |
 | Entity | `CERTIFICATE_SUBMISSION`, submission id |
 | actionPath | `/submissions/review` |
-| Template | `certificate-submitted-admin` |
-| Variables | `employeeName`, `initiativeTitle`, `submittedAt`, `reviewUrl` |
-| Replaces | `NotificationService.notifyCertificateSubmitted` |
+| Template | `certificate-submitted` |
+| Variables | `title`, `message`, `actorName`, `initiativeTitle`, `certificationName` |
+| Replaces | `NotificationService.notifyCertificateSubmitted` (C3) |
 
 #### `CERTIFICATE_APPROVED`
 
