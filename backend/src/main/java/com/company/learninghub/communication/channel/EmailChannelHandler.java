@@ -10,7 +10,7 @@ import com.company.learninghub.communication.email.EmailMessage;
 import com.company.learninghub.communication.email.EmailProvider;
 import com.company.learninghub.communication.repository.CommunicationOutboxRepository;
 import com.company.learninghub.communication.service.CommunicationEventSerializer;
-import com.company.learninghub.communication.template.SimpleEmailContentBuilder;
+import com.company.learninghub.communication.template.EmailTemplateRenderer;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class EmailChannelHandler {
     private final CommunicationEventSerializer eventSerializer;
     private final CommunicationProperties communicationProperties;
     private final EmailProvider emailProvider;
-    private final SimpleEmailContentBuilder emailContentBuilder;
+    private final EmailTemplateRenderer emailTemplateRenderer;
     private final UserRepository userRepository;
     private final Clock clock;
 
@@ -40,7 +40,7 @@ public class EmailChannelHandler {
             CommunicationEventSerializer eventSerializer,
             CommunicationProperties communicationProperties,
             EmailProvider emailProvider,
-            SimpleEmailContentBuilder emailContentBuilder,
+            EmailTemplateRenderer emailTemplateRenderer,
             UserRepository userRepository
     ) {
         this(
@@ -48,7 +48,7 @@ public class EmailChannelHandler {
                 eventSerializer,
                 communicationProperties,
                 emailProvider,
-                emailContentBuilder,
+                emailTemplateRenderer,
                 userRepository,
                 Clock.systemUTC()
         );
@@ -59,7 +59,7 @@ public class EmailChannelHandler {
             CommunicationEventSerializer eventSerializer,
             CommunicationProperties communicationProperties,
             EmailProvider emailProvider,
-            SimpleEmailContentBuilder emailContentBuilder,
+            EmailTemplateRenderer emailTemplateRenderer,
             UserRepository userRepository,
             Clock clock
     ) {
@@ -67,7 +67,7 @@ public class EmailChannelHandler {
         this.eventSerializer = eventSerializer;
         this.communicationProperties = communicationProperties;
         this.emailProvider = emailProvider;
-        this.emailContentBuilder = emailContentBuilder;
+        this.emailTemplateRenderer = emailTemplateRenderer;
         this.userRepository = userRepository;
         this.clock = clock;
     }
@@ -109,7 +109,7 @@ public class EmailChannelHandler {
             return;
         }
 
-        EmailMessage message = emailContentBuilder.build(recipient, event);
+        EmailMessage message = emailTemplateRenderer.buildEmailMessage(recipient, event);
         EmailDeliveryResult result = emailProvider.send(message);
         if (result.success()) {
             entry.markSent(now);

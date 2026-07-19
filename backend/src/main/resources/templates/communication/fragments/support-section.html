@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<td th:fragment="support" class="support-section">
+    <div th:if="${supportEmail != null}">
+        Need help? Contact <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support@learninghub.local</a>
+        or your platform administrator.
+    </div>
+</td>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="body">
+    <p class="greeting" th:text="'Hello ' + ${recipientName} + ','">Hello,</p>
+    <p th:text="${message}">Message</p>
+    <p th:if="${actorName != null}">
+        <span class="detail-label">Submitted by</span><br/>
+        <span class="detail-value" th:text="${actorName}">Actor</span>
+    </p>
+    <p th:if="${certificationName != null}">
+        <span class="detail-label">Initiative</span><br/>
+        <span class="detail-value" th:text="${certificationName}">Initiative</span>
+    </p>
+    <p th:if="${projectName != null}">
+        <span class="detail-label">Project</span><br/>
+        <span class="detail-value" th:text="${projectName}">Project</span>
+    </p>
+    <p th:if="${technologyName != null}">
+        <span class="detail-label">Technology</span><br/>
+        <span class="detail-value" th:text="${technologyName}">Technology</span>
+    </p>
+    <p th:if="${rejectionReason != null}">
+        <span class="detail-label">Reason</span><br/>
+        <span class="detail-value" th:text="${rejectionReason}">Reason</span>
+    </p>
+    <p th:if="${resetUrl != null}">
+        <span class="detail-label">This link expires in</span>
+        <span class="detail-value" th:text="${expirationMinutes} + ' minutes'">60 minutes</span>
+    </p>
+    <div th:if="${actionUrl != null}" th:replace="~{fragments/cta-button :: cta}"></div>
+</div>
+</html>

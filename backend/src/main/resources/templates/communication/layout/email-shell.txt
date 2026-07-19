@@ -1,0 +1,12 @@
+Engineering Learning Hub
+========================
+
+[# th:insert="~{fragments/email-body}" /]
+
+---
+[# th:if="${supportEmail != null}"]
+Need help? Contact [( ${supportEmail} )] or your platform administrator.
+[/]
+
+This is an automated message from Engineering Learning Hub.
+© [( ${currentYear} )] Engineering Learning Hub. All rights reserved.
