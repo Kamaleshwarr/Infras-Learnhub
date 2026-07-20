@@ -14,10 +14,14 @@ public class EmailProviderConfiguration {
     public EmailProvider emailProvider(
             CommunicationProperties communicationProperties,
             LogEmailProvider logEmailProvider,
+            ResendEmailProvider resendEmailProvider,
             @Autowired(required = false) SmtpEmailProvider smtpEmailProvider
     ) {
         if (communicationProperties.getEmail().isLogMode()) {
             return logEmailProvider;
+        }
+        if (communicationProperties.getEmail().isResendMode()) {
+            return resendEmailProvider;
         }
         if (smtpEmailProvider != null) {
             return smtpEmailProvider;

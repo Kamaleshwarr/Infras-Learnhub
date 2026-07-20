@@ -94,6 +94,11 @@ app:
     email:
       provider: ${APP_COMMUNICATION_EMAIL_PROVIDER:log}
       from: ${APP_MAIL_FROM:noreply@learninghub.local}
+      resend:
+        api-key: ${APP_COMMUNICATION_EMAIL_RESEND_API_KEY:}
+        base-url: ${APP_COMMUNICATION_EMAIL_RESEND_BASE_URL:https://api.resend.com}
+        connect-timeout: ${APP_COMMUNICATION_EMAIL_RESEND_CONNECT_TIMEOUT:PT10S}
+        read-timeout: ${APP_COMMUNICATION_EMAIL_RESEND_READ_TIMEOUT:PT30S}
     outbox:
       poll-interval: ${APP_COMMUNICATION_OUTBOX_POLL_INTERVAL:PT10S}
       batch-size: ${APP_COMMUNICATION_OUTBOX_BATCH_SIZE:20}
