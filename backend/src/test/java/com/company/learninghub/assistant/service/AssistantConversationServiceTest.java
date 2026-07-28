@@ -6,6 +6,7 @@ import com.company.learninghub.assistant.domain.AssistantMessageRole;
 import com.company.learninghub.assistant.repository.AssistantConversationRepository;
 import com.company.learninghub.assistant.repository.AssistantMessageRepository;
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.user.domain.Role;
 import com.company.learninghub.user.domain.RoleName;
 import com.company.learninghub.user.domain.User;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -104,6 +107,39 @@ class AssistantConversationServiceTest {
         assertThat(message.getContent()).isEqualTo("Hello");
         assertThat(message.getCreatedAt()).isEqualTo(FIXED_NOW);
         assertThat(conversation.getUpdatedAt()).isEqualTo(FIXED_NOW);
+    }
+
+    @Test
+    void resolveConversationCreatesConversationWhenIdMissing() {
+        when(conversationRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(conversationRepository.save(any(AssistantConversation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AssistantConversation conversation = conversationService.resolveConversation(authenticatedUser, null);
+
+        assertThat(conversation.getUser()).isSameAs(user);
+    }
+
+    @Test
+    void resolveConversationReturnsExistingConversationWhenIdMatches() {
+        UUID conversationId = UUID.randomUUID();
+        AssistantConversation conversation = new AssistantConversation(user, FIXED_NOW, FIXED_NOW);
+        ReflectionTestUtils.setField(conversation, "id", conversationId);
+        when(conversationRepository.findByUserId(user.getId())).thenReturn(Optional.of(conversation));
+
+        AssistantConversation resolved = conversationService.resolveConversation(authenticatedUser, conversationId);
+
+        assertThat(resolved).isSameAs(conversation);
+    }
+
+    @Test
+    void resolveConversationThrowsWhenIdDoesNotMatch() {
+        AssistantConversation conversation = new AssistantConversation(user, FIXED_NOW, FIXED_NOW);
+        ReflectionTestUtils.setField(conversation, "id", UUID.randomUUID());
+        when(conversationRepository.findByUserId(user.getId())).thenReturn(Optional.of(conversation));
+
+        assertThatThrownBy(() -> conversationService.resolveConversation(authenticatedUser, UUID.randomUUID()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     private static User employeeUser() {

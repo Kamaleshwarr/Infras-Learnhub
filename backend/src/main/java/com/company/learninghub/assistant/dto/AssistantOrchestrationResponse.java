@@ -8,12 +8,14 @@ public record AssistantOrchestrationResponse(
         AssistantIntentType intentType,
         NavigationInstruction navigation,
         ToolResult toolResult,
+        String toolName,
         String message
 ) {
 
     public static AssistantOrchestrationResponse disabled() {
         return new AssistantOrchestrationResponse(
                 AssistantOutcomeType.DISABLED,
+                null,
                 null,
                 null,
                 null,
@@ -27,24 +29,31 @@ public record AssistantOrchestrationResponse(
                 intentType,
                 navigation,
                 null,
+                null,
                 "Navigate to " + navigation.label() + "."
         );
     }
 
-    public static AssistantOrchestrationResponse tool(AssistantIntentType intentType, ToolResult toolResult) {
+    public static AssistantOrchestrationResponse tool(
+            AssistantIntentType intentType,
+            String toolName,
+            ToolResult toolResult
+    ) {
         return new AssistantOrchestrationResponse(
                 AssistantOutcomeType.TOOL,
                 intentType,
                 null,
                 toolResult,
+                toolName,
                 toolResult.text()
         );
     }
 
-    public static AssistantOrchestrationResponse knowledgePlaceholder(String message) {
+    public static AssistantOrchestrationResponse knowledge(String message) {
         return new AssistantOrchestrationResponse(
                 AssistantOutcomeType.KNOWLEDGE,
                 AssistantIntentType.KNOWLEDGE,
+                null,
                 null,
                 null,
                 message
@@ -55,6 +64,7 @@ public record AssistantOrchestrationResponse(
         return new AssistantOrchestrationResponse(
                 AssistantOutcomeType.UNKNOWN,
                 AssistantIntentType.UNKNOWN,
+                null,
                 null,
                 null,
                 message

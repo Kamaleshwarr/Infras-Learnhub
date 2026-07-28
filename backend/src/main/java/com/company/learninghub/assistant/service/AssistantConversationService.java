@@ -4,9 +4,12 @@ import com.company.learninghub.assistant.config.AssistantProperties;
 import com.company.learninghub.assistant.domain.AssistantConversation;
 import com.company.learninghub.assistant.domain.AssistantMessage;
 import com.company.learninghub.assistant.domain.AssistantMessageRole;
+import com.company.learninghub.assistant.dto.ConversationResponse;
+import com.company.learninghub.assistant.mapper.AssistantMapper;
 import com.company.learninghub.assistant.repository.AssistantConversationRepository;
 import com.company.learninghub.assistant.repository.AssistantMessageRepository;
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import com.company.learninghub.common.exception.ResourceNotFoundException;
 import com.company.learninghub.user.domain.User;
 import com.company.learninghub.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +75,47 @@ public class AssistantConversationService {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @Transactional(readOnly = true)
+    public ConversationResponse getConversationResponse(AuthenticatedUser authenticatedUser) {
+        AssistantConversation conversation = getConversationForUser(authenticatedUser);
+        if (conversation == null) {
+            return new ConversationResponse(null, List.of());
+        }
+        List<AssistantMessage> messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversation.getId());
+        return AssistantMapper.toConversationResponse(conversation, messages);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Transactional
+    public AssistantConversation resolveConversation(AuthenticatedUser authenticatedUser, UUID conversationId) {
+        if (conversationId == null) {
+            return getOrCreateConversation(authenticatedUser);
+        }
+
+        AssistantConversation conversation = conversationRepository.findByUserId(authenticatedUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+
+        if (!conversation.getId().equals(conversationId)) {
+            throw new ResourceNotFoundException("Conversation not found");
+        }
+
+        return conversation;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Transactional
+    public AssistantMessage appendMessage(
+            AssistantConversation conversation,
+            AssistantMessageRole role,
+            String content
+    ) {
+        Instant now = clock.instant();
+        conversation.touch(now);
+        AssistantMessage message = new AssistantMessage(conversation, role, content, now);
+        return messageRepository.save(message);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @Transactional
     public AssistantMessage appendMessage(
             AuthenticatedUser authenticatedUser,
@@ -79,10 +123,7 @@ public class AssistantConversationService {
             String content
     ) {
         AssistantConversation conversation = getOrCreateConversation(authenticatedUser);
-        Instant now = clock.instant();
-        conversation.touch(now);
-        AssistantMessage message = new AssistantMessage(conversation, role, content, now);
-        return messageRepository.save(message);
+        return appendMessage(conversation, role, content);
     }
 
     private AssistantConversation createConversation(UUID userId) {

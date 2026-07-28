@@ -1,15 +1,22 @@
 package com.company.learninghub.assistant.service;
 
 import com.company.learninghub.assistant.config.AssistantProperties;
+import com.company.learninghub.assistant.domain.AssistantConversation;
+import com.company.learninghub.assistant.domain.AssistantMessage;
+import com.company.learninghub.assistant.domain.AssistantMessageRole;
 import com.company.learninghub.assistant.dto.AssistantOrchestrationResponse;
 import com.company.learninghub.assistant.dto.AssistantOutcomeType;
 import com.company.learninghub.assistant.dto.AssistantRequest;
+import com.company.learninghub.assistant.dto.AssistantResponse;
+import com.company.learninghub.assistant.dto.AssistantSourceConfidence;
 import com.company.learninghub.assistant.dto.AssistantStatusResponse;
+import com.company.learninghub.assistant.dto.ConversationResponse;
 import com.company.learninghub.assistant.intent.AssistantIntentType;
 import com.company.learninghub.assistant.intent.IntentResolver;
 import com.company.learninghub.assistant.intent.NavigationTarget;
 import com.company.learninghub.assistant.intent.ResolvedIntent;
 import com.company.learninghub.assistant.llm.LlmClient;
+import com.company.learninghub.assistant.llm.LlmCompletionResult;
 import com.company.learninghub.assistant.tool.AssistantToolContext;
 import com.company.learninghub.assistant.tool.AssistantToolNames;
 import com.company.learninghub.assistant.tool.AssistantToolRegistry;
@@ -21,13 +28,20 @@ import com.company.learninghub.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,9 +57,13 @@ class AssistantOrchestrationServiceTest {
     @Mock
     private AssistantToolRegistry toolRegistry;
 
+    @Mock
+    private AssistantConversationService conversationService;
+
     private AssistantProperties assistantProperties;
     private AssistantOrchestrationService service;
     private AuthenticatedUser authenticatedUser;
+    private AssistantConversation conversation;
 
     @BeforeEach
     void setUp() {
@@ -54,11 +72,13 @@ class AssistantOrchestrationServiceTest {
                 assistantProperties,
                 llmClient,
                 intentResolver,
-                toolRegistry
+                toolRegistry,
+                conversationService
         );
         User user = new User("EMP001", "employee@learninghub.local", "Employee", "hash");
         user.assignRole(new Role(RoleName.EMPLOYEE));
         authenticatedUser = AuthenticatedUser.from(user);
+        conversation = new AssistantConversation(user, Instant.parse("2026-07-28T10:00:00Z"), Instant.parse("2026-07-28T10:00:00Z"));
     }
 
     @Test
@@ -80,7 +100,7 @@ class AssistantOrchestrationServiceTest {
         assistantProperties.setEnabled(false);
 
         AssistantOrchestrationResponse response = service.processRequest(
-                new AssistantRequest("my profile"),
+                new AssistantRequest("my profile", null),
                 authenticatedUser
         );
 
@@ -95,7 +115,7 @@ class AssistantOrchestrationServiceTest {
                 .thenReturn(ResolvedIntent.navigation(new NavigationTarget("/projects", "Projects"), "open projects"));
 
         AssistantOrchestrationResponse response = service.processRequest(
-                new AssistantRequest("open projects"),
+                new AssistantRequest("open projects", null),
                 authenticatedUser
         );
 
@@ -114,38 +134,106 @@ class AssistantOrchestrationServiceTest {
         when(toolRegistry.execute(eq(intent), any(AssistantToolContext.class))).thenReturn(toolResult);
 
         AssistantOrchestrationResponse response = service.processRequest(
-                new AssistantRequest("my profile"),
+                new AssistantRequest("my profile", null),
                 authenticatedUser
         );
 
         assertThat(response.outcomeType()).isEqualTo(AssistantOutcomeType.TOOL);
         assertThat(response.toolResult()).isEqualTo(toolResult);
+        assertThat(response.toolName()).isEqualTo(AssistantToolNames.MY_PROFILE);
     }
 
     @Test
-    void processRequestReturnsKnowledgePlaceholder() {
+    void processRequestUsesMockLlmForKnowledge() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("what is docker")).thenReturn(ResolvedIntent.knowledge("what is docker"));
+        when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success("Docker explanation", "mock-mode"));
 
         AssistantOrchestrationResponse response = service.processRequest(
-                new AssistantRequest("what is docker"),
+                new AssistantRequest("what is docker", null),
                 authenticatedUser
         );
 
         assertThat(response.outcomeType()).isEqualTo(AssistantOutcomeType.KNOWLEDGE);
-        assertThat(response.message()).contains("not available yet");
+        assertThat(response.message()).isEqualTo("Docker explanation");
+        verify(llmClient).complete(any());
     }
 
     @Test
-    void processRequestReturnsUnknownOutcome() {
+    void processRequestUsesMockLlmForUnknown() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("???")).thenReturn(ResolvedIntent.unknown(""));
+        when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success(
+                "I don't currently have enough information to answer this. Future versions will support broader AI knowledge.",
+                "mock-mode"
+        ));
 
         AssistantOrchestrationResponse response = service.processRequest(
-                new AssistantRequest("???"),
+                new AssistantRequest("???", null),
                 authenticatedUser
         );
 
         assertThat(response.outcomeType()).isEqualTo(AssistantOutcomeType.UNKNOWN);
+        assertThat(response.message()).contains("don't currently have enough information");
+    }
+
+    @Test
+    void chatPersistsUserAndAssistantMessages() {
+        assistantProperties.setEnabled(true);
+        when(conversationService.resolveConversation(authenticatedUser, null)).thenReturn(conversation);
+        when(intentResolver.resolve("my profile"))
+                .thenReturn(ResolvedIntent.tool(AssistantToolNames.MY_PROFILE, "my profile"));
+        when(toolRegistry.execute(any(), any(AssistantToolContext.class)))
+                .thenReturn(ToolResult.text("Profile ready"));
+        when(conversationService.appendMessage(eq(conversation), any(), any()))
+                .thenAnswer(invocation -> new AssistantMessage(
+                        conversation,
+                        invocation.getArgument(1),
+                        invocation.getArgument(2),
+                        Instant.parse("2026-07-28T10:00:00Z")
+                ));
+
+        AssistantResponse response = service.chat(new AssistantRequest("my profile", null), authenticatedUser);
+
+        assertThat(response.response()).isEqualTo("Profile ready");
+        assertThat(response.conversationId()).isEqualTo(conversation.getId());
+        assertThat(response.intentType()).isEqualTo(AssistantIntentType.TOOL);
+        assertThat(response.toolUsed()).isEqualTo(AssistantToolNames.MY_PROFILE);
+        assertThat(response.sources()).hasSize(1);
+        assertThat(response.sources().getFirst().confidence()).isEqualTo(AssistantSourceConfidence.HIGH);
+
+        ArgumentCaptor<AssistantMessageRole> roleCaptor = ArgumentCaptor.forClass(AssistantMessageRole.class);
+        verify(conversationService, times(2)).appendMessage(eq(conversation), roleCaptor.capture(), any());
+        assertThat(roleCaptor.getAllValues()).containsExactly(
+                AssistantMessageRole.USER,
+                AssistantMessageRole.ASSISTANT
+        );
+    }
+
+    @Test
+    void chatThrowsWhenFeatureDisabled() {
+        assistantProperties.setEnabled(false);
+
+        assertThatThrownBy(() -> service.chat(new AssistantRequest("hello", null), authenticatedUser))
+                .isInstanceOf(AssistantDisabledException.class);
+    }
+
+    @Test
+    void getConversationRequiresFeatureEnabled() {
+        assistantProperties.setEnabled(false);
+
+        assertThatThrownBy(() -> service.getConversation(authenticatedUser))
+                .isInstanceOf(AssistantDisabledException.class);
+    }
+
+    @Test
+    void getConversationReturnsHistoryWhenEnabled() {
+        assistantProperties.setEnabled(true);
+        when(conversationService.getConversationResponse(authenticatedUser))
+                .thenReturn(new ConversationResponse(UUID.randomUUID(), List.of()));
+
+        ConversationResponse response = service.getConversation(authenticatedUser);
+
+        assertThat(response.messages()).isEmpty();
     }
 }
