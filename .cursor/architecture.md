@@ -822,9 +822,9 @@ Full API reference: `docs/learn/api-reference.md`
 
 ---
 
-## AI Assistant Module (Phase 1 Foundation)
+## AI Assistant Module (Phase 1 Foundation + Phase 2 Intent & Tools)
 
-**Status:** Phase 1 foundation — feature flag disabled by default  
+**Status:** Phase 2 intent resolution and read-only tools — feature flag disabled by default  
 **Package:** `com.company.learninghub.assistant`
 
 ### Configuration
@@ -853,19 +853,60 @@ Selection via `LlmClientConfiguration` + `AssistantProperties`.
 | `assistant_conversations` | One conversation per user (`UNIQUE user_id`) |
 | `assistant_messages` | `USER`, `ASSISTANT`, `SYSTEM` roles |
 
-### APIs (Phase 1)
+### APIs (Phase 1–2)
 
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/v1/assistant/status` | Deployment assistant availability and LLM provider health |
 
-**Deferred:** chat endpoint, intent resolver, tool execution, frontend panel.
+**Deferred:** chat endpoint, LLM orchestration, frontend panel.
+
+### Orchestration flow (Phase 2)
+
+```text
+AssistantRequest
+    ↓
+IntentResolver
+    ├─ NAVIGATION → NavigationInstruction (no LLM)
+    ├─ TOOL → AssistantToolRegistry → ToolResult (read-only services)
+    ├─ KNOWLEDGE → placeholder response (Phase 3)
+    └─ UNKNOWN → guided fallback message
+```
+
+### Intent resolution
+
+| Type | Resolver | Examples |
+|------|----------|----------|
+| `NAVIGATION` | `NavigationIntentResolver` | Open Projects, Go to Learn, Open Leaderboards, Open Dashboard |
+| `TOOL` | `IntentResolver` keyword routing | My Profile, My Leaderboard Rank, My Certifications, Available Learning Initiatives |
+| `KNOWLEDGE` | Heuristic patterns | what is, how does, explain (placeholder only) |
+| `UNKNOWN` | Fallback | Unrecognized input |
+
+### Tool registry
+
+`AssistantTool` contract: `getName()`, `supports(ResolvedIntent)`, `execute(AssistantToolContext)`.
+
+`AssistantToolRegistry` registers Spring beans and delegates execution. Tools call existing services only — no repositories, no mutations.
+
+| Tool | Service |
+|------|---------|
+| `my-profile` | `ProfileService.getProfile` |
+| `my-leaderboard-rank` | `LeaderboardService.getPersonalRanking` |
+| `my-certifications` | `CertificateSubmissionService.listOwn` / `listAll` (admin) |
+| `available-learning-initiatives` | `LearningInitiativeService.list` |
+
+### ToolResult
+
+Supports plain text, structured data, and extension fields for future citations, source references, markdown, and metadata.
 
 ### Services
 
 | Service | Responsibility |
 |---------|----------------|
-| `AssistantOrchestrationService` | Status reporting (orchestration skeleton) |
+| `AssistantOrchestrationService` | Status reporting + intent/tool orchestration (`processRequest`) |
 | `AssistantConversationService` | User-scoped conversation persistence |
+| `IntentResolver` | Classifies incoming assistant requests |
+| `NavigationIntentResolver` | Maps navigation phrases to frontend routes |
+| `AssistantToolRegistry` | Tool discovery and execution |
 
-**Report:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`
+**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`
