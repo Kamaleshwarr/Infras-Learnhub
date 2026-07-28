@@ -24,6 +24,8 @@ EmailProvider (interface)
 
 Provider selection is configuration-driven via `EmailProviderConfiguration`.
 
+All application emails — including password reset (C5) — use this pipeline. There is no separate legacy auth email path.
+
 ---
 
 ## Supported providers
