@@ -35,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -225,6 +226,7 @@ class AssistantOrchestrationServiceTest {
         assertThat(response.conversationId()).isEqualTo(conversation.getId());
         assertThat(response.intentType()).isEqualTo(AssistantIntentType.TOOL);
         assertThat(response.toolUsed()).isEqualTo(AssistantToolNames.MY_PROFILE);
+        assertThat(response.confidence()).isEqualTo(AssistantSourceConfidence.HIGH);
         assertThat(response.sources()).hasSize(1);
         assertThat(response.sources().getFirst().confidence()).isEqualTo(AssistantSourceConfidence.HIGH);
 
@@ -242,6 +244,45 @@ class AssistantOrchestrationServiceTest {
 
         assertThatThrownBy(() -> service.chat(new AssistantRequest("hello", null), authenticatedUser))
                 .isInstanceOf(AssistantDisabledException.class);
+    }
+
+    @Test
+    void processRequestIncludesToolGroundingMetadata() {
+        assistantProperties.setEnabled(true);
+        ToolResult toolResult = ToolResult.structured("Rank 3", Map.of("rank", 3));
+        when(intentResolver.resolve("my leaderboard rank"))
+                .thenReturn(ResolvedIntent.tool(AssistantToolNames.MY_LEADERBOARD_RANK, "my leaderboard rank"));
+        when(toolRegistry.execute(any(), any(AssistantToolContext.class))).thenReturn(toolResult);
+        when(promptOrchestrator.buildToolGroundedRequest(
+                eq("my leaderboard rank"),
+                eq(AssistantToolNames.MY_LEADERBOARD_RANK),
+                eq(toolResult),
+                any()
+        )).thenReturn(new com.company.learninghub.assistant.llm.LlmCompletionRequest("system", List.of()));
+        when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success("Rank 3", "mock-mode-tool"));
+        when(conversationService.resolveConversation(authenticatedUser, null)).thenReturn(conversation);
+        when(conversationService.listMessages(authenticatedUser)).thenReturn(List.of());
+        when(conversationService.appendMessage(eq(conversation), any(), any()))
+                .thenAnswer(invocation -> new AssistantMessage(
+                        conversation,
+                        invocation.getArgument(1),
+                        invocation.getArgument(2),
+                        Instant.parse("2026-07-28T10:00:00Z")
+                ));
+
+        AssistantResponse response = service.chat(
+                new AssistantRequest("my leaderboard rank", null),
+                authenticatedUser
+        );
+
+        assertThat(response.toolUsed()).isEqualTo(AssistantToolNames.MY_LEADERBOARD_RANK);
+        assertThat(response.confidence()).isEqualTo(AssistantSourceConfidence.HIGH);
+        assertThat(response.metadata()).containsKey("grounding");
+        assertThat(response.metadata().get("grounding")).isInstanceOf(Map.class);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> grounding = (Map<String, Object>) response.metadata().get("grounding");
+        assertThat(grounding.get("authoritative")).isEqualTo(true);
+        assertThat(grounding.get("summary")).isEqualTo("Rank 3");
     }
 
     @Test

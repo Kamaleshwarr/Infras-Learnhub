@@ -822,9 +822,9 @@ Full API reference: `docs/learn/api-reference.md`
 
 ---
 
-## AI Assistant Module (Phase 1–4)
+## AI Assistant Module (Phase 1–4A)
 
-**Status:** Phase 4 frontend + real LLM integration — feature flag disabled by default  
+**Status:** Phase 4 frontend + Phase 4A real LLM integration (backend) — feature flag disabled by default  
 **Package:** `com.company.learninghub.assistant`
 
 ### Configuration
@@ -833,6 +833,9 @@ Full API reference: `docs/learn/api-reference.md`
 |----------|---------|---------|
 | `app.assistant.enabled` | `false` | Master feature flag |
 | `app.assistant.llm.provider` | `mock` | `mock` or `openai-compatible` |
+| `app.assistant.llm.openai-compatible.base-url` | `https://api.openai.com` | Provider endpoint (OpenAI, Ollama, OpenRouter, Groq) |
+| `app.assistant.llm.openai-compatible.api-key` | empty | Bearer token (optional for local Ollama) |
+| `app.assistant.llm.openai-compatible.model` | `gpt-4o-mini` | Model name for the configured provider |
 
 ### LLM provider abstraction
 
@@ -846,7 +849,7 @@ LlmClient (interface)
 
 `PromptOrchestrator` builds grounded LLM requests from user messages, conversation history, and `ToolResult` data.
 
-Selection via `LlmClientConfiguration` + `AssistantProperties`.
+Selection via `LlmClientConfiguration` + `AssistantProperties`. Provider endpoints (Ollama, OpenAI, OpenRouter, Groq) are configured through `base-url` and `model` only — no hardcoded provider logic.
 
 ### Database (V21)
 
@@ -882,16 +885,18 @@ IntentResolver
     ↓
 Persist ASSISTANT response
     ↓
-AssistantResponse (response, conversationId, intentType, toolUsed, sources, metadata)
+AssistantResponse (response, conversationId, intentType, toolUsed, sources, confidence, metadata)
 ```
 
-### AssistantResponse sources
+### AssistantResponse fields
 
-| Outcome | Sources |
-|---------|---------|
-| Tool | Service name + tool name, confidence `HIGH` |
-| Knowledge / Unknown | Configured `LlmClient` provider, confidence `LOW` |
-| Navigation | Empty sources; navigation in metadata |
+- `response`, `conversationId`, `intentType`, `toolUsed`, `sources`, `confidence`, `metadata`
+
+| Outcome | Sources | Confidence |
+|---------|---------|------------|
+| Tool | Service name + tool name | `HIGH` |
+| Knowledge / Unknown (LLM) | LLM provider name | `LOW` |
+| Navigation | Empty sources | — |
 
 ### Intent resolution
 
@@ -930,6 +935,6 @@ Supports plain text, structured data, and extension fields for future citations,
 | `NavigationIntentResolver` | Maps navigation phrases to frontend routes |
 | `AssistantToolRegistry` | Tool discovery and execution |
 
-**Frontend:** floating `AssistantWidget` in `AppLayout` — FAB, chat panel, history, loading/error/empty states; disabled when `GET /assistant/status` reports `enabled=false`.
+**Frontend:** floating `AssistantWidget` in `AppLayout` — FAB, chat panel, history, navigation buttons, loading/error/empty states; disabled when `GET /assistant/status` reports `enabled=false`.
 
-**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`, `docs/releases/release-ai-assistant-phase4-frontend-llm-report.md`
+**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`, `docs/releases/release-ai-assistant-phase4-frontend-llm-report.md`, `docs/releases/release-ai-assistant-phase4a-llm-backend-report.md`

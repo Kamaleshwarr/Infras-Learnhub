@@ -191,6 +191,7 @@ public class AssistantOrchestrationService {
                 orchestration.intentType(),
                 resolveToolUsed(orchestration),
                 resolveSources(orchestration),
+                resolveConfidence(orchestration),
                 resolveMetadata(orchestration)
         );
     }
@@ -200,6 +201,14 @@ public class AssistantOrchestrationService {
             return null;
         }
         return orchestration.toolName();
+    }
+
+    private AssistantSourceConfidence resolveConfidence(AssistantOrchestrationResponse orchestration) {
+        return switch (orchestration.outcomeType()) {
+            case TOOL -> AssistantSourceConfidence.HIGH;
+            case KNOWLEDGE, UNKNOWN -> AssistantSourceConfidence.LOW;
+            default -> null;
+        };
     }
 
     private List<AssistantSourceResponse> resolveSources(AssistantOrchestrationResponse orchestration) {
@@ -235,11 +244,13 @@ public class AssistantOrchestrationService {
         }
 
         if (orchestration.outcomeType() == AssistantOutcomeType.TOOL && orchestration.toolResult() != null) {
-            if (orchestration.toolResult().structuredData() != null) {
-                metadata.put("structuredData", orchestration.toolResult().structuredData());
+            ToolResult toolResult = orchestration.toolResult();
+            metadata.put("grounding", buildToolGroundingMetadata(orchestration.toolName(), toolResult));
+            if (toolResult.structuredData() != null) {
+                metadata.put("structuredData", toolResult.structuredData());
             }
-            if (!orchestration.toolResult().metadata().isEmpty()) {
-                metadata.put("toolMetadata", orchestration.toolResult().metadata());
+            if (!toolResult.metadata().isEmpty()) {
+                metadata.put("toolMetadata", toolResult.metadata());
             }
         }
 
@@ -249,6 +260,19 @@ public class AssistantOrchestrationService {
         }
 
         return metadata;
+    }
+
+    private Map<String, Object> buildToolGroundingMetadata(String toolName, ToolResult toolResult) {
+        Map<String, Object> grounding = new LinkedHashMap<>();
+        grounding.put("toolName", toolName);
+        grounding.put("source", TOOL_SERVICE_NAMES.getOrDefault(toolName, "AssistantTool"));
+        grounding.put("confidence", AssistantSourceConfidence.HIGH.name());
+        grounding.put("summary", toolResult.text());
+        if (toolResult.structuredData() != null) {
+            grounding.put("structuredData", toolResult.structuredData());
+        }
+        grounding.put("authoritative", true);
+        return grounding;
     }
 
     private void requireEnabled() {
