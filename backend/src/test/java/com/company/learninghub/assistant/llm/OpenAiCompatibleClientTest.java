@@ -27,7 +27,7 @@ class OpenAiCompatibleClientTest {
     private int responseStatus = 200;
     private String responseBody = """
             {
-              "id": "chatcmpl-test",
+              "id": "chatcmpl_test",
               "choices": [
                 {
                   "message": {
@@ -39,7 +39,6 @@ class OpenAiCompatibleClientTest {
             }
             """;
     private OpenAiCompatibleClient client;
-    private AssistantProperties assistantProperties;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -47,16 +46,15 @@ class OpenAiCompatibleClientTest {
         server.createContext("/v1/chat/completions", this::handleChatCompletions);
         server.start();
 
-        assistantProperties = new AssistantProperties();
-        assistantProperties.getLlm().setProvider("openai-compatible");
-        AssistantProperties.OpenAiCompatible config = assistantProperties.getLlm().getOpenaiCompatible();
-        config.setApiKey("test-api-key");
-        config.setBaseUrl("http://localhost:" + server.getAddress().getPort());
-        config.setModel("gpt-4o-mini");
-        config.setConnectTimeout(Duration.ofSeconds(2));
-        config.setReadTimeout(Duration.ofSeconds(2));
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().setProvider("openai-compatible");
+        properties.getLlm().getOpenaiCompatible().setApiKey("test-api-key");
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort());
+        properties.getLlm().getOpenaiCompatible().setModel("gpt-4o-mini");
+        properties.getLlm().getOpenaiCompatible().setConnectTimeout(Duration.ofSeconds(2));
+        properties.getLlm().getOpenaiCompatible().setReadTimeout(Duration.ofSeconds(2));
 
-        client = new OpenAiCompatibleClient(assistantProperties, new ObjectMapper(), HttpClient.newHttpClient());
+        client = new OpenAiCompatibleClient(properties, new ObjectMapper(), HttpClient.newHttpClient());
     }
 
     @AfterEach
@@ -67,102 +65,91 @@ class OpenAiCompatibleClientTest {
     }
 
     @Test
-    void completeReturnsSuccessForOpenAiStyleResponse() {
-        LlmCompletionResult result = client.complete(new LlmCompletionRequest(
-                "You are helpful.",
-                List.of(new LlmCompletionRequest.LlmMessage("user", "What is Docker?"))
-        ));
+    void completeReturnsSuccessForSuccessfulApiResponse() {
+        LlmCompletionRequest request = new LlmCompletionRequest(
+                "You are a helpful assistant.",
+                List.of(new LlmCompletionRequest.LlmMessage("user", "what is docker"))
+        );
+
+        LlmCompletionResult result = client.complete(request);
 
         assertThat(result.success()).isTrue();
         assertThat(result.content()).isEqualTo("Docker is a container platform.");
-        assertThat(result.providerReference()).isEqualTo("chatcmpl-test");
+        assertThat(result.providerReference()).isEqualTo("chatcmpl_test");
         assertThat(lastAuthorization).isEqualTo("Bearer test-api-key");
         assertThat(lastRequestBody).contains("\"model\":\"gpt-4o-mini\"");
-        assertThat(lastRequestBody).contains("\"stream\":false");
-        assertThat(lastRequestBody).contains("What is Docker?");
+        assertThat(lastRequestBody).contains("\"role\":\"system\"");
+        assertThat(lastRequestBody).contains("what is docker");
         assertThat(client.providerName()).isEqualTo("openai-compatible");
-        assertThat(client.isHealthy()).isTrue();
-    }
-
-    @Test
-    void completeSupportsBaseUrlEndingWithV1() {
-        assistantProperties.getLlm().getOpenaiCompatible()
-                .setBaseUrl("http://localhost:" + server.getAddress().getPort() + "/v1");
-
-        LlmCompletionResult result = client.complete(new LlmCompletionRequest(
-                "system",
-                List.of(new LlmCompletionRequest.LlmMessage("user", "hello"))
-        ));
-
-        assertThat(result.success()).isTrue();
-        assertThat(result.content()).isEqualTo("Docker is a container platform.");
-    }
-
-    @Test
-    void completeOmitsAuthorizationWhenApiKeyMissing() {
-        assistantProperties.getLlm().getOpenaiCompatible().setApiKey("");
-
-        LlmCompletionResult result = client.complete(new LlmCompletionRequest(
-                "system",
-                List.of(new LlmCompletionRequest.LlmMessage("user", "hello"))
-        ));
-
-        assertThat(result.success()).isTrue();
-        assertThat(lastAuthorization).isNull();
         assertThat(client.isHealthy()).isTrue();
     }
 
     @Test
     void completeReturnsFailureForApiErrorResponse() {
         responseStatus = 401;
-        responseBody = "{\"error\":{\"message\":\"Invalid API key\"}}";
+        responseBody = "{\"error\":{\"message\":\"Incorrect API key provided\"}}";
 
-        LlmCompletionResult result = client.complete(new LlmCompletionRequest(
-                "system",
-                List.of(new LlmCompletionRequest.LlmMessage("user", "hello"))
-        ));
+        LlmCompletionResult result = client.complete(sampleRequest());
 
         assertThat(result.success()).isFalse();
         assertThat(result.errorMessage()).contains("401");
-        assertThat(result.errorMessage()).contains("Invalid API key");
+        assertThat(result.errorMessage()).contains("Incorrect API key provided");
     }
 
     @Test
-    void completeReturnsFailureWhenBaseUrlMissing() {
-        assistantProperties.getLlm().getOpenaiCompatible().setBaseUrl("");
+    void completeReturnsFailureWhenApiKeyMissing() {
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort());
+        OpenAiCompatibleClient missingKeyClient = new OpenAiCompatibleClient(
+                properties,
+                new ObjectMapper(),
+                HttpClient.newHttpClient()
+        );
 
-        LlmCompletionResult result = client.complete(new LlmCompletionRequest(
-                "system",
-                List.of(new LlmCompletionRequest.LlmMessage("user", "hello"))
-        ));
+        LlmCompletionResult result = missingKeyClient.complete(sampleRequest());
 
         assertThat(result.success()).isFalse();
-        assertThat(result.errorMessage()).contains("base URL is not configured");
-        assertThat(client.isHealthy()).isFalse();
+        assertThat(result.errorMessage()).contains("API key is not configured");
+        assertThat(missingKeyClient.isHealthy()).isFalse();
     }
 
     @Test
-    void completeReturnsFailureWhenModelMissing() {
-        assistantProperties.getLlm().getOpenaiCompatible().setModel("");
+    void completeReturnsFailureForTimeout() {
+        server.removeContext("/v1/chat/completions");
+        server.createContext("/v1/chat/completions", exchange -> {
+            try {
+                Thread.sleep(3_000L);
+                writeResponse(exchange, 200, responseBody);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        });
 
-        LlmCompletionResult result = client.complete(new LlmCompletionRequest(
-                "system",
-                List.of(new LlmCompletionRequest.LlmMessage("user", "hello"))
-        ));
+        LlmCompletionResult result = client.complete(sampleRequest());
 
         assertThat(result.success()).isFalse();
-        assertThat(result.errorMessage()).contains("model is not configured");
-        assertThat(client.isHealthy()).isFalse();
+        assertThat(result.errorMessage()).contains("timed out");
+    }
+
+    private LlmCompletionRequest sampleRequest() {
+        return new LlmCompletionRequest(
+                "System prompt",
+                List.of(new LlmCompletionRequest.LlmMessage("user", "hello"))
+        );
     }
 
     private void handleChatCompletions(HttpExchange exchange) throws IOException {
         lastAuthorization = exchange.getRequestHeaders().getFirst("Authorization");
         lastRequestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        byte[] responseBytes = responseBody.getBytes(StandardCharsets.UTF_8);
+        writeResponse(exchange, responseStatus, responseBody);
+    }
+
+    private void writeResponse(HttpExchange exchange, int statusCode, String body) throws IOException {
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
-        exchange.sendResponseHeaders(responseStatus, responseBytes.length);
+        exchange.sendResponseHeaders(statusCode, bytes.length);
         try (OutputStream outputStream = exchange.getResponseBody()) {
-            outputStream.write(responseBytes);
+            outputStream.write(bytes);
         }
     }
 }

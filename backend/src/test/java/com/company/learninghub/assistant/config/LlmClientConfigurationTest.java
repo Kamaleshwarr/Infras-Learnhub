@@ -13,8 +13,10 @@ class LlmClientConfigurationTest {
     private final LlmClientConfiguration configuration = new LlmClientConfiguration();
     private final AssistantProperties assistantProperties = new AssistantProperties();
     private final MockLlmClient mockLlmClient = new MockLlmClient();
-    private final OpenAiCompatibleClient openAiCompatibleClient =
-            new OpenAiCompatibleClient(assistantProperties, new ObjectMapper());
+    private final OpenAiCompatibleClient openAiCompatibleClient = new OpenAiCompatibleClient(
+            assistantProperties,
+            new ObjectMapper()
+    );
 
     @Test
     void selectsMockProviderByDefault() {

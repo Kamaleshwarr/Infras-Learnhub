@@ -824,7 +824,7 @@ Full API reference: `docs/learn/api-reference.md`
 
 ## AI Assistant Module (Phase 1–4A)
 
-**Status:** Phase 4A real LLM integration (backend) — feature flag disabled by default  
+**Status:** Phase 4 frontend + Phase 4A real LLM integration (backend) — feature flag disabled by default  
 **Package:** `com.company.learninghub.assistant`
 
 ### Configuration
@@ -847,9 +847,9 @@ LlmClient (interface)
     └─ OpenAiCompatibleClient (OpenAI-compatible chat completions HTTP client)
 ```
 
-Selection via `LlmClientConfiguration` + `AssistantProperties`. Provider endpoints (Ollama, OpenAI, OpenRouter, Groq) are configured through `base-url` and `model` only — no hardcoded provider logic.
+`PromptOrchestrator` builds grounded LLM requests from user messages, conversation history, and `ToolResult` data.
 
-`PromptOrchestrator` builds system prompts with conversation history, tool grounding, and hallucination guards for knowledge and unknown intents.
+Selection via `LlmClientConfiguration` + `AssistantProperties`. Provider endpoints (Ollama, OpenAI, OpenRouter, Groq) are configured through `base-url` and `model` only — no hardcoded provider logic.
 
 ### Database (V21)
 
@@ -866,7 +866,7 @@ Selection via `LlmClientConfiguration` + `AssistantProperties`. Provider endpoin
 | `POST` | `/api/v1/assistant/chat` | Send message; returns structured `AssistantResponse` (requires `app.assistant.enabled=true`) |
 | `GET` | `/api/v1/assistant/conversation` | Current user's conversation history (requires feature flag) |
 
-**Deferred:** frontend panel, OpenAI HTTP, streaming.
+**Deferred:** streaming, multiple conversations, conversation titles, semantic search/RAG.
 
 ### Chat orchestration flow (Phase 3)
 
@@ -879,13 +879,13 @@ Persist USER message
     ↓
 IntentResolver
     ├─ NAVIGATION → structured navigation response
-    ├─ TOOL → AssistantToolRegistry → ToolResult (read-only services)
+    ├─ TOOL → AssistantToolRegistry → ToolResult → PromptOrchestrator → LlmClient (grounded)
     ├─ KNOWLEDGE → PromptOrchestrator → LlmClient
     └─ UNKNOWN → PromptOrchestrator → LlmClient fallback
     ↓
 Persist ASSISTANT response
     ↓
-AssistantResponse (response, conversationId, intentType, toolUsed, sources, metadata)
+AssistantResponse (response, conversationId, intentType, toolUsed, sources, confidence, metadata)
 ```
 
 ### AssistantResponse fields
@@ -928,11 +928,13 @@ Supports plain text, structured data, and extension fields for future citations,
 
 | Service | Responsibility |
 |---------|----------------|
+| `PromptOrchestrator` | Builds grounded LLM prompts from messages, history, and tool data |
 | `AssistantOrchestrationService` | Status, chat pipeline, intent/tool/LLM orchestration |
-| `PromptOrchestrator` | System prompt, history, tool grounding, hallucination guard |
 | `AssistantConversationService` | User-scoped conversation persistence |
 | `IntentResolver` | Classifies incoming assistant requests |
 | `NavigationIntentResolver` | Maps navigation phrases to frontend routes |
 | `AssistantToolRegistry` | Tool discovery and execution |
 
-**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`, `docs/releases/release-ai-assistant-phase4a-llm-backend-report.md`
+**Frontend:** floating `AssistantWidget` in `AppLayout` — FAB, chat panel, history, navigation buttons, loading/error/empty states; disabled when `GET /assistant/status` reports `enabled=false`.
+
+**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`, `docs/releases/release-ai-assistant-phase4-frontend-llm-report.md`, `docs/releases/release-ai-assistant-phase4a-llm-backend-report.md`

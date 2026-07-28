@@ -27,6 +27,7 @@ import com.company.learninghub.assistant.tool.ToolResult;
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,7 +40,7 @@ import java.util.Map;
 @Service
 public class AssistantOrchestrationService {
 
-    private static final String INSUFFICIENT_INFORMATION_FALLBACK =
+    private static final String LLM_FALLBACK_MESSAGE =
             "I don't currently have enough information to answer this. "
                     + "Future versions will support broader AI knowledge.";
 
@@ -89,13 +90,13 @@ public class AssistantOrchestrationService {
                 authenticatedUser,
                 request.conversationId()
         );
-        List<AssistantMessage> conversationHistory = conversationService.listMessages(authenticatedUser);
+        List<AssistantMessage> historyBeforeCurrentMessage = conversationService.listMessages(authenticatedUser);
         conversationService.appendMessage(conversation, AssistantMessageRole.USER, request.message());
 
         AssistantOrchestrationResponse orchestration = processRequest(
                 request,
                 authenticatedUser,
-                conversationHistory
+                historyBeforeCurrentMessage
         );
         conversationService.appendMessage(conversation, AssistantMessageRole.ASSISTANT, orchestration.message());
 
@@ -124,6 +125,7 @@ public class AssistantOrchestrationService {
             return AssistantOrchestrationResponse.disabled();
         }
 
+        List<AssistantMessage> history = conversationHistory == null ? List.of() : conversationHistory;
         ResolvedIntent intent = intentResolver.resolve(request.message());
         return switch (intent.type()) {
             case NAVIGATION -> AssistantOrchestrationResponse.navigation(
@@ -138,31 +140,43 @@ public class AssistantOrchestrationService {
                         intent,
                         new AssistantToolContext(authenticatedUser, request.message())
                 );
-                yield AssistantOrchestrationResponse.tool(intent.type(), intent.toolName(), toolResult);
+                String message = completeWithGroundedTool(request.message(), intent.toolName(), toolResult, history);
+                yield AssistantOrchestrationResponse.tool(intent.type(), intent.toolName(), toolResult, message);
             }
             case KNOWLEDGE -> AssistantOrchestrationResponse.knowledge(
-                    completeWithLlm(request.message(), AssistantIntentType.KNOWLEDGE, conversationHistory)
+                    completeWithLlm(request.message(), history)
             );
             case UNKNOWN -> AssistantOrchestrationResponse.unknown(
-                    completeWithLlm(request.message(), AssistantIntentType.UNKNOWN, conversationHistory)
+                    completeWithLlm(request.message(), history)
             );
         };
     }
 
-    private String completeWithLlm(
-            String message,
-            AssistantIntentType intentType,
+    private String completeWithLlm(String message, List<AssistantMessage> conversationHistory) {
+        LlmCompletionRequest request = promptOrchestrator.buildKnowledgeRequest(message, conversationHistory);
+        return resolveLlmContent(request, LLM_FALLBACK_MESSAGE);
+    }
+
+    private String completeWithGroundedTool(
+            String userMessage,
+            String toolName,
+            ToolResult toolResult,
             List<AssistantMessage> conversationHistory
     ) {
-        LlmCompletionRequest completionRequest = switch (intentType) {
-            case KNOWLEDGE -> promptOrchestrator.buildKnowledgeRequest(message, conversationHistory);
-            case UNKNOWN -> promptOrchestrator.buildUnknownRequest(message, conversationHistory);
-            default -> promptOrchestrator.buildUnknownRequest(message, conversationHistory);
-        };
+        LlmCompletionRequest request = promptOrchestrator.buildToolGroundedRequest(
+                userMessage,
+                toolName,
+                toolResult,
+                conversationHistory
+        );
+        String fallback = StringUtils.hasText(toolResult.text()) ? toolResult.text() : LLM_FALLBACK_MESSAGE;
+        return resolveLlmContent(request, fallback);
+    }
 
-        LlmCompletionResult result = llmClient.complete(completionRequest);
+    private String resolveLlmContent(LlmCompletionRequest request, String fallbackMessage) {
+        LlmCompletionResult result = llmClient.complete(request);
         if (!result.success() || result.content() == null) {
-            return INSUFFICIENT_INFORMATION_FALLBACK;
+            return fallbackMessage;
         }
         return result.content();
     }
