@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Box, Container } from '@mui/material'
 import { NotificationProvider } from '../notifications/NotificationProvider'
+import { AssistantWidget } from '../components/assistant/AssistantWidget'
 import { Header } from './Header'
 import { Sidebar, drawerWidth } from './Sidebar'
 
@@ -24,6 +25,7 @@ export function AppLayout() {
           <Container maxWidth="xl" sx={{ py: 4 }}>
             <Outlet />
           </Container>
+          <AssistantWidget />
         </Box>
       </Box>
     </NotificationProvider>

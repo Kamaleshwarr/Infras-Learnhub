@@ -2,6 +2,7 @@ package com.company.learninghub.assistant.service;
 
 import com.company.learninghub.assistant.config.AssistantProperties;
 import com.company.learninghub.assistant.domain.AssistantConversation;
+import com.company.learninghub.assistant.domain.AssistantMessage;
 import com.company.learninghub.assistant.domain.AssistantMessageRole;
 import com.company.learninghub.assistant.dto.AssistantOrchestrationResponse;
 import com.company.learninghub.assistant.dto.AssistantOutcomeType;
@@ -16,8 +17,9 @@ import com.company.learninghub.assistant.intent.AssistantIntentType;
 import com.company.learninghub.assistant.intent.IntentResolver;
 import com.company.learninghub.assistant.intent.ResolvedIntent;
 import com.company.learninghub.assistant.llm.LlmClient;
+import com.company.learninghub.assistant.llm.LlmCompletionRequest;
 import com.company.learninghub.assistant.llm.LlmCompletionResult;
-import com.company.learninghub.assistant.llm.MockLlmClient;
+import com.company.learninghub.assistant.llm.PromptOrchestrator;
 import com.company.learninghub.assistant.tool.AssistantToolContext;
 import com.company.learninghub.assistant.tool.AssistantToolNames;
 import com.company.learninghub.assistant.tool.AssistantToolRegistry;
@@ -25,6 +27,7 @@ import com.company.learninghub.assistant.tool.ToolResult;
 import com.company.learninghub.auth.security.AuthenticatedUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,10 +35,14 @@ import java.util.Map;
 
 /**
  * Orchestrates assistant requests including chat pipeline, intent resolution, tool execution,
- * and mock LLM responses.
+ * prompt orchestration, and LLM responses.
  */
 @Service
 public class AssistantOrchestrationService {
+
+    private static final String LLM_FALLBACK_MESSAGE =
+            "I don't currently have enough information to answer this. "
+                    + "Future versions will support broader AI knowledge.";
 
     private static final Map<String, String> TOOL_SERVICE_NAMES = Map.of(
             AssistantToolNames.MY_PROFILE, "ProfileService",
@@ -46,6 +53,7 @@ public class AssistantOrchestrationService {
 
     private final AssistantProperties assistantProperties;
     private final LlmClient llmClient;
+    private final PromptOrchestrator promptOrchestrator;
     private final IntentResolver intentResolver;
     private final AssistantToolRegistry toolRegistry;
     private final AssistantConversationService conversationService;
@@ -53,12 +61,14 @@ public class AssistantOrchestrationService {
     public AssistantOrchestrationService(
             AssistantProperties assistantProperties,
             LlmClient llmClient,
+            PromptOrchestrator promptOrchestrator,
             IntentResolver intentResolver,
             AssistantToolRegistry toolRegistry,
             AssistantConversationService conversationService
     ) {
         this.assistantProperties = assistantProperties;
         this.llmClient = llmClient;
+        this.promptOrchestrator = promptOrchestrator;
         this.intentResolver = intentResolver;
         this.toolRegistry = toolRegistry;
         this.conversationService = conversationService;
@@ -80,9 +90,14 @@ public class AssistantOrchestrationService {
                 authenticatedUser,
                 request.conversationId()
         );
+        List<AssistantMessage> historyBeforeCurrentMessage = conversationService.listMessages(authenticatedUser);
         conversationService.appendMessage(conversation, AssistantMessageRole.USER, request.message());
 
-        AssistantOrchestrationResponse orchestration = processRequest(request, authenticatedUser);
+        AssistantOrchestrationResponse orchestration = processRequest(
+                request,
+                authenticatedUser,
+                historyBeforeCurrentMessage
+        );
         conversationService.appendMessage(conversation, AssistantMessageRole.ASSISTANT, orchestration.message());
 
         return toAssistantResponse(conversation, orchestration);
@@ -94,11 +109,23 @@ public class AssistantOrchestrationService {
         return conversationService.getConversationResponse(authenticatedUser);
     }
 
-    public AssistantOrchestrationResponse processRequest(AssistantRequest request, AuthenticatedUser authenticatedUser) {
+    public AssistantOrchestrationResponse processRequest(
+            AssistantRequest request,
+            AuthenticatedUser authenticatedUser
+    ) {
+        return processRequest(request, authenticatedUser, List.of());
+    }
+
+    public AssistantOrchestrationResponse processRequest(
+            AssistantRequest request,
+            AuthenticatedUser authenticatedUser,
+            List<AssistantMessage> conversationHistory
+    ) {
         if (!assistantProperties.isEnabled()) {
             return AssistantOrchestrationResponse.disabled();
         }
 
+        List<AssistantMessage> history = conversationHistory == null ? List.of() : conversationHistory;
         ResolvedIntent intent = intentResolver.resolve(request.message());
         return switch (intent.type()) {
             case NAVIGATION -> AssistantOrchestrationResponse.navigation(
@@ -113,18 +140,43 @@ public class AssistantOrchestrationService {
                         intent,
                         new AssistantToolContext(authenticatedUser, request.message())
                 );
-                yield AssistantOrchestrationResponse.tool(intent.type(), intent.toolName(), toolResult);
+                String message = completeWithGroundedTool(request.message(), intent.toolName(), toolResult, history);
+                yield AssistantOrchestrationResponse.tool(intent.type(), intent.toolName(), toolResult, message);
             }
-            case KNOWLEDGE -> AssistantOrchestrationResponse.knowledge(completeWithLlm(request.message()));
-            case UNKNOWN -> AssistantOrchestrationResponse.unknown(completeWithLlm(request.message()));
+            case KNOWLEDGE -> AssistantOrchestrationResponse.knowledge(
+                    completeWithLlm(request.message(), history)
+            );
+            case UNKNOWN -> AssistantOrchestrationResponse.unknown(
+                    completeWithLlm(request.message(), history)
+            );
         };
     }
 
-    private String completeWithLlm(String message) {
-        LlmCompletionResult result = llmClient.complete(MockLlmClient.knowledgeRequest(message));
+    private String completeWithLlm(String message, List<AssistantMessage> conversationHistory) {
+        LlmCompletionRequest request = promptOrchestrator.buildKnowledgeRequest(message, conversationHistory);
+        return resolveLlmContent(request, LLM_FALLBACK_MESSAGE);
+    }
+
+    private String completeWithGroundedTool(
+            String userMessage,
+            String toolName,
+            ToolResult toolResult,
+            List<AssistantMessage> conversationHistory
+    ) {
+        LlmCompletionRequest request = promptOrchestrator.buildToolGroundedRequest(
+                userMessage,
+                toolName,
+                toolResult,
+                conversationHistory
+        );
+        String fallback = StringUtils.hasText(toolResult.text()) ? toolResult.text() : LLM_FALLBACK_MESSAGE;
+        return resolveLlmContent(request, fallback);
+    }
+
+    private String resolveLlmContent(LlmCompletionRequest request, String fallbackMessage) {
+        LlmCompletionResult result = llmClient.complete(request);
         if (!result.success() || result.content() == null) {
-            return "I don't currently have enough information to answer this. "
-                    + "Future versions will support broader AI knowledge.";
+            return fallbackMessage;
         }
         return result.content();
     }
@@ -164,7 +216,7 @@ public class AssistantOrchestrationService {
                 ));
             }
             case KNOWLEDGE, UNKNOWN -> List.of(new AssistantSourceResponse(
-                    "MockLlmClient",
+                    llmClient.providerName(),
                     null,
                     AssistantSourceConfidence.LOW
             ));

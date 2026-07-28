@@ -39,13 +39,22 @@ public record AssistantOrchestrationResponse(
             String toolName,
             ToolResult toolResult
     ) {
+        return tool(intentType, toolName, toolResult, toolResult.text());
+    }
+
+    public static AssistantOrchestrationResponse tool(
+            AssistantIntentType intentType,
+            String toolName,
+            ToolResult toolResult,
+            String message
+    ) {
         return new AssistantOrchestrationResponse(
                 AssistantOutcomeType.TOOL,
                 intentType,
                 null,
                 toolResult,
                 toolName,
-                toolResult.text()
+                message
         );
     }
 
