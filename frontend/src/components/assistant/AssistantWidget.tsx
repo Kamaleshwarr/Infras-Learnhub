@@ -1,69 +1,34 @@
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined'
-import { Fab, Tooltip } from '@mui/material'
-import { useEffect, useState } from 'react'
-import { assistantApi } from '../../api/assistantApi'
-import type { AssistantStatus } from '../../types/assistant'
-import { resolveApiError } from '../../utils/apiErrors'
-import { assistantMessages } from './assistantMessages'
+import { Fab } from '@mui/material'
+import { useState } from 'react'
+import { useAssistant } from '../../assistant/useAssistant'
 import { AssistantChatPanel } from './AssistantChatPanel'
+import { assistantMessages } from './assistantMessages'
 
 export function AssistantWidget() {
-  const [open, setOpen] = useState(false)
-  const [status, setStatus] = useState<AssistantStatus | null>(null)
-  const [statusError, setStatusError] = useState<string | null>(null)
+  const { enabled, loading } = useAssistant()
+  const [panelOpen, setPanelOpen] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadStatus() {
-      try {
-        const nextStatus = await assistantApi.getStatus()
-        if (!cancelled) {
-          setStatus(nextStatus)
-          setStatusError(null)
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setStatusError(resolveApiError(error, assistantMessages.statusError))
-        }
-      }
-    }
-
-    void loadStatus()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const disabled = status !== null && !status.enabled
-  const tooltipTitle = statusError
-    ? statusError
-    : disabled
-      ? assistantMessages.disabledTitle
-      : assistantMessages.open
+  if (loading || !enabled) {
+    return null
+  }
 
   return (
     <>
-      <Tooltip title={tooltipTitle}>
-        <span>
-          <Fab
-            aria-label={assistantMessages.open}
-            color="primary"
-            disabled={disabled || status === null}
-            onClick={() => setOpen((current) => !current)}
-            sx={{
-              position: 'fixed',
-              right: 24,
-              bottom: 24,
-              zIndex: (theme) => theme.zIndex.drawer + 2,
-            }}
-          >
-            <SmartToyOutlinedIcon />
-          </Fab>
-        </span>
-      </Tooltip>
-      <AssistantChatPanel onClose={() => setOpen(false)} open={open} status={status} />
+      <Fab
+        aria-label={assistantMessages.open}
+        color="primary"
+        onClick={() => setPanelOpen((current) => !current)}
+        sx={{
+          position: 'fixed',
+          right: { xs: 16, sm: 24 },
+          bottom: { xs: 16, sm: 24 },
+          zIndex: (theme) => theme.zIndex.modal + 1,
+        }}
+      >
+        <SmartToyOutlinedIcon />
+      </Fab>
+      <AssistantChatPanel onClose={() => setPanelOpen(false)} open={panelOpen} />
     </>
   )
 }

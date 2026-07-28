@@ -1,10 +1,5 @@
 import { httpClient } from './httpClient'
-import type {
-  AssistantChatRequest,
-  AssistantChatResponse,
-  AssistantStatus,
-  ConversationResponse,
-} from '../types/assistant'
+import type { AssistantStatus, ChatRequest, ChatResponse, Conversation } from '../types/assistant'
 
 export const assistantApi = {
   getStatus: async () => {
@@ -12,11 +7,11 @@ export const assistantApi = {
     return response.data
   },
   getConversation: async () => {
-    const response = await httpClient.get<ConversationResponse>('/assistant/conversation')
+    const response = await httpClient.get<Conversation>('/assistant/conversation')
     return response.data
   },
-  sendMessage: async (request: AssistantChatRequest) => {
-    const response = await httpClient.post<AssistantChatResponse>('/assistant/chat', request)
+  sendMessage: async (request: ChatRequest) => {
+    const response = await httpClient.post<ChatResponse>('/assistant/chat', request)
     return response.data
   },
 }
