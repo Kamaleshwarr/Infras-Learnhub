@@ -1,5 +1,6 @@
 package com.company.learninghub.auth.service;
 
+import com.company.learninghub.auth.communication.PasswordResetCommunicationPublisher;
 import com.company.learninghub.auth.config.PasswordResetProperties;
 import com.company.learninghub.auth.domain.PasswordResetToken;
 import com.company.learninghub.auth.dto.ForgotPasswordRequest;
@@ -29,7 +30,7 @@ public class PasswordResetService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordService passwordService;
-    private final EmailService emailService;
+    private final PasswordResetCommunicationPublisher passwordResetCommunicationPublisher;
     private final PasswordResetProperties passwordResetProperties;
     private final SecureRandom secureRandom;
     private final Clock clock;
@@ -39,14 +40,14 @@ public class PasswordResetService {
             UserRepository userRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
             PasswordService passwordService,
-            EmailService emailService,
+            PasswordResetCommunicationPublisher passwordResetCommunicationPublisher,
             PasswordResetProperties passwordResetProperties
     ) {
         this(
                 userRepository,
                 passwordResetTokenRepository,
                 passwordService,
-                emailService,
+                passwordResetCommunicationPublisher,
                 passwordResetProperties,
                 new SecureRandom(),
                 Clock.systemUTC()
@@ -57,7 +58,7 @@ public class PasswordResetService {
             UserRepository userRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
             PasswordService passwordService,
-            EmailService emailService,
+            PasswordResetCommunicationPublisher passwordResetCommunicationPublisher,
             PasswordResetProperties passwordResetProperties,
             SecureRandom secureRandom,
             Clock clock
@@ -65,7 +66,7 @@ public class PasswordResetService {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordService = passwordService;
-        this.emailService = emailService;
+        this.passwordResetCommunicationPublisher = passwordResetCommunicationPublisher;
         this.passwordResetProperties = passwordResetProperties;
         this.secureRandom = secureRandom;
         this.clock = clock;
@@ -103,7 +104,12 @@ public class PasswordResetService {
         passwordResetTokenRepository.save(resetToken);
 
         String resetUrl = buildResetUrl(rawToken);
-        emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), resetUrl, passwordResetProperties.getExpiration());
+        passwordResetCommunicationPublisher.publishPasswordResetRequested(
+                user,
+                resetToken.getId(),
+                resetUrl,
+                passwordResetProperties.getExpiration()
+        );
     }
 
     private String buildResetUrl(String rawToken) {

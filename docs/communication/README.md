@@ -1,8 +1,8 @@
 # Communication Framework
 
-**Status:** C1–C4 shipped — C5 diagnostics not started  
+**Status:** C1–C5 shipped — C6 diagnostics not started  
 **Version 1 priority:** #1 — Communication Framework (Email + existing In-App Notifications)  
-**Last updated:** 2026-07-19
+**Last updated:** 2026-07-28
 
 ## C1 delivered (approved refinements)
 
@@ -10,7 +10,7 @@
 |------|----------|
 | `communication_outbox` (V20) | Yes — async email queue |
 | `communication_delivery_log` | **Deferred** — no audit table until operational need |
-| Password reset migration | **Deferred** — `auth.EmailService` unchanged |
+| Password reset migration | **Shipped in C5** — `PASSWORD_RESET_REQUESTED` via Communication Framework |
 | `CommunicationPriority` | HIGH / NORMAL / LOW — outbox poll ordering only in V1 |
 | Module integrations | **Shipped in C3** — certifications use Communication Framework |
 | Email providers | **C4** — `LogEmailProvider` (default) + `ResendEmailProvider` (production) |
@@ -40,9 +40,8 @@ Version 2+ may add Slack, Microsoft Teams, SMS, push, and WhatsApp without chang
 | Existing artifact | Role in framework |
 |-------------------|-------------------|
 | `com.company.learninghub.notification` | In-app channel; inbox APIs remain |
-| `auth.EmailService` | Seed for email channel; refactor into provider + template layer |
+| `auth.PasswordResetCommunicationPublisher` | Publishes `PASSWORD_RESET_REQUESTED` for forgot-password |
 | `notifications` table (V9) | In-app delivery persistence — unchanged contract for clients |
-| `templates/email/forgot-password.*` | First email templates; migrate to shared layout |
 
 ## Version 1 scope boundary
 
@@ -67,9 +66,9 @@ Version 2+ may add Slack, Microsoft Teams, SMS, push, and WhatsApp without chang
 | C1 | Communication Infrastructure | Events, dispatcher, channels, audit, provider abstraction |
 | C2 | Email Templates | Master layout, HTML + plain text, template catalog |
 | C3 | Module Integrations | Wire completed modules to communication events |
-| C4 | Resend Email Provider | Production `ResendEmailProvider` + configuration-based provider selection |
-| C5 | Preferences (minimal) | Global email enable + category flags if approved |
-| C6 | Diagnostics | Admin health, preview/test send |
+| C5 | Password Reset Migration | Forgot-password via `PASSWORD_RESET_REQUESTED` + outbox |
+| C6 | Preferences (minimal) | Global email enable + category flags if approved |
+| C7 | Diagnostics | Admin health, preview/test send |
 
 Do **not** start implementation until [architecture-review.md](./architecture-review.md) is manually approved.
 

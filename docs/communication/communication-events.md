@@ -118,10 +118,10 @@ Duplicate publish with same key → delivery log returns existing result; no sec
 |-------|-------|
 | Channels | EMAIL only |
 | Recipient | Requesting user |
-| Template | `password-reset` (migrate from forgot-password) |
-| Variables | `fullName`, `resetUrl`, `expirationMinutes` |
-| Priority | IMMEDIATE |
-| Notes | Replace direct `EmailService` call; security email — ignore preferences |
+| Template | `password-reset` |
+| Variables | `resetUrl`, `expirationMinutes` (recipient `fullName` from User record) |
+| Priority | HIGH (immediate security email) |
+| Notes | **Shipped C5** — published by `PasswordResetCommunicationPublisher`; async outbox delivery |
 
 #### `PASSWORD_RESET_BY_ADMIN`
 

@@ -1,5 +1,6 @@
 package com.company.learninghub.auth.service;
 
+import com.company.learninghub.auth.communication.PasswordResetCommunicationPublisher;
 import com.company.learninghub.auth.config.PasswordResetProperties;
 import com.company.learninghub.auth.domain.PasswordResetToken;
 import com.company.learninghub.auth.dto.ForgotPasswordRequest;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.SecureRandom;
 import java.time.Clock;
@@ -28,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,7 +48,7 @@ class PasswordResetServiceTest {
     private PasswordService passwordService;
 
     @Mock
-    private EmailService emailService;
+    private PasswordResetCommunicationPublisher passwordResetCommunicationPublisher;
 
     private PasswordResetService passwordResetService;
     private User user;
@@ -61,7 +64,7 @@ class PasswordResetServiceTest {
                 userRepository,
                 passwordResetTokenRepository,
                 passwordService,
-                emailService,
+                passwordResetCommunicationPublisher,
                 properties,
                 new SecureRandom(),
                 clock
@@ -72,8 +75,13 @@ class PasswordResetServiceTest {
     }
 
     @Test
-    void requestPasswordResetCreatesTokenAndSendsEmailForActiveUser() {
+    void requestPasswordResetCreatesTokenAndPublishesCommunicationEventForActiveUser() {
         when(userRepository.findByEmailIgnoreCase("employee@example.com")).thenReturn(Optional.of(user));
+        doAnswer(invocation -> {
+            PasswordResetToken token = invocation.getArgument(0);
+            ReflectionTestUtils.setField(token, "id", UUID.randomUUID());
+            return token;
+        }).when(passwordResetTokenRepository).save(any(PasswordResetToken.class));
 
         passwordResetService.requestPasswordReset(new ForgotPasswordRequest("employee@example.com"));
 
@@ -81,12 +89,15 @@ class PasswordResetServiceTest {
         ArgumentCaptor<PasswordResetToken> tokenCaptor = ArgumentCaptor.forClass(PasswordResetToken.class);
         verify(passwordResetTokenRepository).save(tokenCaptor.capture());
         assertThat(tokenCaptor.getValue().getTokenHash()).isNotBlank();
-        verify(emailService).sendPasswordResetEmail(
-                eq("employee@example.com"),
-                eq("Employee One"),
+
+        ArgumentCaptor<UUID> tokenIdCaptor = ArgumentCaptor.forClass(UUID.class);
+        verify(passwordResetCommunicationPublisher).publishPasswordResetRequested(
+                eq(user),
+                tokenIdCaptor.capture(),
                 org.mockito.ArgumentMatchers.contains("token="),
                 eq(Duration.ofHours(1))
         );
+        assertThat(tokenIdCaptor.getValue()).isNotNull();
     }
 
     @Test
@@ -96,7 +107,8 @@ class PasswordResetServiceTest {
         passwordResetService.requestPasswordReset(new ForgotPasswordRequest("missing@example.com"));
 
         verify(passwordResetTokenRepository, never()).save(any());
-        verify(emailService, never()).sendPasswordResetEmail(any(), any(), any(), any());
+        verify(passwordResetCommunicationPublisher, never())
+                .publishPasswordResetRequested(any(), any(), any(), any());
     }
 
     @Test

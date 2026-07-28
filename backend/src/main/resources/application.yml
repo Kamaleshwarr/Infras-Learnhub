@@ -71,9 +71,6 @@ app:
       issuer: engineering-learning-hub
       expiration: ${JWT_EXPIRATION:PT1H}
       secret: ${JWT_SECRET:VGhpcy1pcy1vbmx5LWEtbG9jYWwtZGV2ZWxvcG1lbnQtand0LXNlY3JldC0zMi1ieXRlcyE=}
-  mail:
-    mode: ${APP_MAIL_MODE:log}
-    from: ${APP_MAIL_FROM:noreply@learninghub.local}
   password-reset:
     expiration: ${APP_PASSWORD_RESET_EXPIRATION:PT1H}
     frontend-reset-url: ${APP_FRONTEND_RESET_URL:http://localhost:5173/reset-password}

@@ -192,9 +192,9 @@ Aligned with `frontend/src/theme/appTheme.ts`:
 
 ---
 
-## Legacy password reset (unchanged)
+## Password reset (C5 — migrated)
 
-Production password reset continues to use `auth.EmailService` with `templates/email/forgot-password.{html,txt}` and `{{placeholder}}` replacement. The C2 `password-reset` templates are infrastructure-only and are not wired to `PasswordResetService`.
+Self-service forgot-password uses `PASSWORD_RESET_REQUESTED` → `password-reset` template via the Communication Framework outbox. Legacy `auth.EmailService` and `templates/email/forgot-password.*` were removed.
 
 ---
 
@@ -205,7 +205,8 @@ Production password reset continues to use `auth.EmailService` with `templates/e
 | `EmailTemplateRendererTest` | All catalog templates, branding, CTA, optional variables, preview methods |
 | `EmailTemplateVariablesTest` | Model building, URL construction, variable mapping |
 | `EmailChannelHandlerTest` | Handler uses renderer (mocked) |
-| `PasswordResetServiceTest` | Regression — legacy flow unchanged |
+| `PasswordResetServiceTest` | Publisher invoked on forgot-password |
+| `PasswordResetCommunicationIntegrationTest` | End-to-end outbox + reset flow |
 
 ---
 
@@ -214,4 +215,4 @@ Production password reset continues to use `auth.EmailService` with `templates/e
 - Admin preview REST API (C5)
 - Localization via message bundles
 - Attachments and inline images
-- Migrate `auth.EmailService` to communication templates (separate task)
+- Migrate `auth.EmailService` to communication templates — **done in C5**
