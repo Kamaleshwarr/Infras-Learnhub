@@ -3,6 +3,7 @@ package com.company.learninghub.assistant.config;
 import com.company.learninghub.assistant.llm.LlmClient;
 import com.company.learninghub.assistant.llm.MockLlmClient;
 import com.company.learninghub.assistant.llm.OpenAiCompatibleClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,7 +13,8 @@ class LlmClientConfigurationTest {
     private final LlmClientConfiguration configuration = new LlmClientConfiguration();
     private final AssistantProperties assistantProperties = new AssistantProperties();
     private final MockLlmClient mockLlmClient = new MockLlmClient();
-    private final OpenAiCompatibleClient openAiCompatibleClient = new OpenAiCompatibleClient(assistantProperties);
+    private final OpenAiCompatibleClient openAiCompatibleClient =
+            new OpenAiCompatibleClient(assistantProperties, new ObjectMapper());
 
     @Test
     void selectsMockProviderByDefault() {

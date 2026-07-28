@@ -95,6 +95,7 @@ class AssistantControllerTest {
                         AssistantIntentType.NAVIGATION,
                         null,
                         List.of(),
+                        null,
                         Map.of("navigation", Map.of("path", "/projects", "label", "Projects"))
                 ));
 

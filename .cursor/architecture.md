@@ -822,9 +822,9 @@ Full API reference: `docs/learn/api-reference.md`
 
 ---
 
-## AI Assistant Module (Phase 1–3)
+## AI Assistant Module (Phase 1–4A)
 
-**Status:** Phase 3 conversation pipeline and mock chat — feature flag disabled by default  
+**Status:** Phase 4A real LLM integration (backend) — feature flag disabled by default  
 **Package:** `com.company.learninghub.assistant`
 
 ### Configuration
@@ -833,6 +833,9 @@ Full API reference: `docs/learn/api-reference.md`
 |----------|---------|---------|
 | `app.assistant.enabled` | `false` | Master feature flag |
 | `app.assistant.llm.provider` | `mock` | `mock` or `openai-compatible` |
+| `app.assistant.llm.openai-compatible.base-url` | `https://api.openai.com` | Provider endpoint (OpenAI, Ollama, OpenRouter, Groq) |
+| `app.assistant.llm.openai-compatible.api-key` | empty | Bearer token (optional for local Ollama) |
+| `app.assistant.llm.openai-compatible.model` | `gpt-4o-mini` | Model name for the configured provider |
 
 ### LLM provider abstraction
 
@@ -841,10 +844,12 @@ Mirrors `EmailProvider` pattern:
 ```text
 LlmClient (interface)
     ├─ MockLlmClient (default — realistic explanatory responses)
-    └─ OpenAiCompatibleClient (skeleton — HTTP integration deferred)
+    └─ OpenAiCompatibleClient (OpenAI-compatible chat completions HTTP client)
 ```
 
-Selection via `LlmClientConfiguration` + `AssistantProperties`.
+Selection via `LlmClientConfiguration` + `AssistantProperties`. Provider endpoints (Ollama, OpenAI, OpenRouter, Groq) are configured through `base-url` and `model` only — no hardcoded provider logic.
+
+`PromptOrchestrator` builds system prompts with conversation history, tool grounding, and hallucination guards for knowledge and unknown intents.
 
 ### Database (V21)
 
@@ -875,21 +880,23 @@ Persist USER message
 IntentResolver
     ├─ NAVIGATION → structured navigation response
     ├─ TOOL → AssistantToolRegistry → ToolResult (read-only services)
-    ├─ KNOWLEDGE → MockLlmClient
-    └─ UNKNOWN → MockLlmClient fallback
+    ├─ KNOWLEDGE → PromptOrchestrator → LlmClient
+    └─ UNKNOWN → PromptOrchestrator → LlmClient fallback
     ↓
 Persist ASSISTANT response
     ↓
 AssistantResponse (response, conversationId, intentType, toolUsed, sources, metadata)
 ```
 
-### AssistantResponse sources
+### AssistantResponse fields
 
-| Outcome | Sources |
-|---------|---------|
-| Tool | Service name + tool name, confidence `HIGH` |
-| Knowledge / Unknown (MockLlm) | `MockLlmClient`, confidence `LOW` |
-| Navigation | Empty sources; navigation in metadata |
+- `response`, `conversationId`, `intentType`, `toolUsed`, `sources`, `confidence`, `metadata`
+
+| Outcome | Sources | Confidence |
+|---------|---------|------------|
+| Tool | Service name + tool name | `HIGH` |
+| Knowledge / Unknown (LLM) | LLM provider name | `LOW` |
+| Navigation | Empty sources | — |
 
 ### Intent resolution
 
@@ -922,9 +929,10 @@ Supports plain text, structured data, and extension fields for future citations,
 | Service | Responsibility |
 |---------|----------------|
 | `AssistantOrchestrationService` | Status, chat pipeline, intent/tool/LLM orchestration |
+| `PromptOrchestrator` | System prompt, history, tool grounding, hallucination guard |
 | `AssistantConversationService` | User-scoped conversation persistence |
 | `IntentResolver` | Classifies incoming assistant requests |
 | `NavigationIntentResolver` | Maps navigation phrases to frontend routes |
 | `AssistantToolRegistry` | Tool discovery and execution |
 
-**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`
+**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`, `docs/releases/release-ai-assistant-phase4a-llm-backend-report.md`

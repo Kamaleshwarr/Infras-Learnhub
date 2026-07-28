@@ -103,9 +103,11 @@ app:
   assistant:
     enabled: ${APP_ASSISTANT_ENABLED:false}
     llm:
+      # Supported providers: mock (development) or openai-compatible (OpenAI, Ollama, OpenRouter, Groq)
       provider: ${APP_ASSISTANT_LLM_PROVIDER:mock}
       openai-compatible:
         api-key: ${APP_ASSISTANT_LLM_OPENAI_API_KEY:}
+        # Examples: https://api.openai.com | http://localhost:11434 | https://openrouter.ai/api | https://api.groq.com/openai/v1
         base-url: ${APP_ASSISTANT_LLM_OPENAI_BASE_URL:https://api.openai.com}
         model: ${APP_ASSISTANT_LLM_OPENAI_MODEL:gpt-4o-mini}
         connect-timeout: ${APP_ASSISTANT_LLM_OPENAI_CONNECT_TIMEOUT:PT10S}

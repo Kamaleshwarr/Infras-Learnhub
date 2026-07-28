@@ -16,7 +16,9 @@ import com.company.learninghub.assistant.intent.IntentResolver;
 import com.company.learninghub.assistant.intent.NavigationTarget;
 import com.company.learninghub.assistant.intent.ResolvedIntent;
 import com.company.learninghub.assistant.llm.LlmClient;
+import com.company.learninghub.assistant.llm.LlmCompletionRequest;
 import com.company.learninghub.assistant.llm.LlmCompletionResult;
+import com.company.learninghub.assistant.llm.PromptOrchestrator;
 import com.company.learninghub.assistant.tool.AssistantToolContext;
 import com.company.learninghub.assistant.tool.AssistantToolNames;
 import com.company.learninghub.assistant.tool.AssistantToolRegistry;
@@ -34,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +53,9 @@ class AssistantOrchestrationServiceTest {
 
     @Mock
     private LlmClient llmClient;
+
+    @Mock
+    private PromptOrchestrator promptOrchestrator;
 
     @Mock
     private IntentResolver intentResolver;
@@ -71,6 +77,7 @@ class AssistantOrchestrationServiceTest {
         service = new AssistantOrchestrationService(
                 assistantProperties,
                 llmClient,
+                promptOrchestrator,
                 intentResolver,
                 toolRegistry,
                 conversationService
@@ -147,6 +154,8 @@ class AssistantOrchestrationServiceTest {
     void processRequestUsesMockLlmForKnowledge() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("what is docker")).thenReturn(ResolvedIntent.knowledge("what is docker"));
+        when(promptOrchestrator.buildKnowledgeRequest(eq("what is docker"), any()))
+                .thenReturn(new LlmCompletionRequest("system", List.of()));
         when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success("Docker explanation", "mock-mode"));
 
         AssistantOrchestrationResponse response = service.processRequest(
@@ -156,6 +165,7 @@ class AssistantOrchestrationServiceTest {
 
         assertThat(response.outcomeType()).isEqualTo(AssistantOutcomeType.KNOWLEDGE);
         assertThat(response.message()).isEqualTo("Docker explanation");
+        verify(promptOrchestrator).buildKnowledgeRequest(eq("what is docker"), any());
         verify(llmClient).complete(any());
     }
 
@@ -163,6 +173,8 @@ class AssistantOrchestrationServiceTest {
     void processRequestUsesMockLlmForUnknown() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("???")).thenReturn(ResolvedIntent.unknown(""));
+        when(promptOrchestrator.buildUnknownRequest(eq("???"), any()))
+                .thenReturn(new LlmCompletionRequest("system", List.of()));
         when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success(
                 "I don't currently have enough information to answer this. Future versions will support broader AI knowledge.",
                 "mock-mode"
@@ -175,12 +187,14 @@ class AssistantOrchestrationServiceTest {
 
         assertThat(response.outcomeType()).isEqualTo(AssistantOutcomeType.UNKNOWN);
         assertThat(response.message()).contains("don't currently have enough information");
+        verify(promptOrchestrator).buildUnknownRequest(eq("???"), any());
     }
 
     @Test
     void chatPersistsUserAndAssistantMessages() {
         assistantProperties.setEnabled(true);
         when(conversationService.resolveConversation(authenticatedUser, null)).thenReturn(conversation);
+        when(conversationService.listMessages(authenticatedUser)).thenReturn(List.of());
         when(intentResolver.resolve("my profile"))
                 .thenReturn(ResolvedIntent.tool(AssistantToolNames.MY_PROFILE, "my profile"));
         when(toolRegistry.execute(any(), any(AssistantToolContext.class)))
@@ -199,6 +213,7 @@ class AssistantOrchestrationServiceTest {
         assertThat(response.conversationId()).isEqualTo(conversation.getId());
         assertThat(response.intentType()).isEqualTo(AssistantIntentType.TOOL);
         assertThat(response.toolUsed()).isEqualTo(AssistantToolNames.MY_PROFILE);
+        assertThat(response.confidence()).isEqualTo(AssistantSourceConfidence.HIGH);
         assertThat(response.sources()).hasSize(1);
         assertThat(response.sources().getFirst().confidence()).isEqualTo(AssistantSourceConfidence.HIGH);
 
@@ -216,6 +231,37 @@ class AssistantOrchestrationServiceTest {
 
         assertThatThrownBy(() -> service.chat(new AssistantRequest("hello", null), authenticatedUser))
                 .isInstanceOf(AssistantDisabledException.class);
+    }
+
+    @Test
+    void processRequestIncludesToolGroundingMetadata() {
+        assistantProperties.setEnabled(true);
+        ToolResult toolResult = ToolResult.structured("Rank 3", Map.of("rank", 3));
+        when(intentResolver.resolve("my leaderboard rank"))
+                .thenReturn(ResolvedIntent.tool(AssistantToolNames.MY_LEADERBOARD_RANK, "my leaderboard rank"));
+        when(toolRegistry.execute(any(), any(AssistantToolContext.class))).thenReturn(toolResult);
+        when(conversationService.resolveConversation(authenticatedUser, null)).thenReturn(conversation);
+        when(conversationService.listMessages(authenticatedUser)).thenReturn(List.of());
+        when(conversationService.appendMessage(eq(conversation), any(), any()))
+                .thenAnswer(invocation -> new AssistantMessage(
+                        conversation,
+                        invocation.getArgument(1),
+                        invocation.getArgument(2),
+                        Instant.parse("2026-07-28T10:00:00Z")
+                ));
+
+        AssistantResponse response = service.chat(
+                new AssistantRequest("my leaderboard rank", null),
+                authenticatedUser
+        );
+
+        assertThat(response.toolUsed()).isEqualTo(AssistantToolNames.MY_LEADERBOARD_RANK);
+        assertThat(response.metadata()).containsKey("grounding");
+        assertThat(response.metadata().get("grounding")).isInstanceOf(Map.class);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> grounding = (Map<String, Object>) response.metadata().get("grounding");
+        assertThat(grounding.get("authoritative")).isEqualTo(true);
+        assertThat(grounding.get("summary")).isEqualTo("Rank 3");
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.company.learninghub.assistant.service;
 
 import com.company.learninghub.assistant.config.AssistantProperties;
 import com.company.learninghub.assistant.domain.AssistantConversation;
+import com.company.learninghub.assistant.domain.AssistantMessage;
 import com.company.learninghub.assistant.domain.AssistantMessageRole;
 import com.company.learninghub.assistant.dto.AssistantOrchestrationResponse;
 import com.company.learninghub.assistant.dto.AssistantOutcomeType;
@@ -16,8 +17,9 @@ import com.company.learninghub.assistant.intent.AssistantIntentType;
 import com.company.learninghub.assistant.intent.IntentResolver;
 import com.company.learninghub.assistant.intent.ResolvedIntent;
 import com.company.learninghub.assistant.llm.LlmClient;
+import com.company.learninghub.assistant.llm.LlmCompletionRequest;
 import com.company.learninghub.assistant.llm.LlmCompletionResult;
-import com.company.learninghub.assistant.llm.MockLlmClient;
+import com.company.learninghub.assistant.llm.PromptOrchestrator;
 import com.company.learninghub.assistant.tool.AssistantToolContext;
 import com.company.learninghub.assistant.tool.AssistantToolNames;
 import com.company.learninghub.assistant.tool.AssistantToolRegistry;
@@ -32,10 +34,14 @@ import java.util.Map;
 
 /**
  * Orchestrates assistant requests including chat pipeline, intent resolution, tool execution,
- * and mock LLM responses.
+ * prompt orchestration, and LLM responses.
  */
 @Service
 public class AssistantOrchestrationService {
+
+    private static final String INSUFFICIENT_INFORMATION_FALLBACK =
+            "I don't currently have enough information to answer this. "
+                    + "Future versions will support broader AI knowledge.";
 
     private static final Map<String, String> TOOL_SERVICE_NAMES = Map.of(
             AssistantToolNames.MY_PROFILE, "ProfileService",
@@ -46,6 +52,7 @@ public class AssistantOrchestrationService {
 
     private final AssistantProperties assistantProperties;
     private final LlmClient llmClient;
+    private final PromptOrchestrator promptOrchestrator;
     private final IntentResolver intentResolver;
     private final AssistantToolRegistry toolRegistry;
     private final AssistantConversationService conversationService;
@@ -53,12 +60,14 @@ public class AssistantOrchestrationService {
     public AssistantOrchestrationService(
             AssistantProperties assistantProperties,
             LlmClient llmClient,
+            PromptOrchestrator promptOrchestrator,
             IntentResolver intentResolver,
             AssistantToolRegistry toolRegistry,
             AssistantConversationService conversationService
     ) {
         this.assistantProperties = assistantProperties;
         this.llmClient = llmClient;
+        this.promptOrchestrator = promptOrchestrator;
         this.intentResolver = intentResolver;
         this.toolRegistry = toolRegistry;
         this.conversationService = conversationService;
@@ -80,9 +89,14 @@ public class AssistantOrchestrationService {
                 authenticatedUser,
                 request.conversationId()
         );
+        List<AssistantMessage> conversationHistory = conversationService.listMessages(authenticatedUser);
         conversationService.appendMessage(conversation, AssistantMessageRole.USER, request.message());
 
-        AssistantOrchestrationResponse orchestration = processRequest(request, authenticatedUser);
+        AssistantOrchestrationResponse orchestration = processRequest(
+                request,
+                authenticatedUser,
+                conversationHistory
+        );
         conversationService.appendMessage(conversation, AssistantMessageRole.ASSISTANT, orchestration.message());
 
         return toAssistantResponse(conversation, orchestration);
@@ -94,7 +108,18 @@ public class AssistantOrchestrationService {
         return conversationService.getConversationResponse(authenticatedUser);
     }
 
-    public AssistantOrchestrationResponse processRequest(AssistantRequest request, AuthenticatedUser authenticatedUser) {
+    public AssistantOrchestrationResponse processRequest(
+            AssistantRequest request,
+            AuthenticatedUser authenticatedUser
+    ) {
+        return processRequest(request, authenticatedUser, List.of());
+    }
+
+    public AssistantOrchestrationResponse processRequest(
+            AssistantRequest request,
+            AuthenticatedUser authenticatedUser,
+            List<AssistantMessage> conversationHistory
+    ) {
         if (!assistantProperties.isEnabled()) {
             return AssistantOrchestrationResponse.disabled();
         }
@@ -115,16 +140,29 @@ public class AssistantOrchestrationService {
                 );
                 yield AssistantOrchestrationResponse.tool(intent.type(), intent.toolName(), toolResult);
             }
-            case KNOWLEDGE -> AssistantOrchestrationResponse.knowledge(completeWithLlm(request.message()));
-            case UNKNOWN -> AssistantOrchestrationResponse.unknown(completeWithLlm(request.message()));
+            case KNOWLEDGE -> AssistantOrchestrationResponse.knowledge(
+                    completeWithLlm(request.message(), AssistantIntentType.KNOWLEDGE, conversationHistory)
+            );
+            case UNKNOWN -> AssistantOrchestrationResponse.unknown(
+                    completeWithLlm(request.message(), AssistantIntentType.UNKNOWN, conversationHistory)
+            );
         };
     }
 
-    private String completeWithLlm(String message) {
-        LlmCompletionResult result = llmClient.complete(MockLlmClient.knowledgeRequest(message));
+    private String completeWithLlm(
+            String message,
+            AssistantIntentType intentType,
+            List<AssistantMessage> conversationHistory
+    ) {
+        LlmCompletionRequest completionRequest = switch (intentType) {
+            case KNOWLEDGE -> promptOrchestrator.buildKnowledgeRequest(message, conversationHistory);
+            case UNKNOWN -> promptOrchestrator.buildUnknownRequest(message, conversationHistory);
+            default -> promptOrchestrator.buildUnknownRequest(message, conversationHistory);
+        };
+
+        LlmCompletionResult result = llmClient.complete(completionRequest);
         if (!result.success() || result.content() == null) {
-            return "I don't currently have enough information to answer this. "
-                    + "Future versions will support broader AI knowledge.";
+            return INSUFFICIENT_INFORMATION_FALLBACK;
         }
         return result.content();
     }
@@ -139,6 +177,7 @@ public class AssistantOrchestrationService {
                 orchestration.intentType(),
                 resolveToolUsed(orchestration),
                 resolveSources(orchestration),
+                resolveConfidence(orchestration),
                 resolveMetadata(orchestration)
         );
     }
@@ -148,6 +187,14 @@ public class AssistantOrchestrationService {
             return null;
         }
         return orchestration.toolName();
+    }
+
+    private AssistantSourceConfidence resolveConfidence(AssistantOrchestrationResponse orchestration) {
+        return switch (orchestration.outcomeType()) {
+            case TOOL -> AssistantSourceConfidence.HIGH;
+            case KNOWLEDGE, UNKNOWN -> AssistantSourceConfidence.LOW;
+            default -> null;
+        };
     }
 
     private List<AssistantSourceResponse> resolveSources(AssistantOrchestrationResponse orchestration) {
@@ -164,7 +211,7 @@ public class AssistantOrchestrationService {
                 ));
             }
             case KNOWLEDGE, UNKNOWN -> List.of(new AssistantSourceResponse(
-                    "MockLlmClient",
+                    llmClient.providerName(),
                     null,
                     AssistantSourceConfidence.LOW
             ));
@@ -183,11 +230,13 @@ public class AssistantOrchestrationService {
         }
 
         if (orchestration.outcomeType() == AssistantOutcomeType.TOOL && orchestration.toolResult() != null) {
-            if (orchestration.toolResult().structuredData() != null) {
-                metadata.put("structuredData", orchestration.toolResult().structuredData());
+            ToolResult toolResult = orchestration.toolResult();
+            metadata.put("grounding", buildToolGroundingMetadata(orchestration.toolName(), toolResult));
+            if (toolResult.structuredData() != null) {
+                metadata.put("structuredData", toolResult.structuredData());
             }
-            if (!orchestration.toolResult().metadata().isEmpty()) {
-                metadata.put("toolMetadata", orchestration.toolResult().metadata());
+            if (!toolResult.metadata().isEmpty()) {
+                metadata.put("toolMetadata", toolResult.metadata());
             }
         }
 
@@ -197,6 +246,19 @@ public class AssistantOrchestrationService {
         }
 
         return metadata;
+    }
+
+    private Map<String, Object> buildToolGroundingMetadata(String toolName, ToolResult toolResult) {
+        Map<String, Object> grounding = new LinkedHashMap<>();
+        grounding.put("toolName", toolName);
+        grounding.put("source", TOOL_SERVICE_NAMES.getOrDefault(toolName, "AssistantTool"));
+        grounding.put("confidence", AssistantSourceConfidence.HIGH.name());
+        grounding.put("summary", toolResult.text());
+        if (toolResult.structuredData() != null) {
+            grounding.put("structuredData", toolResult.structuredData());
+        }
+        grounding.put("authoritative", true);
+        return grounding;
     }
 
     private void requireEnabled() {
