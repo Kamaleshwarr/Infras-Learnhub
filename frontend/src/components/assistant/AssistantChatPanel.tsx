@@ -18,6 +18,7 @@ import type { ConversationMessage } from '../../types/assistant'
 import { resolveApiError } from '../../utils/apiErrors'
 import { AssistantMessageBubble } from './AssistantMessageBubble'
 import { assistantMessages } from './assistantMessages'
+import { extractNavigationFromChatResponse } from './assistantNavigation'
 
 interface AssistantChatPanelProps {
   open: boolean
@@ -128,6 +129,7 @@ export function AssistantChatPanel({ open, onClose }: AssistantChatPanelProps) {
           role: 'ASSISTANT',
           content: response.response,
           createdAt: new Date().toISOString(),
+          navigation: extractNavigationFromChatResponse(response),
         }
 
         setConversationId(response.conversationId)

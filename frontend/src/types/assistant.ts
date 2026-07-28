@@ -10,11 +10,17 @@ export interface AssistantStatus {
   llmHealthy: boolean
 }
 
+export interface AssistantNavigation {
+  path: string
+  label: string
+}
+
 export interface ConversationMessage {
   id: string
   role: AssistantMessageRole
   content: string
   createdAt: string | null
+  navigation?: AssistantNavigation | null
 }
 
 export interface Conversation {

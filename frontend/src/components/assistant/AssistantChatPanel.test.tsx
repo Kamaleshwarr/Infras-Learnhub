@@ -1,9 +1,20 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { assistantApi } from '../../api/assistantApi'
 import { AssistantChatPanel } from './AssistantChatPanel'
 import { assistantMessages } from './assistantMessages'
+
+const navigate = vi.fn()
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => navigate,
+  }
+})
 
 vi.mock('../../api/assistantApi', () => ({
   assistantApi: {
@@ -12,13 +23,21 @@ vi.mock('../../api/assistantApi', () => ({
   },
 }))
 
+function renderPanel(props: { open?: boolean; onClose?: () => void } = {}) {
+  return render(
+    <MemoryRouter>
+      <AssistantChatPanel onClose={props.onClose ?? vi.fn()} open={props.open ?? true} />
+    </MemoryRouter>,
+  )
+}
+
 describe('AssistantChatPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('does not render when closed', () => {
-    render(<AssistantChatPanel onClose={vi.fn()} open={false} />)
+    renderPanel({ open: false })
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -42,10 +61,11 @@ describe('AssistantChatPanel', () => {
       ],
     })
 
-    render(<AssistantChatPanel onClose={vi.fn()} open />)
+    renderPanel()
 
     expect(await screen.findByText('Show my profile')).toBeInTheDocument()
     expect(screen.getByText('Here is your profile summary.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open Projects' })).not.toBeInTheDocument()
     expect(screen.queryByText(assistantMessages.emptyHint)).not.toBeInTheDocument()
   })
 
@@ -55,7 +75,7 @@ describe('AssistantChatPanel', () => {
       messages: [],
     })
 
-    render(<AssistantChatPanel onClose={vi.fn()} open />)
+    renderPanel()
 
     expect(await screen.findByText(assistantMessages.emptyHint)).toBeInTheDocument()
     for (const prompt of assistantMessages.suggestedPrompts) {
@@ -78,7 +98,7 @@ describe('AssistantChatPanel', () => {
       metadata: null,
     })
 
-    render(<AssistantChatPanel onClose={vi.fn()} open />)
+    renderPanel()
 
     await user.click(await screen.findByRole('button', { name: 'My leaderboard rank' }))
 
@@ -107,7 +127,7 @@ describe('AssistantChatPanel', () => {
       metadata: null,
     })
 
-    render(<AssistantChatPanel onClose={vi.fn()} open />)
+    renderPanel()
 
     const input = await screen.findByPlaceholderText(assistantMessages.inputPlaceholder)
     await user.type(input, 'What is Spring Boot?{enter}')
@@ -123,7 +143,7 @@ describe('AssistantChatPanel', () => {
   it('shows a retry option when conversation loading fails', async () => {
     vi.mocked(assistantApi.getConversation).mockRejectedValueOnce(new Error('network error'))
 
-    render(<AssistantChatPanel onClose={vi.fn()} open />)
+    renderPanel()
 
     expect(await screen.findByText(assistantMessages.loadError)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: assistantMessages.retry })).toBeInTheDocument()
@@ -137,10 +157,60 @@ describe('AssistantChatPanel', () => {
       messages: [],
     })
 
-    render(<AssistantChatPanel onClose={onClose} open />)
+    renderPanel({ onClose })
 
     await user.click(await screen.findByRole('button', { name: assistantMessages.close }))
 
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('renders a navigation button when chat returns navigation metadata', async () => {
+    const user = userEvent.setup()
+    vi.mocked(assistantApi.getConversation).mockResolvedValue({
+      conversationId: null,
+      messages: [],
+    })
+    vi.mocked(assistantApi.sendMessage).mockResolvedValue({
+      response: 'Navigate to Projects.',
+      conversationId: 'conv-1',
+      intentType: 'NAVIGATION',
+      toolUsed: null,
+      sources: [],
+      metadata: { navigation: { path: '/projects', label: 'Projects' } },
+    })
+
+    renderPanel()
+
+    const input = await screen.findByPlaceholderText(assistantMessages.inputPlaceholder)
+    await user.type(input, 'Open Projects{enter}')
+
+    expect(await screen.findByText('Navigate to Projects.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Open Projects' })).toBeInTheDocument()
+  })
+
+  it('navigates when the navigation button is clicked', async () => {
+    const user = userEvent.setup()
+    navigate.mockClear()
+    vi.mocked(assistantApi.getConversation).mockResolvedValue({
+      conversationId: null,
+      messages: [],
+    })
+    vi.mocked(assistantApi.sendMessage).mockResolvedValue({
+      response: 'Navigate to Learn.',
+      conversationId: 'conv-1',
+      intentType: 'NAVIGATION',
+      toolUsed: null,
+      sources: [],
+      metadata: { navigation: { path: '/learn', label: 'Learn' } },
+    })
+
+    renderPanel()
+
+    const input = await screen.findByPlaceholderText(assistantMessages.inputPlaceholder)
+    await user.type(input, 'Open Learn{enter}')
+
+    await user.click(await screen.findByRole('button', { name: 'Open Learn' }))
+
+    expect(navigate).toHaveBeenCalledWith('/learn')
   })
 })
