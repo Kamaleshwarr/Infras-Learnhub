@@ -97,20 +97,54 @@ class OpenAiCompatibleClientTest {
     }
 
     @Test
-    void completeReturnsFailureWhenApiKeyMissing() {
+    void completeSucceedsWithoutApiKeyForLocalCompatibleProviders() {
         AssistantProperties properties = new AssistantProperties();
         properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort());
-        OpenAiCompatibleClient missingKeyClient = new OpenAiCompatibleClient(
+        properties.getLlm().getOpenaiCompatible().setModel("qwen3:8b");
+        OpenAiCompatibleClient localClient = new OpenAiCompatibleClient(
                 properties,
                 new ObjectMapper(),
                 HttpClient.newHttpClient()
         );
 
-        LlmCompletionResult result = missingKeyClient.complete(sampleRequest());
+        LlmCompletionResult result = localClient.complete(sampleRequest());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.content()).isEqualTo("Docker is a container platform.");
+        assertThat(lastAuthorization).isNull();
+        assertThat(localClient.isHealthy()).isTrue();
+    }
+
+    @Test
+    void isHealthyReturnsFalseWhenModelMissing() {
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort());
+        properties.getLlm().getOpenaiCompatible().setModel("");
+        OpenAiCompatibleClient unhealthyClient = new OpenAiCompatibleClient(
+                properties,
+                new ObjectMapper(),
+                HttpClient.newHttpClient()
+        );
+
+        assertThat(unhealthyClient.isHealthy()).isFalse();
+    }
+
+    @Test
+    void completeReturnsFailureWhenBaseUrlMissing() {
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("");
+        properties.getLlm().getOpenaiCompatible().setApiKey("test-api-key");
+        OpenAiCompatibleClient missingBaseUrlClient = new OpenAiCompatibleClient(
+                properties,
+                new ObjectMapper(),
+                HttpClient.newHttpClient()
+        );
+
+        LlmCompletionResult result = missingBaseUrlClient.complete(sampleRequest());
 
         assertThat(result.success()).isFalse();
-        assertThat(result.errorMessage()).contains("API key is not configured");
-        assertThat(missingKeyClient.isHealthy()).isFalse();
+        assertThat(result.errorMessage()).contains("base URL is not configured");
+        assertThat(missingBaseUrlClient.isHealthy()).isFalse();
     }
 
     @Test
