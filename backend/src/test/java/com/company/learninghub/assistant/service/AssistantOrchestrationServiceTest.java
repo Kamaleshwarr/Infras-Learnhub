@@ -17,6 +17,7 @@ import com.company.learninghub.assistant.intent.NavigationTarget;
 import com.company.learninghub.assistant.intent.ResolvedIntent;
 import com.company.learninghub.assistant.llm.LlmClient;
 import com.company.learninghub.assistant.llm.LlmCompletionResult;
+import com.company.learninghub.assistant.llm.PromptOrchestrator;
 import com.company.learninghub.assistant.tool.AssistantToolContext;
 import com.company.learninghub.assistant.tool.AssistantToolNames;
 import com.company.learninghub.assistant.tool.AssistantToolRegistry;
@@ -52,6 +53,9 @@ class AssistantOrchestrationServiceTest {
     private LlmClient llmClient;
 
     @Mock
+    private PromptOrchestrator promptOrchestrator;
+
+    @Mock
     private IntentResolver intentResolver;
 
     @Mock
@@ -71,6 +75,7 @@ class AssistantOrchestrationServiceTest {
         service = new AssistantOrchestrationService(
                 assistantProperties,
                 llmClient,
+                promptOrchestrator,
                 intentResolver,
                 toolRegistry,
                 conversationService
@@ -132,6 +137,13 @@ class AssistantOrchestrationServiceTest {
         ToolResult toolResult = ToolResult.text("Profile ready");
         when(intentResolver.resolve("my profile")).thenReturn(intent);
         when(toolRegistry.execute(eq(intent), any(AssistantToolContext.class))).thenReturn(toolResult);
+        when(promptOrchestrator.buildToolGroundedRequest(
+                eq("my profile"),
+                eq(AssistantToolNames.MY_PROFILE),
+                eq(toolResult),
+                any()
+        )).thenReturn(new com.company.learninghub.assistant.llm.LlmCompletionRequest("system", List.of()));
+        when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success("Profile ready", "mock-mode-tool"));
 
         AssistantOrchestrationResponse response = service.processRequest(
                 new AssistantRequest("my profile", null),
@@ -147,6 +159,9 @@ class AssistantOrchestrationServiceTest {
     void processRequestUsesMockLlmForKnowledge() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("what is docker")).thenReturn(ResolvedIntent.knowledge("what is docker"));
+        when(promptOrchestrator.buildKnowledgeRequest(eq("what is docker"), any())).thenReturn(
+                new com.company.learninghub.assistant.llm.LlmCompletionRequest("system", List.of())
+        );
         when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success("Docker explanation", "mock-mode"));
 
         AssistantOrchestrationResponse response = service.processRequest(
@@ -163,6 +178,9 @@ class AssistantOrchestrationServiceTest {
     void processRequestUsesMockLlmForUnknown() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("???")).thenReturn(ResolvedIntent.unknown(""));
+        when(promptOrchestrator.buildKnowledgeRequest(eq("???"), any())).thenReturn(
+                new com.company.learninghub.assistant.llm.LlmCompletionRequest("system", List.of())
+        );
         when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success(
                 "I don't currently have enough information to answer this. Future versions will support broader AI knowledge.",
                 "mock-mode"
@@ -185,6 +203,14 @@ class AssistantOrchestrationServiceTest {
                 .thenReturn(ResolvedIntent.tool(AssistantToolNames.MY_PROFILE, "my profile"));
         when(toolRegistry.execute(any(), any(AssistantToolContext.class)))
                 .thenReturn(ToolResult.text("Profile ready"));
+        when(promptOrchestrator.buildToolGroundedRequest(
+                eq("my profile"),
+                eq(AssistantToolNames.MY_PROFILE),
+                any(ToolResult.class),
+                any()
+        )).thenReturn(new com.company.learninghub.assistant.llm.LlmCompletionRequest("system", List.of()));
+        when(llmClient.complete(any())).thenReturn(LlmCompletionResult.success("Profile ready", "mock-mode-tool"));
+        when(conversationService.listMessages(authenticatedUser)).thenReturn(List.of());
         when(conversationService.appendMessage(eq(conversation), any(), any()))
                 .thenAnswer(invocation -> new AssistantMessage(
                         conversation,
