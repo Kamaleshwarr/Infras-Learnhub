@@ -819,3 +819,53 @@ Full API reference: `docs/learn/api-reference.md`
 | `LearningProgressController` | `/learn/enrollments`, `/learn/journey`, `/learn/progress` |
 | `LearnTechnologyManageController` | `/learn/manage/technologies` |
 | `LearnCatalogManageController` | `/learn/manage/catalog` |
+
+---
+
+## AI Assistant Module (Phase 1 Foundation)
+
+**Status:** Phase 1 foundation — feature flag disabled by default  
+**Package:** `com.company.learninghub.assistant`
+
+### Configuration
+
+| Property | Default | Purpose |
+|----------|---------|---------|
+| `app.assistant.enabled` | `false` | Master feature flag |
+| `app.assistant.llm.provider` | `mock` | `mock` or `openai-compatible` |
+
+### LLM provider abstraction
+
+Mirrors `EmailProvider` pattern:
+
+```text
+LlmClient (interface)
+    ├─ MockLlmClient (default)
+    └─ OpenAiCompatibleClient (skeleton — HTTP integration deferred)
+```
+
+Selection via `LlmClientConfiguration` + `AssistantProperties`.
+
+### Database (V21)
+
+| Table | Purpose |
+|-------|---------|
+| `assistant_conversations` | One conversation per user (`UNIQUE user_id`) |
+| `assistant_messages` | `USER`, `ASSISTANT`, `SYSTEM` roles |
+
+### APIs (Phase 1)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/assistant/status` | Deployment assistant availability and LLM provider health |
+
+**Deferred:** chat endpoint, intent resolver, tool execution, frontend panel.
+
+### Services
+
+| Service | Responsibility |
+|---------|----------------|
+| `AssistantOrchestrationService` | Status reporting (orchestration skeleton) |
+| `AssistantConversationService` | User-scoped conversation persistence |
+
+**Report:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`
