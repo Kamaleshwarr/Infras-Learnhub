@@ -18,10 +18,6 @@ public class MockLlmClient implements LlmClient {
             "I don't currently have enough information to answer this. "
                     + "Future versions will support broader AI knowledge.";
 
-    private static final String SYSTEM_PROMPT =
-            "You are the Engineering Learning Hub assistant. Provide concise, helpful explanations. "
-                    + "Never invent user-specific platform data such as certifications, projects, or rankings.";
-
     @Override
     public LlmCompletionResult complete(LlmCompletionRequest request) {
         String userMessage = extractLastUserMessage(request);
@@ -31,6 +27,15 @@ public class MockLlmClient implements LlmClient {
                 request.messages() == null ? 0 : request.messages().size(),
                 userMessage.length()
         );
+
+        if (PromptOrchestrator.containsToolContext(userMessage)) {
+            String toolSummary = PromptOrchestrator.extractToolSummary(userMessage);
+            if (StringUtils.hasText(toolSummary)) {
+                return LlmCompletionResult.success(toolSummary, "mock-mode-tool");
+            }
+            return LlmCompletionResult.success(UNKNOWN_FALLBACK, "mock-mode-tool");
+        }
+
         return LlmCompletionResult.success(generateResponse(userMessage), "mock-mode");
     }
 
@@ -130,14 +135,15 @@ public class MockLlmClient implements LlmClient {
             return "";
         }
         String normalized = message.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("user question:")) {
+            int markerIndex = normalized.indexOf(PromptOrchestrator.TOOL_CONTEXT_MARKER.toLowerCase(Locale.ROOT));
+            if (markerIndex > 0) {
+                normalized = normalized.substring("user question:".length(), markerIndex);
+            } else {
+                normalized = normalized.substring("user question:".length());
+            }
+        }
         normalized = NON_ALPHANUMERIC.matcher(normalized).replaceAll(" ");
         return normalized.replaceAll("\\s+", " ").trim();
-    }
-
-    public static LlmCompletionRequest knowledgeRequest(String userMessage) {
-        return new LlmCompletionRequest(
-                SYSTEM_PROMPT,
-                java.util.List.of(new LlmCompletionRequest.LlmMessage("user", userMessage))
-        );
     }
 }
