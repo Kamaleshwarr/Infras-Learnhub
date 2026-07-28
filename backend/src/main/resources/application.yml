@@ -100,4 +100,14 @@ app:
       poll-interval: ${APP_COMMUNICATION_OUTBOX_POLL_INTERVAL:PT10S}
       batch-size: ${APP_COMMUNICATION_OUTBOX_BATCH_SIZE:20}
       max-retries: ${APP_COMMUNICATION_OUTBOX_MAX_RETRIES:3}
+  assistant:
+    enabled: ${APP_ASSISTANT_ENABLED:false}
+    llm:
+      provider: ${APP_ASSISTANT_LLM_PROVIDER:mock}
+      openai-compatible:
+        api-key: ${APP_ASSISTANT_LLM_OPENAI_API_KEY:}
+        base-url: ${APP_ASSISTANT_LLM_OPENAI_BASE_URL:https://api.openai.com}
+        model: ${APP_ASSISTANT_LLM_OPENAI_MODEL:gpt-4o-mini}
+        connect-timeout: ${APP_ASSISTANT_LLM_OPENAI_CONNECT_TIMEOUT:PT10S}
+        read-timeout: ${APP_ASSISTANT_LLM_OPENAI_READ_TIMEOUT:PT60S}
 

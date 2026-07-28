@@ -1,5 +1,6 @@
 package com.company.learninghub;
 
+import com.company.learninghub.assistant.config.AssistantProperties;
 import com.company.learninghub.communication.config.CommunicationProperties;
 import com.company.learninghub.auth.config.PasswordResetProperties;
 import com.company.learninghub.auth.security.JwtProperties;
@@ -17,7 +18,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
         PasswordResetProperties.class,
         ProfileProperties.class,
         CatalogImportProperties.class,
-        CommunicationProperties.class
+        CommunicationProperties.class,
+        AssistantProperties.class
 })
 public class LearningHubApplication {
 
