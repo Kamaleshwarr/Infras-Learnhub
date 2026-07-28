@@ -12,6 +12,7 @@ public record AssistantResponse(
         AssistantIntentType intentType,
         String toolUsed,
         List<AssistantSourceResponse> sources,
+        AssistantSourceConfidence confidence,
         Map<String, Object> metadata
 ) {
 }
