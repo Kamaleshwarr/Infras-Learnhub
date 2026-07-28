@@ -46,25 +46,27 @@ public class OpenAiCompatibleClient implements LlmClient {
     @Override
     public LlmCompletionResult complete(LlmCompletionRequest request) {
         AssistantProperties.OpenAiCompatible config = assistantProperties.getLlm().getOpenaiCompatible();
-        if (!StringUtils.hasText(config.getApiKey())) {
-            return LlmCompletionResult.failure("OpenAI-compatible API key is not configured");
-        }
         if (!StringUtils.hasText(config.getBaseUrl())) {
             return LlmCompletionResult.failure("OpenAI-compatible base URL is not configured");
+        }
+        if (!StringUtils.hasText(config.getModel())) {
+            return LlmCompletionResult.failure("OpenAI-compatible model is not configured");
         }
 
         try {
             String requestBody = objectMapper.writeValueAsString(buildRequestBody(request, config));
-            HttpRequest httpRequest = HttpRequest.newBuilder()
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(resolveChatCompletionsUri(config.getBaseUrl()))
                     .timeout(config.getReadTimeout())
-                    .header("Authorization", "Bearer " + config.getApiKey().trim())
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody));
 
-            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (StringUtils.hasText(config.getApiKey())) {
+                requestBuilder.header("Authorization", "Bearer " + config.getApiKey().trim());
+            }
+
+            HttpResponse<String> response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 return parseSuccessResponse(response.body());
             }
@@ -82,7 +84,7 @@ public class OpenAiCompatibleClient implements LlmClient {
     @Override
     public boolean isHealthy() {
         AssistantProperties.OpenAiCompatible config = assistantProperties.getLlm().getOpenaiCompatible();
-        return StringUtils.hasText(config.getApiKey()) && StringUtils.hasText(config.getBaseUrl());
+        return StringUtils.hasText(config.getBaseUrl()) && StringUtils.hasText(config.getModel());
     }
 
     @Override
