@@ -822,9 +822,9 @@ Full API reference: `docs/learn/api-reference.md`
 
 ---
 
-## AI Assistant Module (Phase 1 Foundation + Phase 2 Intent & Tools)
+## AI Assistant Module (Phase 1–3)
 
-**Status:** Phase 2 intent resolution and read-only tools — feature flag disabled by default  
+**Status:** Phase 3 conversation pipeline and mock chat — feature flag disabled by default  
 **Package:** `com.company.learninghub.assistant`
 
 ### Configuration
@@ -840,7 +840,7 @@ Mirrors `EmailProvider` pattern:
 
 ```text
 LlmClient (interface)
-    ├─ MockLlmClient (default)
+    ├─ MockLlmClient (default — realistic explanatory responses)
     └─ OpenAiCompatibleClient (skeleton — HTTP integration deferred)
 ```
 
@@ -853,25 +853,43 @@ Selection via `LlmClientConfiguration` + `AssistantProperties`.
 | `assistant_conversations` | One conversation per user (`UNIQUE user_id`) |
 | `assistant_messages` | `USER`, `ASSISTANT`, `SYSTEM` roles |
 
-### APIs (Phase 1–2)
+### APIs
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/assistant/status` | Deployment assistant availability and LLM provider health |
+| `GET` | `/api/v1/assistant/status` | Deployment assistant availability and LLM provider health (always available when authenticated) |
+| `POST` | `/api/v1/assistant/chat` | Send message; returns structured `AssistantResponse` (requires `app.assistant.enabled=true`) |
+| `GET` | `/api/v1/assistant/conversation` | Current user's conversation history (requires feature flag) |
 
-**Deferred:** chat endpoint, LLM orchestration, frontend panel.
+**Deferred:** frontend panel, OpenAI HTTP, streaming.
 
-### Orchestration flow (Phase 2)
+### Chat orchestration flow (Phase 3)
 
 ```text
-AssistantRequest
+POST /assistant/chat
+    ↓
+Load/Create Conversation (optional conversationId validation)
+    ↓
+Persist USER message
     ↓
 IntentResolver
-    ├─ NAVIGATION → NavigationInstruction (no LLM)
+    ├─ NAVIGATION → structured navigation response
     ├─ TOOL → AssistantToolRegistry → ToolResult (read-only services)
-    ├─ KNOWLEDGE → placeholder response (Phase 3)
-    └─ UNKNOWN → guided fallback message
+    ├─ KNOWLEDGE → MockLlmClient
+    └─ UNKNOWN → MockLlmClient fallback
+    ↓
+Persist ASSISTANT response
+    ↓
+AssistantResponse (response, conversationId, intentType, toolUsed, sources, metadata)
 ```
+
+### AssistantResponse sources
+
+| Outcome | Sources |
+|---------|---------|
+| Tool | Service name + tool name, confidence `HIGH` |
+| Knowledge / Unknown (MockLlm) | `MockLlmClient`, confidence `LOW` |
+| Navigation | Empty sources; navigation in metadata |
 
 ### Intent resolution
 
@@ -879,7 +897,7 @@ IntentResolver
 |------|----------|----------|
 | `NAVIGATION` | `NavigationIntentResolver` | Open Projects, Go to Learn, Open Leaderboards, Open Dashboard |
 | `TOOL` | `IntentResolver` keyword routing | My Profile, My Leaderboard Rank, My Certifications, Available Learning Initiatives |
-| `KNOWLEDGE` | Heuristic patterns | what is, how does, explain (placeholder only) |
+| `KNOWLEDGE` | Heuristic patterns | what is, how does, explain |
 | `UNKNOWN` | Fallback | Unrecognized input |
 
 ### Tool registry
@@ -903,10 +921,10 @@ Supports plain text, structured data, and extension fields for future citations,
 
 | Service | Responsibility |
 |---------|----------------|
-| `AssistantOrchestrationService` | Status reporting + intent/tool orchestration (`processRequest`) |
+| `AssistantOrchestrationService` | Status, chat pipeline, intent/tool/LLM orchestration |
 | `AssistantConversationService` | User-scoped conversation persistence |
 | `IntentResolver` | Classifies incoming assistant requests |
 | `NavigationIntentResolver` | Maps navigation phrases to frontend routes |
 | `AssistantToolRegistry` | Tool discovery and execution |
 
-**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`
+**Reports:** `docs/releases/release-ai-assistant-phase1-foundation-report.md`, `docs/releases/release-ai-assistant-phase2-intent-tools-report.md`, `docs/releases/release-ai-assistant-phase3-conversation-pipeline-report.md`
