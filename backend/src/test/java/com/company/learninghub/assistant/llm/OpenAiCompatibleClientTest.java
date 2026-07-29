@@ -112,7 +112,50 @@ class OpenAiCompatibleClientTest {
         assertThat(result.success()).isTrue();
         assertThat(result.content()).isEqualTo("Docker is a container platform.");
         assertThat(lastAuthorization).isNull();
+        assertThat(lastRequestBody).contains("\"reasoning_effort\":\"none\"");
         assertThat(localClient.isHealthy()).isTrue();
+    }
+
+    @Test
+    void completeUsesReasoningFieldWhenContentEmptyForOllamaThinkingModels() {
+        responseBody = """
+                {
+                  "id": "chatcmpl_qwen3",
+                  "choices": [
+                    {
+                      "message": {
+                        "role": "assistant",
+                        "content": "",
+                        "reasoning": "Spring Boot is a Java framework for building production-ready applications."
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort());
+        properties.getLlm().getOpenaiCompatible().setModel("qwen3:8b");
+        OpenAiCompatibleClient ollamaClient = new OpenAiCompatibleClient(
+                properties,
+                new ObjectMapper(),
+                HttpClient.newHttpClient()
+        );
+
+        LlmCompletionResult result = ollamaClient.complete(sampleRequest());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.content()).isEqualTo(
+                "Spring Boot is a Java framework for building production-ready applications."
+        );
+        assertThat(lastRequestBody).contains("\"reasoning_effort\":\"none\"");
+    }
+
+    @Test
+    void isOllamaCompatibleEndpointDetectsCommonLocalHosts() {
+        assertThat(OpenAiCompatibleClient.isOllamaCompatibleEndpoint("http://localhost:11434")).isTrue();
+        assertThat(OpenAiCompatibleClient.isOllamaCompatibleEndpoint("http://host.docker.internal:11434")).isTrue();
+        assertThat(OpenAiCompatibleClient.isOllamaCompatibleEndpoint("https://api.openai.com")).isFalse();
     }
 
     @Test
