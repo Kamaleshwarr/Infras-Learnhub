@@ -1,6 +1,7 @@
 package com.company.learninghub.assistant.service;
 
 import com.company.learninghub.assistant.config.AssistantProperties;
+import com.company.learninghub.assistant.diagnostics.AssistantChatDiagnostics;
 import com.company.learninghub.assistant.domain.AssistantConversation;
 import com.company.learninghub.assistant.domain.AssistantMessage;
 import com.company.learninghub.assistant.domain.AssistantMessageRole;
@@ -34,6 +35,7 @@ import org.springframework.util.StringUtils;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Orchestrates assistant requests including chat pipeline, intent resolution, tool execution,
@@ -88,30 +90,38 @@ public class AssistantOrchestrationService {
 
     @Transactional
     public AssistantResponse chat(AssistantRequest request, AuthenticatedUser authenticatedUser) {
-        requireEnabled();
+        String requestId = UUID.randomUUID().toString();
+        AssistantChatDiagnostics.start(requestId);
+        try {
+            requireEnabled();
 
-        AssistantConversation conversation = conversationService.resolveConversation(
-                authenticatedUser,
-                request.conversationId()
-        );
-        List<AssistantMessage> historyBeforeCurrentMessage = conversationService.listMessages(authenticatedUser);
-        conversationService.appendMessage(conversation, AssistantMessageRole.USER, request.message());
+            AssistantConversation conversation = conversationService.resolveConversation(
+                    authenticatedUser,
+                    request.conversationId()
+            );
+            List<AssistantMessage> historyBeforeCurrentMessage = conversationService.listMessages(authenticatedUser);
+            conversationService.appendMessage(conversation, AssistantMessageRole.USER, request.message());
 
-        AssistantOrchestrationResponse orchestration = processRequest(
-                request,
-                authenticatedUser,
-                historyBeforeCurrentMessage
-        );
-        conversationService.appendMessage(conversation, AssistantMessageRole.ASSISTANT, orchestration.message());
+            AssistantOrchestrationResponse orchestration = processRequest(
+                    request,
+                    authenticatedUser,
+                    historyBeforeCurrentMessage
+            );
+            conversationService.appendMessage(conversation, AssistantMessageRole.ASSISTANT, orchestration.message());
 
-        AssistantResponse response = toAssistantResponse(conversation, orchestration);
-        log.debug(
-                "Assistant chat response: intent={}, responseLength={}, responsePreview={}",
-                response.intentType(),
-                response.response() == null ? 0 : response.response().length(),
-                response.response() == null ? null : response.response().substring(0, Math.min(120, response.response().length()))
-        );
-        return response;
+            AssistantResponse response = toAssistantResponse(conversation, orchestration);
+            AssistantChatDiagnostics.recordFinalResponse(response.response());
+            log.info(
+                    "ASSISTANT_CHAT_DIAG requestId={} userMessage={} intent={} finalResponse={}",
+                    requestId,
+                    request.message(),
+                    response.intentType(),
+                    AssistantChatDiagnostics.truncate(response.response(), 500)
+            );
+            return response;
+        } finally {
+            AssistantChatDiagnostics.end();
+        }
     }
 
     @Transactional(readOnly = true)
@@ -138,6 +148,8 @@ public class AssistantOrchestrationService {
 
         List<AssistantMessage> history = conversationHistory == null ? List.of() : conversationHistory;
         ResolvedIntent intent = intentResolver.resolve(request.message());
+        AssistantChatDiagnostics.recordIntent(intent.type().name(), intent.normalizedMessage());
+        AssistantChatDiagnostics.recordInjectedClient(llmClient.getClass().getName(), llmClient.providerName());
         log.debug("Resolved assistant intent: type={}, normalizedMessage={}", intent.type(), intent.normalizedMessage());
         return switch (intent.type()) {
             case NAVIGATION -> AssistantOrchestrationResponse.navigation(
@@ -166,12 +178,16 @@ public class AssistantOrchestrationService {
 
     private String completeWithLlm(String message, List<AssistantMessage> conversationHistory) {
         LlmCompletionRequest request = promptOrchestrator.buildKnowledgeRequest(message, conversationHistory);
+        int promptLength = (request.systemPrompt() == null ? 0 : request.systemPrompt().length())
+                + request.messages().stream().mapToInt(messageEntry -> messageEntry.content() == null ? 0 : messageEntry.content().length()).sum();
+        AssistantChatDiagnostics.recordPromptLength(promptLength);
         log.debug(
-                "Building knowledge LLM request: messageLength={}, historySize={}",
+                "Building knowledge LLM request: messageLength={}, historySize={}, promptLength={}",
                 message.length(),
-                conversationHistory.size()
+                conversationHistory.size(),
+                promptLength
         );
-        return resolveLlmContent(request, LLM_FALLBACK_MESSAGE);
+        return resolveLlmContent(request, LLM_FALLBACK_MESSAGE, "completeWithLlm");
     }
 
     private String completeWithGroundedTool(
@@ -187,10 +203,10 @@ public class AssistantOrchestrationService {
                 conversationHistory
         );
         String fallback = StringUtils.hasText(toolResult.text()) ? toolResult.text() : LLM_FALLBACK_MESSAGE;
-        return resolveLlmContent(request, fallback);
+        return resolveLlmContent(request, fallback, "completeWithGroundedTool");
     }
 
-    private String resolveLlmContent(LlmCompletionRequest request, String fallbackMessage) {
+    private String resolveLlmContent(LlmCompletionRequest request, String fallbackMessage, String location) {
         log.debug(
                 "Calling llmClient.complete(): clientClass={}, provider={}",
                 llmClient.getClass().getName(),
@@ -204,8 +220,10 @@ public class AssistantOrchestrationService {
                 result.errorMessage()
         );
         if (!result.success() || result.content() == null) {
+            AssistantChatDiagnostics.recordFallbackReturned(location);
             log.warn(
-                    "LLM completion unavailable; returning LLM_FALLBACK_MESSAGE. provider={}, clientClass={}, success={}, error={}",
+                    "LLM completion unavailable; returning LLM_FALLBACK_MESSAGE from {}. provider={}, clientClass={}, success={}, error={}",
+                    location,
                     llmClient.providerName(),
                     llmClient.getClass().getName(),
                     result.success(),

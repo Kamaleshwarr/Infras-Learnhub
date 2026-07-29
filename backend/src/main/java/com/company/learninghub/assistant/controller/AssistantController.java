@@ -1,9 +1,11 @@
 package com.company.learninghub.assistant.controller;
 
+import com.company.learninghub.assistant.dto.AssistantLlmDebugResponse;
 import com.company.learninghub.assistant.dto.AssistantRequest;
 import com.company.learninghub.assistant.dto.AssistantResponse;
 import com.company.learninghub.assistant.dto.AssistantStatusResponse;
 import com.company.learninghub.assistant.dto.ConversationResponse;
+import com.company.learninghub.assistant.llm.OpenAiCompatibleClient;
 import com.company.learninghub.assistant.service.AssistantDisabledException;
 import com.company.learninghub.assistant.service.AssistantOrchestrationService;
 import com.company.learninghub.auth.security.AuthenticatedUser;
@@ -32,9 +34,14 @@ import java.time.Instant;
 public class AssistantController {
 
     private final AssistantOrchestrationService orchestrationService;
+    private final OpenAiCompatibleClient openAiCompatibleClient;
 
-    public AssistantController(AssistantOrchestrationService orchestrationService) {
+    public AssistantController(
+            AssistantOrchestrationService orchestrationService,
+            OpenAiCompatibleClient openAiCompatibleClient
+    ) {
         this.orchestrationService = orchestrationService;
+        this.openAiCompatibleClient = openAiCompatibleClient;
     }
 
     @GetMapping("/status")
@@ -50,6 +57,12 @@ public class AssistantController {
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
         return ResponseEntity.ok(orchestrationService.chat(request, authenticatedUser));
+    }
+
+    @GetMapping("/debug")
+    @Operation(summary = "Temporary diagnostic probe that calls OpenAiCompatibleClient directly")
+    public ResponseEntity<AssistantLlmDebugResponse> debug() {
+        return ResponseEntity.ok(openAiCompatibleClient.probeDirectLlmCall());
     }
 
     @GetMapping("/conversation")

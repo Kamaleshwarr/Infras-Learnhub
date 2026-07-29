@@ -1,5 +1,6 @@
 package com.company.learninghub.assistant.controller;
 
+import com.company.learninghub.assistant.dto.AssistantLlmDebugResponse;
 import com.company.learninghub.assistant.dto.AssistantRequest;
 import com.company.learninghub.assistant.dto.AssistantResponse;
 import com.company.learninghub.assistant.dto.AssistantStatusResponse;
@@ -7,6 +8,7 @@ import com.company.learninghub.assistant.dto.ConversationMessageResponse;
 import com.company.learninghub.assistant.dto.ConversationResponse;
 import com.company.learninghub.assistant.domain.AssistantMessageRole;
 import com.company.learninghub.assistant.intent.AssistantIntentType;
+import com.company.learninghub.assistant.llm.OpenAiCompatibleClient;
 import com.company.learninghub.assistant.service.AssistantDisabledException;
 import com.company.learninghub.assistant.service.AssistantOrchestrationService;
 import com.company.learninghub.auth.security.AuthenticatedUser;
@@ -43,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AssistantControllerTest {
 
     private AssistantOrchestrationService orchestrationService;
+    private OpenAiCompatibleClient openAiCompatibleClient;
     private MockMvc mockMvc;
     private AuthenticatedUser authenticatedUser;
     private ObjectMapper objectMapper;
@@ -51,10 +54,11 @@ class AssistantControllerTest {
     @BeforeEach
     void setUp() {
         orchestrationService = mock(AssistantOrchestrationService.class);
+        openAiCompatibleClient = mock(OpenAiCompatibleClient.class);
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new AssistantController(orchestrationService))
+                .standaloneSetup(new AssistantController(orchestrationService, openAiCompatibleClient))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setValidator(validator)
@@ -72,6 +76,28 @@ class AssistantControllerTest {
     void tearDown() {
         validator.close();
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void debugReturnsDirectLlmProbe() throws Exception {
+        when(openAiCompatibleClient.probeDirectLlmCall()).thenReturn(new AssistantLlmDebugResponse(
+                "openai-compatible",
+                42L,
+                true,
+                200,
+                "http://localhost:11434/v1/chat/completions",
+                "{\"choices\":[]}",
+                "HELLO_FROM_OLLAMA",
+                null,
+                "HELLO_FROM_OLLAMA",
+                null
+        ));
+
+        mockMvc.perform(get("/api/v1/assistant/debug").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.provider").value("openai-compatible"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.finalText").value("HELLO_FROM_OLLAMA"));
     }
 
     @Test
