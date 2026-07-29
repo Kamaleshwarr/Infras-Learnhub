@@ -63,7 +63,7 @@ public class AssistantProperties {
         private String baseUrl = "https://api.openai.com";
         private String model = "gpt-4o-mini";
         private Duration connectTimeout = Duration.ofSeconds(10);
-        private Duration readTimeout = Duration.ofSeconds(60);
+        private Duration readTimeout = Duration.ofSeconds(180);
 
         public String getApiKey() {
             return apiKey;
