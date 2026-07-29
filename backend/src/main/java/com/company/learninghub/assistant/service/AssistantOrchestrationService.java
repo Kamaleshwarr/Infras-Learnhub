@@ -104,7 +104,14 @@ public class AssistantOrchestrationService {
         );
         conversationService.appendMessage(conversation, AssistantMessageRole.ASSISTANT, orchestration.message());
 
-        return toAssistantResponse(conversation, orchestration);
+        AssistantResponse response = toAssistantResponse(conversation, orchestration);
+        log.debug(
+                "Assistant chat response: intent={}, responseLength={}, responsePreview={}",
+                response.intentType(),
+                response.response() == null ? 0 : response.response().length(),
+                response.response() == null ? null : response.response().substring(0, Math.min(120, response.response().length()))
+        );
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -159,6 +166,11 @@ public class AssistantOrchestrationService {
 
     private String completeWithLlm(String message, List<AssistantMessage> conversationHistory) {
         LlmCompletionRequest request = promptOrchestrator.buildKnowledgeRequest(message, conversationHistory);
+        log.debug(
+                "Building knowledge LLM request: messageLength={}, historySize={}",
+                message.length(),
+                conversationHistory.size()
+        );
         return resolveLlmContent(request, LLM_FALLBACK_MESSAGE);
     }
 
@@ -179,16 +191,29 @@ public class AssistantOrchestrationService {
     }
 
     private String resolveLlmContent(LlmCompletionRequest request, String fallbackMessage) {
+        log.debug(
+                "Calling llmClient.complete(): clientClass={}, provider={}",
+                llmClient.getClass().getName(),
+                llmClient.providerName()
+        );
         LlmCompletionResult result = llmClient.complete(request);
+        log.debug(
+                "llmClient.complete() returned: success={}, contentLength={}, error={}",
+                result.success(),
+                result.content() == null ? 0 : result.content().length(),
+                result.errorMessage()
+        );
         if (!result.success() || result.content() == null) {
             log.warn(
-                    "LLM completion unavailable; using fallback response. provider={}, success={}, error={}",
+                    "LLM completion unavailable; returning LLM_FALLBACK_MESSAGE. provider={}, clientClass={}, success={}, error={}",
                     llmClient.providerName(),
+                    llmClient.getClass().getName(),
                     result.success(),
                     result.errorMessage()
             );
             return fallbackMessage;
         }
+        log.debug("Using LLM content for assistant response (length={})", result.content().length());
         return result.content();
     }
 

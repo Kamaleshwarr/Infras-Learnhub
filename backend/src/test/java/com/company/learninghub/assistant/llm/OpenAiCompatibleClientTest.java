@@ -159,6 +159,27 @@ class OpenAiCompatibleClientTest {
     }
 
     @Test
+    void normalizeBaseUrlStripsTrailingV1Segment() {
+        assertThat(OpenAiCompatibleClient.normalizeBaseUrl("http://host.docker.internal:11434/v1"))
+                .isEqualTo("http://host.docker.internal:11434");
+        assertThat(OpenAiCompatibleClient.normalizeBaseUrl("http://localhost:11434/v1/"))
+                .isEqualTo("http://localhost:11434");
+    }
+
+    @Test
+    void completeWorksWhenBaseUrlIncludesTrailingV1() {
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort() + "/v1");
+        properties.getLlm().getOpenaiCompatible().setModel("qwen3:8b");
+        OpenAiCompatibleClient client = new OpenAiCompatibleClient(properties, new ObjectMapper(), HttpClient.newHttpClient());
+
+        LlmCompletionResult result = client.complete(sampleRequest());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.content()).isEqualTo("Docker is a container platform.");
+    }
+
+    @Test
     void isHealthyReturnsFalseWhenModelMissing() {
         AssistantProperties properties = new AssistantProperties();
         properties.getLlm().getOpenaiCompatible().setBaseUrl("http://localhost:" + server.getAddress().getPort());

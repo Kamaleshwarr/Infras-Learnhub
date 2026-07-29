@@ -27,6 +27,7 @@ public class OpenAiCompatibleClient implements LlmClient {
     private static final Logger log = LoggerFactory.getLogger(OpenAiCompatibleClient.class);
     private static final String CHAT_COMPLETIONS_PATH = "/v1/chat/completions";
     private static final int RESPONSE_BODY_LOG_LIMIT = 500;
+    private static final Duration OLLAMA_MINIMUM_READ_TIMEOUT = Duration.ofSeconds(180);
 
     private final AssistantProperties assistantProperties;
     private final ObjectMapper objectMapper;
@@ -58,12 +59,13 @@ public class OpenAiCompatibleClient implements LlmClient {
         }
 
         URI requestUri = resolveChatCompletionsUri(config.getBaseUrl());
+        Duration readTimeout = effectiveReadTimeout(config);
         long startedAtNanos = System.nanoTime();
         try {
             String requestBody = objectMapper.writeValueAsString(buildRequestBody(request, config));
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(requestUri)
-                    .timeout(config.getReadTimeout())
+                    .timeout(readTimeout)
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody));
@@ -73,10 +75,12 @@ public class OpenAiCompatibleClient implements LlmClient {
             }
 
             log.debug(
-                    "OpenAI-compatible LLM request starting: uri={}, model={}, readTimeout={}",
+                    "OpenAI-compatible LLM request starting: uri={}, model={}, configuredReadTimeout={}, effectiveReadTimeout={}, requestBody={}",
                     requestUri,
                     config.getModel(),
-                    config.getReadTimeout()
+                    config.getReadTimeout(),
+                    readTimeout,
+                    truncateForLog(requestBody)
             );
 
             HttpResponse<String> response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -103,9 +107,10 @@ public class OpenAiCompatibleClient implements LlmClient {
         } catch (HttpTimeoutException ex) {
             long elapsedMs = (System.nanoTime() - startedAtNanos) / 1_000_000L;
             log.warn(
-                    "OpenAI-compatible LLM request timed out: uri={}, readTimeout={}, elapsedMs={}",
+                    "OpenAI-compatible LLM request timed out: uri={}, configuredReadTimeout={}, effectiveReadTimeout={}, elapsedMs={}",
                     requestUri,
                     config.getReadTimeout(),
+                    readTimeout,
                     elapsedMs,
                     ex
             );
@@ -174,7 +179,17 @@ public class OpenAiCompatibleClient implements LlmClient {
         }
 
         JsonNode messageNode = choices.get(0).path("message");
-        String content = extractMessageText(messageNode);
+        String rawContent = textValue(messageNode, "content");
+        String rawReasoning = textValue(messageNode, "reasoning");
+        String rawReasoningContent = textValue(messageNode, "reasoning_content");
+        log.debug(
+                "OpenAI-compatible parsed message fields: content={}, reasoning={}, reasoning_content={}",
+                truncateForLog(rawContent),
+                truncateForLog(rawReasoning),
+                truncateForLog(rawReasoningContent)
+        );
+
+        String content = extractMessageText(messageNode, rawContent, rawReasoning, rawReasoningContent);
         if (!StringUtils.hasText(content)) {
             log.warn(
                     "OpenAI-compatible response did not include usable message content: body={}",
@@ -184,20 +199,33 @@ public class OpenAiCompatibleClient implements LlmClient {
         }
 
         String providerReference = root.path("id").asText("openai-compatible");
+        log.debug("OpenAI-compatible parsed response content length={}", content.length());
         return LlmCompletionResult.success(content.trim(), providerReference);
     }
 
-    private String extractMessageText(JsonNode messageNode) {
-        String content = textValue(messageNode, "content");
+    private String extractMessageText(
+            JsonNode messageNode,
+            String content,
+            String reasoning,
+            String reasoningContent
+    ) {
         if (StringUtils.hasText(content)) {
             return content;
         }
-        String reasoning = textValue(messageNode, "reasoning");
         if (StringUtils.hasText(reasoning)) {
             log.info("Using Ollama reasoning field because message.content was empty");
             return reasoning;
         }
-        return textValue(messageNode, "reasoning_content");
+        return reasoningContent;
+    }
+
+    private String extractMessageText(JsonNode messageNode) {
+        return extractMessageText(
+                messageNode,
+                textValue(messageNode, "content"),
+                textValue(messageNode, "reasoning"),
+                textValue(messageNode, "reasoning_content")
+        );
     }
 
     static boolean isOllamaCompatibleEndpoint(String baseUrl) {
@@ -246,10 +274,44 @@ public class OpenAiCompatibleClient implements LlmClient {
     }
 
     private URI resolveChatCompletionsUri(String baseUrl) {
-        String normalizedBase = baseUrl.endsWith("/")
-                ? baseUrl.substring(0, baseUrl.length() - 1)
-                : baseUrl;
-        return URI.create(normalizedBase + CHAT_COMPLETIONS_PATH);
+        return URI.create(normalizeBaseUrl(baseUrl) + CHAT_COMPLETIONS_PATH);
+    }
+
+    static String normalizeBaseUrl(String baseUrl) {
+        if (!StringUtils.hasText(baseUrl)) {
+            return "";
+        }
+        String normalizedBase = baseUrl.trim();
+        while (normalizedBase.endsWith("/")) {
+            normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
+        }
+        if (normalizedBase.endsWith("/v1")) {
+            normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 3);
+        }
+        return normalizedBase;
+    }
+
+    private Duration effectiveReadTimeout(AssistantProperties.OpenAiCompatible config) {
+        Duration configured = config.getReadTimeout() == null
+                ? Duration.ofSeconds(60)
+                : config.getReadTimeout();
+        if (requiresExtendedOllamaReadTimeout(config.getBaseUrl()) && configured.compareTo(OLLAMA_MINIMUM_READ_TIMEOUT) < 0) {
+            log.debug(
+                    "Applying Ollama minimum read timeout {} (configured={})",
+                    OLLAMA_MINIMUM_READ_TIMEOUT,
+                    configured
+            );
+            return OLLAMA_MINIMUM_READ_TIMEOUT;
+        }
+        return configured;
+    }
+
+    static boolean requiresExtendedOllamaReadTimeout(String baseUrl) {
+        if (!StringUtils.hasText(baseUrl)) {
+            return false;
+        }
+        String normalized = baseUrl.trim().toLowerCase();
+        return normalized.contains("host.docker.internal") || normalized.contains(":11434");
     }
 
     private static HttpClient buildHttpClient(AssistantProperties assistantProperties) {

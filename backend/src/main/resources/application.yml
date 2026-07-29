@@ -111,5 +111,5 @@ app:
         base-url: ${APP_ASSISTANT_LLM_OPENAI_BASE_URL:https://api.openai.com}
         model: ${APP_ASSISTANT_LLM_OPENAI_MODEL:gpt-4o-mini}
         connect-timeout: ${APP_ASSISTANT_LLM_OPENAI_CONNECT_TIMEOUT:PT10S}
-        read-timeout: ${APP_ASSISTANT_LLM_OPENAI_READ_TIMEOUT:PT60S}
+        read-timeout: ${APP_ASSISTANT_LLM_OPENAI_READ_TIMEOUT:PT180S}
 
