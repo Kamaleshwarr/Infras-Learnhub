@@ -152,6 +152,29 @@ class OpenAiCompatibleClientTest {
     }
 
     @Test
+    void dockerOllamaBaseUrlIsEligibleForExtendedReadTimeout() {
+        assertThat(OpenAiCompatibleClient.requiresExtendedOllamaReadTimeout("http://host.docker.internal:11434"))
+                .isTrue();
+    }
+
+    @Test
+    void constructionLogsResolvedTimeoutsForDockerOllamaEnvironment() {
+        AssistantProperties properties = new AssistantProperties();
+        properties.getLlm().setProvider("openai-compatible");
+        properties.getLlm().getOpenaiCompatible().setBaseUrl("http://host.docker.internal:11434");
+        properties.getLlm().getOpenaiCompatible().setModel("qwen3:8b");
+
+        OpenAiCompatibleClient client = new OpenAiCompatibleClient(
+                properties,
+                new ObjectMapper(),
+                HttpClient.newHttpClient()
+        );
+
+        assertThat(client.providerName()).isEqualTo("openai-compatible");
+        assertThat(client.isHealthy()).isTrue();
+    }
+
+    @Test
     void isOllamaCompatibleEndpointDetectsCommonLocalHosts() {
         assertThat(OpenAiCompatibleClient.isOllamaCompatibleEndpoint("http://localhost:11434")).isTrue();
         assertThat(OpenAiCompatibleClient.isOllamaCompatibleEndpoint("http://host.docker.internal:11434")).isTrue();
