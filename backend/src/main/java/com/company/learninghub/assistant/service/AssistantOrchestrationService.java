@@ -25,6 +25,8 @@ import com.company.learninghub.assistant.tool.AssistantToolNames;
 import com.company.learninghub.assistant.tool.AssistantToolRegistry;
 import com.company.learninghub.assistant.tool.ToolResult;
 import com.company.learninghub.auth.security.AuthenticatedUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -39,6 +41,8 @@ import java.util.Map;
  */
 @Service
 public class AssistantOrchestrationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AssistantOrchestrationService.class);
 
     private static final String LLM_FALLBACK_MESSAGE =
             "I don't currently have enough information to answer this. "
@@ -127,6 +131,7 @@ public class AssistantOrchestrationService {
 
         List<AssistantMessage> history = conversationHistory == null ? List.of() : conversationHistory;
         ResolvedIntent intent = intentResolver.resolve(request.message());
+        log.debug("Resolved assistant intent: type={}, normalizedMessage={}", intent.type(), intent.normalizedMessage());
         return switch (intent.type()) {
             case NAVIGATION -> AssistantOrchestrationResponse.navigation(
                     intent.type(),
@@ -176,6 +181,12 @@ public class AssistantOrchestrationService {
     private String resolveLlmContent(LlmCompletionRequest request, String fallbackMessage) {
         LlmCompletionResult result = llmClient.complete(request);
         if (!result.success() || result.content() == null) {
+            log.warn(
+                    "LLM completion unavailable; using fallback response. provider={}, success={}, error={}",
+                    llmClient.providerName(),
+                    result.success(),
+                    result.errorMessage()
+            );
             return fallbackMessage;
         }
         return result.content();

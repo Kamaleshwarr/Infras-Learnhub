@@ -176,6 +176,28 @@ class AssistantOrchestrationServiceTest {
     }
 
     @Test
+    void processRequestUsesFallbackWhenLlmCompletionFails() {
+        assistantProperties.setEnabled(true);
+        when(intentResolver.resolve("What is Spring Boot?"))
+                .thenReturn(ResolvedIntent.knowledge("what is spring boot"));
+        when(promptOrchestrator.buildKnowledgeRequest(eq("What is Spring Boot?"), any())).thenReturn(
+                new com.company.learninghub.assistant.llm.LlmCompletionRequest("system", List.of())
+        );
+        when(llmClient.complete(any())).thenReturn(
+                LlmCompletionResult.failure("OpenAI-compatible response did not include message content")
+        );
+
+        AssistantOrchestrationResponse response = service.processRequest(
+                new AssistantRequest("What is Spring Boot?", null),
+                authenticatedUser
+        );
+
+        assertThat(response.outcomeType()).isEqualTo(AssistantOutcomeType.KNOWLEDGE);
+        assertThat(response.message()).contains("don't currently have enough information");
+        verify(llmClient).complete(any());
+    }
+
+    @Test
     void processRequestUsesMockLlmForUnknown() {
         assistantProperties.setEnabled(true);
         when(intentResolver.resolve("???")).thenReturn(ResolvedIntent.unknown(""));
