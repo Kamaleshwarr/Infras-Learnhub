@@ -94,5 +94,17 @@ describe('Sidebar role-aware navigation', () => {
 
     expect(screen.getAllByText('Learn').length).toBeGreaterThan(0)
   })
+
+  it('does not show study materials navigation to employees', () => {
+    renderSidebar(employeeUser)
+
+    expect(screen.queryAllByText('Study Materials')).toHaveLength(0)
+  })
+
+  it('does not show study materials navigation to admins', () => {
+    renderSidebar(adminUser)
+
+    expect(screen.queryAllByText('Study Materials')).toHaveLength(0)
+  })
 })
 
