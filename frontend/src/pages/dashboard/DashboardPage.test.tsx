@@ -36,6 +36,7 @@ const dashboardData: DashboardData = {
       status: 'ACTIVE',
     },
   ],
+  certificatesSubmittedCount: 15,
   expiringInitiativesCount: 1,
   leaderboardPreview: [
     {
@@ -90,7 +91,28 @@ const dashboardData: DashboardData = {
       updatedAtUtc: '2026-06-01T00:00:00Z',
     },
   ],
+  mySubmissionsTotalCount: 1,
   pendingReviewsCount: 7,
+  recentActivity: [
+    {
+      description: 'A new certificate was submitted.',
+      href: '/submissions/review',
+      id: 'notification-1',
+      timestamp: '2026-06-11T00:00:00Z',
+      title: 'Certificate submitted',
+    },
+  ],
+  recentNotifications: [
+    {
+      actionPath: '/submissions/review',
+      createdAtUtc: '2026-06-11T00:00:00Z',
+      id: 'notification-1',
+      message: 'A new certificate was submitted.',
+      read: false,
+      title: 'Certificate submitted',
+      type: 'CERTIFICATE_SUBMITTED',
+    },
+  ],
   recentProjectUpdates: [
     {
       accessType: 'PUBLIC',
@@ -109,6 +131,8 @@ const dashboardData: DashboardData = {
       title: 'AWS Guide',
     },
   ],
+  totalUsersCount: 24,
+  unreadNotificationsCount: 2,
 }
 
 describe('DashboardPage', () => {
@@ -116,8 +140,11 @@ describe('DashboardPage', () => {
     vi.clearAllMocks()
   })
 
-  it('renders admin dashboard widgets from admin API data', async () => {
-    vi.mocked(useAuth).mockReturnValue({ isAdmin: true } as ReturnType<typeof useAuth>)
+  it('renders admin dashboard sections from admin API data', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAdmin: true,
+      user: { fullName: 'Admin User' },
+    } as ReturnType<typeof useAuth>)
     vi.mocked(getAdminDashboardData).mockResolvedValue(dashboardData)
 
     render(
@@ -126,26 +153,31 @@ describe('DashboardPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('Admin Dashboard')).toBeInTheDocument()
-    expect(screen.getByText('Active Initiatives')).toBeInTheDocument()
+    expect(screen.getByText('Dashboard')).toBeInTheDocument()
+    expect(screen.getByText(/Good (morning|afternoon|evening), Admin/)).toBeInTheDocument()
+    expect(screen.getByText('Quick Statistics')).toBeInTheDocument()
 
-    await waitFor(() => expect(screen.getByText('Pending Reviews')).toBeInTheDocument())
-    expect(screen.getByText('7')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Total Users')).toBeInTheDocument())
+    expect(screen.getByText('24')).toBeInTheDocument()
+    expect(screen.getByText('Certificates Submitted')).toBeInTheDocument()
+    expect(screen.getByText('15')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'View 7 pending certificate reviews' })).toHaveAttribute(
       'href',
       '/submissions/review',
     )
-    expect(screen.queryByRole('link', { name: /active initiatives/i })).not.toBeInTheDocument()
-    expect(screen.getByText('Top Learners Preview')).toBeInTheDocument()
-    expect(screen.getByText('#1 Top Learner')).toBeInTheDocument()
-    expect(screen.getByText('Recent Project Updates')).toBeInTheDocument()
-    expect(screen.getByText('Observability')).toBeInTheDocument()
+    expect(screen.getByText('Leaderboard Snapshot')).toBeInTheDocument()
+    expect(screen.getByText('Recent Notifications')).toBeInTheDocument()
+    expect(screen.getByText('Quick Actions')).toBeInTheDocument()
+    expect(screen.getByText('Recent Activity')).toBeInTheDocument()
     expect(getAdminDashboardData).toHaveBeenCalledTimes(1)
     expect(getEmployeeDashboardData).not.toHaveBeenCalled()
   })
 
-  it('renders employee dashboard widgets from employee API data', async () => {
-    vi.mocked(useAuth).mockReturnValue({ isAdmin: false } as ReturnType<typeof useAuth>)
+  it('renders employee dashboard sections from employee API data', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAdmin: false,
+      user: { fullName: 'Employee One' },
+    } as ReturnType<typeof useAuth>)
     vi.mocked(getEmployeeDashboardData).mockResolvedValue(dashboardData)
 
     render(
@@ -154,14 +186,15 @@ describe('DashboardPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('Employee Dashboard')).toBeInTheDocument()
+    expect(screen.getByText(/Good (morning|afternoon|evening), Employee/)).toBeInTheDocument()
 
-    await waitFor(() => expect(screen.getByText('My Rank')).toBeInTheDocument())
-    expect(screen.queryByRole('link', { name: /pending certificate reviews/i })).not.toBeInTheDocument()
-    expect(screen.getByText('#2')).toBeInTheDocument()
-    expect(screen.getAllByText('My Submissions').length).toBeGreaterThan(0)
-    expect(screen.getByText('Assigned Projects')).toBeInTheDocument()
-    expect(screen.getByText('Payments Platform')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('My Active Initiatives')).toBeInTheDocument())
+    expect(screen.getAllByText('My Certificates').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Leaderboard Rank').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('#2').length).toBeGreaterThan(0)
+    expect(screen.getByText('Recent Notifications')).toBeInTheDocument()
+    expect(screen.getByText('Quick Actions')).toBeInTheDocument()
+    expect(screen.getByText('Submit Certificate')).toBeInTheDocument()
     expect(getEmployeeDashboardData).toHaveBeenCalledTimes(1)
     expect(getAdminDashboardData).not.toHaveBeenCalled()
   })
@@ -179,4 +212,3 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('Unable to load dashboard data. Please refresh or try again later.')).toBeInTheDocument()
   })
 })
-

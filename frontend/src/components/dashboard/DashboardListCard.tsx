@@ -3,6 +3,7 @@ import {
   Card,
   CardContent,
   Divider,
+  Link,
   List,
   ListItem,
   ListItemButton,
@@ -25,10 +26,13 @@ export interface DashboardListItem {
 
 interface DashboardListCardProps {
   title: string
+  description?: string
   emptyText: string
   items: DashboardListItem[]
   loading?: boolean
   error?: string | null
+  viewAllHref?: string
+  viewAllLabel?: string
 }
 
 function renderDashboardListText(value: ReactNode, maxLength: number) {
@@ -39,29 +43,54 @@ function renderDashboardListText(value: ReactNode, maxLength: number) {
   return value
 }
 
-export function DashboardListCard({ emptyText, error, items, loading = false, title }: DashboardListCardProps) {
+export function DashboardListCard({
+  description,
+  emptyText,
+  error,
+  items,
+  loading = false,
+  title,
+  viewAllHref,
+  viewAllLabel = 'View all',
+}: DashboardListCardProps) {
   return (
     <Card sx={{ height: '100%', minWidth: 0 }} variant="outlined">
-      <CardContent>
-        <Stack spacing={2}>
-          <Typography variant="h6">{title}</Typography>
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack spacing={2} sx={{ height: '100%' }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+              <Typography component="h3" sx={{ fontWeight: 700 }} variant="h6">
+                {title}
+              </Typography>
+              {description ? (
+                <Typography color="text.secondary" variant="body2">
+                  {description}
+                </Typography>
+              ) : null}
+            </Stack>
+            {viewAllHref && !loading ? (
+              <Link component={RouterLink} sx={{ flexShrink: 0, fontWeight: 600 }} to={viewAllHref} underline="hover" variant="body2">
+                {viewAllLabel}
+              </Link>
+            ) : null}
+          </Stack>
           {error ? <Alert severity="error">{error}</Alert> : null}
           {loading ? (
             <Stack spacing={1}>
-              <Skeleton height={32} />
-              <Skeleton height={32} />
-              <Skeleton height={32} />
+              <Skeleton height={32} variant="rounded" />
+              <Skeleton height={32} variant="rounded" />
+              <Skeleton height={32} variant="rounded" />
             </Stack>
           ) : items.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">
+            <Typography color="text.secondary" sx={{ py: 1 }} variant="body2">
               {emptyText}
             </Typography>
           ) : (
-            <List disablePadding>
+            <List disablePadding sx={{ flexGrow: 1 }}>
               {items.map((item, index) => (
                 <div key={item.id}>
                   {item.href ? (
-                    <ListItemButton component={RouterLink} disableGutters sx={{ minWidth: 0 }} to={item.href}>
+                    <ListItemButton component={RouterLink} disableGutters sx={{ minWidth: 0, px: 0, py: 1 }} to={item.href}>
                       <ListItemText
                         primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
                         secondary={
@@ -70,13 +99,13 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
                             : undefined
                         }
                         slotProps={{
-                          primary: { sx: { minWidth: 0 } },
+                          primary: { sx: { fontWeight: 600, minWidth: 0 } },
                           secondary: { sx: { minWidth: 0 } },
                         }}
                       />
                     </ListItemButton>
                   ) : (
-                    <ListItem disableGutters sx={{ minWidth: 0 }}>
+                    <ListItem disableGutters sx={{ minWidth: 0, px: 0, py: 1 }}>
                       <ListItemText
                         primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
                         secondary={
@@ -85,7 +114,7 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
                             : undefined
                         }
                         slotProps={{
-                          primary: { sx: { minWidth: 0 } },
+                          primary: { sx: { fontWeight: 600, minWidth: 0 } },
                           secondary: { sx: { minWidth: 0 } },
                         }}
                       />
