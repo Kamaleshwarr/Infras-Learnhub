@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Card,
   CardContent,
   Divider,
@@ -15,6 +16,7 @@ import type { ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { TruncatedTextWithTooltip } from '../common/TruncatedTextWithTooltip'
 import { TEXT_DISPLAY_LIMITS } from '../common/textDisplay'
+import { cardContentPadding, emptyStateSx } from '../../theme/uiTokens'
 
 export interface DashboardListItem {
   id: string
@@ -39,12 +41,23 @@ function renderDashboardListText(value: ReactNode, maxLength: number) {
   return value
 }
 
+const listItemButtonSx = {
+  borderRadius: 1,
+  px: 1,
+  py: 0.75,
+  minWidth: 0,
+  transition: 'background-color 0.15s ease',
+  '&:hover': {
+    bgcolor: 'action.hover',
+  },
+} as const
+
 export function DashboardListCard({ emptyText, error, items, loading = false, title }: DashboardListCardProps) {
   return (
     <Card sx={{ height: '100%', minWidth: 0 }} variant="outlined">
-      <CardContent>
+      <CardContent sx={cardContentPadding}>
         <Stack spacing={2}>
-          <Typography variant="h6">{title}</Typography>
+          <Typography sx={{ fontWeight: 700 }} variant="h6">{title}</Typography>
           {error ? <Alert severity="error">{error}</Alert> : null}
           {loading ? (
             <Stack spacing={1}>
@@ -53,15 +66,17 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
               <Skeleton height={32} />
             </Stack>
           ) : items.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">
-              {emptyText}
-            </Typography>
+            <Box sx={emptyStateSx}>
+              <Typography color="text.secondary" variant="body2">
+                {emptyText}
+              </Typography>
+            </Box>
           ) : (
-            <List disablePadding>
+            <List disablePadding sx={{ mx: -0.5 }}>
               {items.map((item, index) => (
                 <div key={item.id}>
                   {item.href ? (
-                    <ListItemButton component={RouterLink} disableGutters sx={{ minWidth: 0 }} to={item.href}>
+                    <ListItemButton component={RouterLink} disableGutters sx={listItemButtonSx} to={item.href}>
                       <ListItemText
                         primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
                         secondary={
@@ -70,13 +85,13 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
                             : undefined
                         }
                         slotProps={{
-                          primary: { sx: { minWidth: 0 } },
+                          primary: { sx: { minWidth: 0, fontWeight: 500 } },
                           secondary: { sx: { minWidth: 0 } },
                         }}
                       />
                     </ListItemButton>
                   ) : (
-                    <ListItem disableGutters sx={{ minWidth: 0 }}>
+                    <ListItem disableGutters sx={{ ...listItemButtonSx, px: 1 }}>
                       <ListItemText
                         primary={renderDashboardListText(item.primary, TEXT_DISPLAY_LIMITS.listPrimary)}
                         secondary={
@@ -85,13 +100,13 @@ export function DashboardListCard({ emptyText, error, items, loading = false, ti
                             : undefined
                         }
                         slotProps={{
-                          primary: { sx: { minWidth: 0 } },
+                          primary: { sx: { minWidth: 0, fontWeight: 500 } },
                           secondary: { sx: { minWidth: 0 } },
                         }}
                       />
                     </ListItem>
                   )}
-                  {index < items.length - 1 ? <Divider component="li" /> : null}
+                  {index < items.length - 1 ? <Divider component="li" sx={{ my: 0.25 }} /> : null}
                 </div>
               ))}
             </List>

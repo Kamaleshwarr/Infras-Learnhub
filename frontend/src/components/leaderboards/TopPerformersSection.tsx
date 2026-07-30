@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined'
-import { Box, Card, CardContent, Skeleton, Stack, Typography } from '@mui/material'
+import { Box, Card, CardContent, Skeleton, Stack, Typography, useTheme } from '@mui/material'
 import type { GlobalLeaderboardEntry } from '../../types/leaderboards'
 import { WrappingText } from '../common/WrappingText'
 import { LeaderboardAvatar } from './LeaderboardAvatar'
 import { LEADERBOARD_MESSAGES } from './leaderboardMessages'
+import { cardContentPadding, interactiveCardHoverSx } from '../../theme/uiTokens'
 
 interface TopPerformersSectionProps {
   entries: GlobalLeaderboardEntry[]
@@ -13,6 +14,7 @@ interface TopPerformersSectionProps {
 }
 
 export function TopPerformersSection({ entries, loading, currentUserId }: TopPerformersSectionProps) {
+  const theme = useTheme()
   const topEntries = entries.slice(0, 3)
 
   return (
@@ -25,7 +27,7 @@ export function TopPerformersSection({ entries, loading, currentUserId }: TopPer
         {loading
           ? Array.from({ length: 3 }, (_, index) => (
               <Card key={index} sx={{ minWidth: 0 }} variant="outlined">
-                <CardContent>
+                <CardContent sx={cardContentPadding}>
                   <Skeleton height={28} width="60%" />
                   <Skeleton height={20} width="40%" />
                 </CardContent>
@@ -38,12 +40,13 @@ export function TopPerformersSection({ entries, loading, currentUserId }: TopPer
                   minWidth: 0,
                   outline:
                     entry.employee.id === currentUserId
-                      ? (theme) => `2px solid ${theme.palette.primary.main}`
+                      ? `2px solid ${theme.palette.primary.main}`
                       : undefined,
+                  ...interactiveCardHoverSx(theme),
                 }}
                 variant="outlined"
               >
-                <CardContent>
+                <CardContent sx={cardContentPadding}>
                   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
                     <LeaderboardAvatar fullName={entry.employee.fullName} size={44} />
                     <Stack spacing={0.25} sx={{ minWidth: 0 }}>

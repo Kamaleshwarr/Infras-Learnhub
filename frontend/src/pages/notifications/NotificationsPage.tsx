@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert, Box, Button, CircularProgress, List, Paper, Tab, Tabs } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, List, Paper, Tab, Tabs, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { notificationsApi } from '../../api/notificationsApi'
 import { useNotifications } from '../../notifications/useNotifications'
@@ -9,6 +9,7 @@ import { TablePaginationBar } from '../../components/common/TablePaginationBar'
 import type { PageResponse } from '../../types/api'
 import type { Notification } from '../../types/notifications'
 import { resolveApiError } from '../../utils/apiErrors'
+import { emptyStateSx } from '../../theme/uiTokens'
 
 type ReadFilter = 'all' | 'unread'
 
@@ -117,7 +118,7 @@ export function NotificationsPage() {
         title="Notifications"
       />
 
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5, gap: 2, flexWrap: 'wrap' }}>
         <Tabs
           onChange={(_event, value: ReadFilter) => {
             setReadFilter(value)
@@ -145,8 +146,10 @@ export function NotificationsPage() {
             <CircularProgress />
           </Box>
         ) : pageData.content.length === 0 ? (
-          <Box sx={{ px: 3, py: 6 }}>
-            <Alert severity="info">{readFilter === 'unread' ? 'No unread notifications.' : 'No notifications yet.'}</Alert>
+          <Box sx={emptyStateSx}>
+            <Typography color="text.secondary" variant="body2">
+              {readFilter === 'unread' ? 'No unread notifications.' : 'No notifications yet.'}
+            </Typography>
           </Box>
         ) : (
           <List disablePadding>

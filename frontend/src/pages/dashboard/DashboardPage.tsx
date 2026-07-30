@@ -13,7 +13,8 @@ import { useAuth } from '../../auth/useAuth'
 import { DashboardWidget } from '../../components/dashboard/DashboardWidget'
 import { DashboardListCard } from '../../components/dashboard/DashboardListCard'
 import type { DashboardListItem } from '../../components/dashboard/DashboardListCard'
-import { PageHeader } from '../../components/common/PageHeader'
+import { DashboardWelcomeBanner } from '../../components/dashboard/DashboardWelcomeBanner'
+import { pageSectionSpacing } from '../../theme/uiTokens'
 
 export function DashboardPage() {
   const { isAdmin } = useAuth()
@@ -54,12 +55,9 @@ export function DashboardPage() {
 
   return (
     <Box>
-      <PageHeader
-        description={isAdmin ? 'Operational overview for learning administrators.' : 'Your learning activity and resources.'}
-        title={isAdmin ? 'Admin Dashboard' : 'Employee Dashboard'}
-      />
+      <DashboardWelcomeBanner isAdmin={isAdmin} />
       {error ? (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={pageSectionSpacing}>
           {error}
         </Alert>
       ) : null}
@@ -68,7 +66,7 @@ export function DashboardPage() {
           display: 'grid',
           gap: 2,
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-          mb: 3,
+          ...pageSectionSpacing,
         }}
       >
         {metricCards.map((widget) => (

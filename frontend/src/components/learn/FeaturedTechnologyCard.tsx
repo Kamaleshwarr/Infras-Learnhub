@@ -1,9 +1,10 @@
 import MapOutlinedIcon from '@mui/icons-material/MapOutlined'
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Stack, Typography, useTheme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { LEARN_MESSAGES } from './learnMessages'
 import { TechnologyCategoryChip, TechnologyDifficultyChip } from './TechnologyMetaChips'
 import type { Technology } from '../../types/learn'
+import { cardContentPadding, interactiveCardHoverSx } from '../../theme/uiTokens'
 
 interface FeaturedTechnologyCardProps {
   technology: Technology
@@ -19,6 +20,7 @@ const descriptionClampSx = {
 } as const
 
 export function FeaturedTechnologyCard({ technology }: FeaturedTechnologyCardProps) {
+  const theme = useTheme()
   const description = technology.description?.trim() || technology.shortName
 
   return (
@@ -27,28 +29,18 @@ export function FeaturedTechnologyCard({ technology }: FeaturedTechnologyCardPro
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        border: 1,
-        borderColor: 'divider',
-        transition: (theme) =>
-          theme.transitions.create(['box-shadow', 'border-color'], {
-            duration: theme.transitions.duration.shortest,
-          }),
-        '&:hover': {
-          boxShadow: (theme) => theme.shadows[3],
-          borderColor: 'primary.light',
-          cursor: 'pointer',
-        },
+        cursor: 'pointer',
+        ...interactiveCardHoverSx(theme),
       }}
       variant="outlined"
     >
       <CardContent
         sx={{
+          ...cardContentPadding,
           display: 'flex',
           flexDirection: 'column',
           flexGrow: 1,
           gap: 1.5,
-          p: 2.5,
-          '&:last-child': { pb: 2.5 },
         }}
       >
         <Box>
