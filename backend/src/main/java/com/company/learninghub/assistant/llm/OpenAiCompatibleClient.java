@@ -50,6 +50,25 @@ public class OpenAiCompatibleClient implements LlmClient {
         this.assistantProperties = assistantProperties;
         this.objectMapper = objectMapper;
         this.httpClient = httpClient;
+        logResolvedConfigurationAtStartup();
+    }
+
+    private void logResolvedConfigurationAtStartup() {
+        AssistantProperties.Llm llm = assistantProperties.getLlm();
+        AssistantProperties.OpenAiCompatible config = llm.getOpenaiCompatible();
+        Duration configuredReadTimeout = config.getReadTimeout();
+        Duration effectiveReadTimeout = effectiveReadTimeout(config);
+        log.info(
+                "OPENAI_COMPAT_TIMEOUT_DIAG construction provider={} baseUrl={} model={} connectTimeout={} configuredReadTimeout={} effectiveReadTimeout={} applicationYmlDefaultReadTimeout=PT180S ollamaMinimumReadTimeout={} ollamaExtendedReadTimeoutEligible={}",
+                llm.getProvider(),
+                config.getBaseUrl(),
+                config.getModel(),
+                config.getConnectTimeout(),
+                configuredReadTimeout,
+                effectiveReadTimeout,
+                OLLAMA_MINIMUM_READ_TIMEOUT,
+                requiresExtendedOllamaReadTimeout(config.getBaseUrl())
+        );
     }
 
     @Override
@@ -152,6 +171,14 @@ public class OpenAiCompatibleClient implements LlmClient {
                 requestBuilder.header("Authorization", "Bearer " + config.getApiKey().trim());
             }
 
+            log.info(
+                    "OPENAI_COMPAT_TIMEOUT_DIAG requestStart uri={} model={} requestTimeout={} configuredReadTimeout={}",
+                    requestUri,
+                    config.getModel(),
+                    readTimeout,
+                    config.getReadTimeout()
+            );
+
             log.debug(
                     "OpenAI-compatible LLM request starting: uri={}, model={}, configuredReadTimeout={}, effectiveReadTimeout={}, requestBody={}",
                     requestUri,
@@ -164,6 +191,13 @@ public class OpenAiCompatibleClient implements LlmClient {
             HttpResponse<String> response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
             long elapsedMs = (System.nanoTime() - startedAtNanos) / 1_000_000L;
             String responseBody = response.body();
+            log.info(
+                    "OPENAI_COMPAT_TIMEOUT_DIAG requestEnd uri={} elapsedMs={} httpStatus={} requestTimeout={}",
+                    requestUri,
+                    elapsedMs,
+                    response.statusCode(),
+                    readTimeout
+            );
             log.debug(
                     "OpenAI-compatible LLM response: status={}, elapsedMs={}, body={}",
                     response.statusCode(),
@@ -193,7 +227,7 @@ public class OpenAiCompatibleClient implements LlmClient {
         } catch (HttpTimeoutException ex) {
             long elapsedMs = (System.nanoTime() - startedAtNanos) / 1_000_000L;
             log.warn(
-                    "OpenAI-compatible LLM request timed out: uri={}, configuredReadTimeout={}, effectiveReadTimeout={}, elapsedMs={}",
+                    "OPENAI_COMPAT_TIMEOUT_DIAG requestTimedOut uri={} configuredReadTimeout={} effectiveReadTimeout={} elapsedMsBeforeTimeout={}",
                     requestUri,
                     config.getReadTimeout(),
                     readTimeout,
@@ -403,15 +437,19 @@ public class OpenAiCompatibleClient implements LlmClient {
         Duration configured = config.getReadTimeout() == null
                 ? Duration.ofSeconds(60)
                 : config.getReadTimeout();
-        if (requiresExtendedOllamaReadTimeout(config.getBaseUrl()) && configured.compareTo(OLLAMA_MINIMUM_READ_TIMEOUT) < 0) {
-            log.debug(
-                    "Applying Ollama minimum read timeout {} (configured={})",
-                    OLLAMA_MINIMUM_READ_TIMEOUT,
-                    configured
-            );
-            return OLLAMA_MINIMUM_READ_TIMEOUT;
-        }
-        return configured;
+        boolean ollamaExtendedReadTimeoutEligible = requiresExtendedOllamaReadTimeout(config.getBaseUrl());
+        boolean ollamaMinimumApplied = ollamaExtendedReadTimeoutEligible
+                && configured.compareTo(OLLAMA_MINIMUM_READ_TIMEOUT) < 0;
+        Duration resolved = ollamaMinimumApplied ? OLLAMA_MINIMUM_READ_TIMEOUT : configured;
+        log.info(
+                "OPENAI_COMPAT_TIMEOUT_DIAG resolveReadTimeout configuredReadTimeout={} ollamaExtendedReadTimeoutEligible={} ollamaMinimumReadTimeout={} ollamaMinimumApplied={} effectiveReadTimeout={}",
+                configured,
+                ollamaExtendedReadTimeoutEligible,
+                OLLAMA_MINIMUM_READ_TIMEOUT,
+                ollamaMinimumApplied,
+                resolved
+        );
+        return resolved;
     }
 
     static boolean requiresExtendedOllamaReadTimeout(String baseUrl) {
